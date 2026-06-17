@@ -1,0 +1,383 @@
+@import url("https://fonts.googleapis.com/css2?family=Lilita+One&family=Poppins:wght@400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-border: var(--primary-border);
+  --color-placeholder: var(--placeholder);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-border: var(--warning-border);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-error-soft: var(--error-soft);
+  --color-error-border: var(--error-border);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-soft: var(--info-soft);
+  --color-info-border: var(--info-border);
+  --font-sans: var(--sans);
+  --font-heading: var(--heading);
+  --font-mono: var(--mono);
+  --shadow-elevated: var(--shadow);
+}
+
+:root {
+  --background: #fff4e3;
+  --foreground: #321914;
+  --muted-foreground: #7a4a2a;
+  --surface: #fffaf2;
+  --surface-muted: #ffe8c5;
+  --surface-raised: #ffffff;
+  --border: #efb15a;
+  --primary: #ff7a1a;
+  --primary-foreground: #ffffff;
+  --primary-soft: rgba(255, 122, 26, 0.14);
+  --primary-border: rgba(255, 122, 26, 0.48);
+  --placeholder: #a06e4b;
+  --success: #187a42;
+  --success-foreground: #ffffff;
+  --success-soft: rgba(24, 122, 66, 0.12);
+  --success-border: rgba(24, 122, 66, 0.34);
+  --warning: #a86400;
+  --warning-foreground: #2f1800;
+  --warning-soft: rgba(255, 176, 32, 0.18);
+  --warning-border: rgba(255, 176, 32, 0.5);
+  --error: #ba2d23;
+  --error-foreground: #ffffff;
+  --error-soft: rgba(186, 45, 35, 0.12);
+  --error-border: rgba(186, 45, 35, 0.36);
+  --info: #246b8f;
+  --info-foreground: #ffffff;
+  --info-soft: rgba(36, 107, 143, 0.12);
+  --info-border: rgba(36, 107, 143, 0.34);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --text: var(--muted-foreground);
+  --text-h: var(--foreground);
+  --bg: var(--background);
+  --code-bg: var(--surface-muted);
+  --accent: var(--primary);
+  --accent-bg: var(--primary-soft);
+  --accent-border: var(--primary-border);
+  --social-bg: color-mix(in oklab, var(--surface-muted) 50%, transparent);
+
+  --sans: "Poppins", system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: "Lilita One", "Poppins", system-ui, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+.light,
+[data-theme="light"] {
+  color-scheme: light;
+  --background: #fff4e3;
+  --foreground: #321914;
+  --muted-foreground: #7a4a2a;
+  --surface: #fffaf2;
+  --surface-muted: #ffe8c5;
+  --surface-raised: #ffffff;
+  --border: #efb15a;
+  --primary: #ff7a1a;
+  --primary-foreground: #ffffff;
+  --primary-soft: rgba(255, 122, 26, 0.14);
+  --primary-border: rgba(255, 122, 26, 0.48);
+  --placeholder: #a06e4b;
+  --success: #187a42;
+  --success-foreground: #ffffff;
+  --success-soft: rgba(24, 122, 66, 0.12);
+  --success-border: rgba(24, 122, 66, 0.34);
+  --warning: #a86400;
+  --warning-foreground: #2f1800;
+  --warning-soft: rgba(255, 176, 32, 0.18);
+  --warning-border: rgba(255, 176, 32, 0.5);
+  --error: #ba2d23;
+  --error-foreground: #ffffff;
+  --error-soft: rgba(186, 45, 35, 0.12);
+  --error-border: rgba(186, 45, 35, 0.36);
+  --info: #246b8f;
+  --info-foreground: #ffffff;
+  --info-soft: rgba(36, 107, 143, 0.12);
+  --info-border: rgba(36, 107, 143, 0.34);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #201715;
+  --foreground: #fff7ef;
+  --muted-foreground: #efbc7b;
+  --surface: #2b1d19;
+  --surface-muted: #3a261f;
+  --surface-raised: #33211c;
+  --border: #8f5630;
+  --primary: #ff9b2f;
+  --primary-foreground: #24140f;
+  --primary-soft: rgba(255, 155, 47, 0.16);
+  --primary-border: rgba(255, 155, 47, 0.52);
+  --placeholder: #c28c61;
+  --success: #58c783;
+  --success-foreground: #082413;
+  --success-soft: rgba(88, 199, 131, 0.14);
+  --success-border: rgba(88, 199, 131, 0.42);
+  --warning: #ffc857;
+  --warning-foreground: #2b1b00;
+  --warning-soft: rgba(255, 200, 87, 0.14);
+  --warning-border: rgba(255, 200, 87, 0.44);
+  --error: #ff6f61;
+  --error-foreground: #2b0805;
+  --error-soft: rgba(255, 111, 97, 0.14);
+  --error-border: rgba(255, 111, 97, 0.42);
+  --info: #75c7e8;
+  --info-foreground: #071c26;
+  --info-soft: rgba(117, 199, 232, 0.14);
+  --info-border: rgba(117, 199, 232, 0.42);
+  --shadow:
+    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 900;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: 0;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+.flashy-container {
+  z-index: 80 !important;
+  top: 88px !important;
+  left: 12px !important;
+  right: 12px !important;
+  transform: none !important;
+  display: grid !important;
+  justify-items: center !important;
+  pointer-events: none !important;
+}
+
+.flashy-notification {
+  --flashy-accent: var(--info);
+  --flashy-accent-soft: var(--info-soft);
+  --flashy-accent-border: var(--info-border);
+  width: min(100%, 400px) !important;
+  min-width: 0 !important;
+  max-width: 400px !important;
+  gap: 11px !important;
+  margin: 6px 0 !important;
+  padding: 11px 12px !important;
+  border: 1px solid color-mix(in oklab, var(--border) 74%, var(--flashy-accent-border)) !important;
+  border-left: 4px solid var(--flashy-accent) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--flashy-accent-soft) 42%, transparent),
+      transparent 38%
+    ),
+    color-mix(in oklab, var(--surface) 96%, var(--surface-raised)) !important;
+  color: var(--foreground) !important;
+  box-shadow:
+    0 16px 32px color-mix(in oklab, #000 14%, transparent),
+    0 3px 0 color-mix(in oklab, var(--primary) 12%, transparent) !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.flashy-icon {
+  display: inline-flex !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  min-width: 30px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 0 !important;
+  border: 1px solid var(--flashy-accent-border) !important;
+  border-radius: 999px !important;
+  background: color-mix(in oklab, var(--flashy-accent-soft) 78%, var(--surface)) !important;
+  color: var(--flashy-accent) !important;
+  font-size: 0 !important;
+  font-weight: 900 !important;
+}
+
+.flashy-content {
+  min-width: 0 !important;
+  padding-top: 1px !important;
+}
+
+.flashy-close {
+  width: 28px !important;
+  height: 28px !important;
+  margin-left: 0 !important;
+  border-radius: 999px !important;
+  color: var(--muted-foreground) !important;
+  font-size: 18px !important;
+  opacity: 0.74 !important;
+}
+
+.flashy-close:hover {
+  background: var(--surface-muted) !important;
+  opacity: 1 !important;
+}
+
+.flashy-progress {
+  height: 2px !important;
+  background: var(--flashy-accent) !important;
+  opacity: 0.34 !important;
+}
+
+.notification-icon-svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+  flex: none;
+}
+
+.flashy-notification.success {
+  --flashy-accent: var(--success);
+  --flashy-accent-soft: var(--success-soft);
+  --flashy-accent-border: var(--success-border);
+}
+
+.flashy-notification.warning {
+  --flashy-accent: var(--warning);
+  --flashy-accent-soft: var(--warning-soft);
+  --flashy-accent-border: var(--warning-border);
+}
+
+.flashy-notification.error {
+  --flashy-accent: var(--error);
+  --flashy-accent-soft: var(--error-soft);
+  --flashy-accent-border: var(--error-border);
+}
+
+.flashy-notification.info,
+.flashy-notification.default {
+  --flashy-accent: var(--info);
+  --flashy-accent-soft: var(--info-soft);
+  --flashy-accent-border: var(--info-border);
+}
+
+@media (max-width: 640px) {
+  .flashy-container {
+    top: 84px !important;
+    left: 10px !important;
+    right: 10px !important;
+  }
+
+  .flashy-notification {
+    max-width: calc(100vw - 20px) !important;
+    padding: 10px 11px !important;
+    font-size: 13px !important;
+  }
+
+  .flashy-icon {
+    width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    min-width: 28px !important;
+  }
+}
