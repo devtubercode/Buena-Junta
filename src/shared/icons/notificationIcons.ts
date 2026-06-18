@@ -1,24 +1,20 @@
 function svgIcon(paths: string, extraAttributes = "") {
-  return `<svg class="notification-icon-svg" viewBox="0 0 24 24" aria-hidden="true" ${extraAttributes}>${paths}</svg>`;
+  return `<svg class="notification-icon-svg" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extraAttributes}>${paths}</svg>`;
 }
 
 export const notificationIcons = {
-  success: svgIcon(
-    '<path d="M20 6.8 9.7 17.2 4 11.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" />',
-  ),
+  success: svgIcon('<path d="M20 6 9 17l-5-5" />'),
   warning: svgIcon(
-    '<path d="M12 4.3 21 19H3L12 4.3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.9" /><path d="M12 9.3v4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" /><path d="M12 16.8h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.6" />',
+    '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" />',
   ),
-  error: svgIcon(
-    '<path d="M6.7 6.7 17.3 17.3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" /><path d="M17.3 6.7 6.7 17.3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" />',
-  ),
+  error: svgIcon('<path d="M18 6 6 18" /><path d="m6 6 12 12" />'),
   info: svgIcon(
-    '<path d="M12 10.5v6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.1" /><path d="M12 7.2h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.8" /><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="1.8" />',
+    '<circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />',
   ),
   cart: svgIcon(
-    '<path d="M4 5.7h2.1l1.3 8.5a2 2 0 0 0 2 1.7h7.8a2 2 0 0 0 1.9-1.5l1-4.7H7.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" /><path d="M9.1 9.6h8.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7" /><path d="M10 12.8h6.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7" /><path d="M10.2 9.4c.2-1.5 1.4-2.6 2.9-2.6s2.7 1.1 2.9 2.6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7" /><circle cx="9.8" cy="19" r="1.1" fill="currentColor" /><circle cx="17" cy="19" r="1.1" fill="currentColor" />',
+    '<circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />',
   ),
   whatsapp: svgIcon(
-    '<path d="M5.5 18.4 4.4 21l2.8-1a8.1 8.1 0 1 0-1.7-1.6Z" fill="#25D366" stroke="#118C44" stroke-linejoin="round" stroke-width="1.1" /><path d="M9 8.8c.2-.4.4-.5.7-.5h.6c.2 0 .4.1.5.4l.7 1.5c.1.3 0 .5-.2.7l-.4.5c.7 1.2 1.6 2.1 2.9 2.7l.5-.5c.2-.2.5-.3.8-.1l1.5.7c.3.1.4.3.4.6v.6c0 .3-.2.6-.5.7-.6.3-1.3.4-2 .2-2.9-.8-5.1-2.9-5.9-5.8-.2-.7-.1-1.3.4-1.8Z" fill="#fff" />',
+    '<path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719Z" />',
   ),
 };

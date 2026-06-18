@@ -8,7 +8,7 @@ import {
   getSelectedVariantSummary,
   getVariantPrompt,
 } from "@/features/menu/utils/productCopy";
-import { BuenaCartIcon } from "@/shared/icons";
+import { ShoppingCart } from "lucide-react";
 import { notify } from "@/shared/notifications/notify";
 
 type ProductCardProps = {
@@ -18,6 +18,10 @@ type ProductCardProps = {
     label?: string;
     displayName?: string;
     priceCents: number;
+    image?: {
+      src: string;
+      alt: string;
+    };
     variantOptions?: CartVariantOption[];
   }) => void;
 };
@@ -66,6 +70,10 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
     label?: string;
     displayName?: string;
     priceCents: number;
+    image?: {
+      src: string;
+      alt: string;
+    };
     variantOptions?: CartVariantOption[];
   }) => {
     onAdd(input);
@@ -101,6 +109,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
       label: label || undefined,
       displayName,
       priceCents: selectedPriceOption?.priceCents ?? product.priceCents ?? 0,
+      image: product.primaryImage,
       variantOptions: cartVariantOptions,
     });
   };
@@ -230,7 +239,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
               data-cart-action="add-product"
               onClick={handleConfirmAdd}
             >
-              <BuenaCartIcon className="mr-2 size-5" />
+              <ShoppingCart className="mr-2 size-5" />
               {shouldUseExpandableOptions ? "Agregar al carrito" : "Agregar"}
             </button>
           ) : null}

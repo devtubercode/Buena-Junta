@@ -1,17 +1,2 @@
-export { ArepaIcon } from "@/shared/icons/ArepaIcon";
-export { ArrowLeftIcon } from "@/shared/icons/ArrowLeftIcon";
-export { BuenaCartIcon } from "@/shared/icons/BuenaCartIcon";
-export { BurgerIcon } from "@/shared/icons/BurgerIcon";
-export { CoffeeIcon } from "@/shared/icons/CoffeeIcon";
-export { DrinkIcon } from "@/shared/icons/DrinkIcon";
-export { HomeIcon } from "@/shared/icons/HomeIcon";
 export { HotDogIcon } from "@/shared/icons/HotDogIcon";
-export { MenuBoardIcon } from "@/shared/icons/MenuBoardIcon";
-export { MoonIcon } from "@/shared/icons/MoonIcon";
 export { notificationIcons } from "@/shared/icons/notificationIcons";
-export { PizzaIcon } from "@/shared/icons/PizzaIcon";
-export { SandwichIcon } from "@/shared/icons/SandwichIcon";
-export { SnackIcon } from "@/shared/icons/SnackIcon";
-export { SunIcon } from "@/shared/icons/SunIcon";
-export { TrashIcon } from "@/shared/icons/TrashIcon";
-export { WhatsAppIcon } from "@/shared/icons/WhatsAppIcon";
