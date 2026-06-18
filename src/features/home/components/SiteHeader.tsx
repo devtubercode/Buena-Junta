@@ -1,9 +1,10 @@
 import { Link, NavLink } from "react-router";
+import { ClipboardList } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import logoImage from "@/assets/brand/buenajunta-logo.png";
-import { ThemeSwitch } from "@/shared/components/ThemeSwitch";
 import { CartButton } from "@/shared/components/CartButton";
-import { MenuBoardIcon } from "@/shared/icons";
+import { ThemeSwitch } from "@/shared/components/ThemeSwitch";
+import { cn } from "@/shared/utils/cn";
 
 export function SiteHeader() {
   return (
@@ -30,18 +31,18 @@ export function SiteHeader() {
           <NavLink
             to={appRoutes.menu}
             className={({ isActive }) =>
-              [
-                "hidden min-h-11 items-center justify-center rounded-full px-4 text-sm font-bold shadow-elevated transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:inline-flex sm:px-5",
+              cn(
+                "hidden min-h-11 items-center justify-center rounded-full px-4 text-sm font-bold shadow-elevated transition focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary sm:inline-flex sm:px-5",
                 isActive
                   ? "bg-primary-soft text-primary"
                   : "bg-primary text-primary-foreground hover:opacity-90",
-              ].join(" ")
+              )
             }
           >
-            <MenuBoardIcon className="mr-2 size-5" />
+            <ClipboardList className="mr-2 size-5" />
             Ver menú
           </NavLink>
-          <CartButton compact />
+          <CartButton />
         </div>
       </nav>
     </header>
