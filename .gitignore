@@ -13,7 +13,8 @@ dist-ssr
 *.local
 .env
 .codegraph
-.
+.claude
+.agents
 
 # Editor directories and files
 .vscode/*
