@@ -83,6 +83,7 @@ export const useCartStore = create<CartState>()(
                 cartItemId: createCartItemId(),
                 lineId,
                 productId: item.productId,
+                image: item.image,
                 variantKey: item.variantKey,
                 baseName: item.baseName,
                 displayName: item.displayName,

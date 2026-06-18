@@ -1,30 +1,27 @@
 import { Link } from "react-router";
 import { appRoutes } from "@/app/routes";
 import { useCartStore } from "@/features/cart/store/useCartStore";
-import { CartBadge } from "@/shared/components/CartBadge";
-import { BuenaCartIcon } from "@/shared/icons";
 
-type CartButtonProps = {
-  compact?: boolean;
-};
+import { ShoppingCart } from "lucide-react";
 
-export function CartButton({ compact = false }: CartButtonProps) {
+export const CartButton = () => {
   const totalQuantity = useCartStore((state) => state.getTotalQuantity());
 
   return (
     <Link
       to={appRoutes.cart}
-      className="relative inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-border bg-primary-soft px-4 text-sm font-black text-primary transition hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="relative inline-flex items-center justify-center rounded-full p-1.5 text-primary transition hover:opacity-90 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary"
       aria-label={`Ver carrito con ${totalQuantity} ${totalQuantity === 1 ? "producto" : "productos"}`}
       title="Ver carrito"
     >
-      <span className="relative inline-flex">
-        <BuenaCartIcon className="size-5" />
-        <CartBadge count={totalQuantity} />
-      </span>
-      {!compact ? (
-        <span className="hidden sm:inline">Carrito</span>
-      ) : null}
+      <ShoppingCart className="size-7" />
+      {totalQuantity > 0 && (
+        <span
+          className={`absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border border-background bg-primary px-1.5 text-[11px] font-black leading-none text-primary-foreground shadow-elevated`}
+        >
+          {totalQuantity > 99 ? "99+" : totalQuantity}
+        </span>
+      )}
     </Link>
   );
-}
+};

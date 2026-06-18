@@ -9,6 +9,10 @@ export type CartItem = {
   cartItemId?: string;
   lineId: string;
   productId: string;
+  image?: {
+    src: string;
+    alt: string;
+  };
   variantKey?: string;
   baseName?: string;
   displayName?: string;
@@ -27,6 +31,10 @@ export type OrderDraft = {
 
 export type AddCartItemInput = {
   productId: string;
+  image?: {
+    src: string;
+    alt: string;
+  };
   variantKey?: string;
   baseName?: string;
   displayName?: string;
