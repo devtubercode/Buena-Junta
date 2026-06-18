@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 import { appRoutes } from "@/app/routes";
 import type { CartVariantOption } from "@/features/cart/types";
@@ -6,6 +6,7 @@ import { useCartStore } from "@/features/cart/store/useCartStore";
 import { contactInfo, importantTexts } from "@/features/menu/data/menu";
 import { CategoryChips } from "@/features/menu/components/CategoryChips";
 import { ProductGrid } from "@/features/menu/components/ProductGrid";
+import { useMenuFilterStore } from "@/features/menu/store/useMenuFilterStore";
 import {
   getAvailableProducts,
   getCategories,
@@ -15,7 +16,12 @@ import { buildCartProductName } from "@/features/menu/utils/productCopy";
 
 export function MenuSection() {
   const addItem = useCartStore((state) => state.addItem);
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const activeCategoryId = useMenuFilterStore(
+    (state) => state.selectedCategoryId,
+  );
+  const setActiveCategoryId = useMenuFilterStore(
+    (state) => state.setSelectedCategory,
+  );
   const categories = useMemo(() => getCategories(), []);
   const products = useMemo(() => getAvailableProducts(), []);
   const filteredProducts = activeCategoryId
@@ -40,7 +46,8 @@ export function MenuSection() {
       productId: product.id,
       variantKey: input.variantKey,
       baseName: product.name,
-      displayName: input.displayName ?? buildCartProductName(product, input.label),
+      displayName:
+        input.displayName ?? buildCartProductName(product, input.label),
       name: input.displayName ?? buildCartProductName(product, input.label),
       unitPriceCents: input.priceCents,
       variantOptions: input.variantOptions,
@@ -72,7 +79,7 @@ export function MenuSection() {
         </div>
       </div>
 
-      <div className="sticky top-[73px] z-10 -mx-4 mb-5 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-[88px] z-10 -mx-4 mb-5 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <CategoryChips
           categories={categories}
           activeCategoryId={activeCategoryId}
@@ -80,7 +87,10 @@ export function MenuSection() {
         />
       </div>
 
-      <ProductGrid products={filteredProducts} onAddProduct={handleAddProduct} />
+      <ProductGrid
+        products={filteredProducts}
+        onAddProduct={handleAddProduct}
+      />
 
       <div className="mt-8 flex justify-center">
         <Link
@@ -95,7 +105,9 @@ export function MenuSection() {
         {importantTexts.map((text) => (
           <div key={text.id}>
             <p className="font-bold">{text.title}</p>
-            {text.body ? <p className="mt-1 text-muted-foreground">{text.body}</p> : null}
+            {text.body ? (
+              <p className="mt-1 text-muted-foreground">{text.body}</p>
+            ) : null}
           </div>
         ))}
       </div>

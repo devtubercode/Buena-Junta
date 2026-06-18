@@ -36,15 +36,19 @@ export type MenuProduct = {
   isAvailable: boolean;
 };
 
-export type WeekdayRule = {
-  weekday: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
-  label: string;
-};
+export type Weekday =
+  | "sunday"
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday";
 
 export type MenuPromotion = {
   id: string;
   categoryIds: string[];
-  weekdayRules: WeekdayRule[];
+  activeDays: Weekday[];
   title: string;
   description?: string;
   active: boolean;

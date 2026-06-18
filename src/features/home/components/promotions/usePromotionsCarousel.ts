@@ -18,7 +18,9 @@ export function usePromotionsCarousel({
   const pageScrollTimerRef = useRef<number | null>(null);
   const [activePromotion, setActivePromotion] = useState(0);
   const [isInteractionPaused, setIsInteractionPaused] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+    getPrefersReducedMotion,
+  );
 
   const pauseTemporarily = useCallback(() => {
     setIsInteractionPaused(true);
@@ -50,16 +52,6 @@ export function usePromotionsCarousel({
     [prefersReducedMotion],
   );
 
-  const showPreviousPromotion = useCallback(() => {
-    pauseTemporarily();
-
-    if (itemCount === 0) {
-      return;
-    }
-
-    scrollToPromotion(activePromotion === 0 ? itemCount - 1 : activePromotion - 1);
-  }, [activePromotion, itemCount, pauseTemporarily, scrollToPromotion]);
-
   const showNextPromotion = useCallback(
     (shouldPause = true) => {
       if (shouldPause) {
@@ -70,17 +62,11 @@ export function usePromotionsCarousel({
         return;
       }
 
-      scrollToPromotion(activePromotion === itemCount - 1 ? 0 : activePromotion + 1);
+      scrollToPromotion(
+        activePromotion === itemCount - 1 ? 0 : activePromotion + 1,
+      );
     },
     [activePromotion, itemCount, pauseTemporarily, scrollToPromotion],
-  );
-
-  const choosePromotion = useCallback(
-    (index: number) => {
-      pauseTemporarily();
-      scrollToPromotion(index);
-    },
-    [pauseTemporarily, scrollToPromotion],
   );
 
   useEffect(() => {
@@ -109,7 +95,13 @@ export function usePromotionsCarousel({
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [autoplayDelay, isInteractionPaused, itemCount, prefersReducedMotion, showNextPromotion]);
+  }, [
+    autoplayDelay,
+    isInteractionPaused,
+    itemCount,
+    prefersReducedMotion,
+    showNextPromotion,
+  ]);
 
   useEffect(() => {
     const pauseWhilePageScrolls = () => {
@@ -167,7 +159,9 @@ export function usePromotionsCarousel({
       });
     };
 
-    carousel.addEventListener("scroll", updateActivePromotion, { passive: true });
+    carousel.addEventListener("scroll", updateActivePromotion, {
+      passive: true,
+    });
 
     return () => {
       window.cancelAnimationFrame(frameId);
@@ -186,9 +180,6 @@ export function usePromotionsCarousel({
   return {
     activePromotion,
     carouselRef,
-    choosePromotion,
     pauseTemporarily,
-    showNextPromotion,
-    showPreviousPromotion,
   };
 }

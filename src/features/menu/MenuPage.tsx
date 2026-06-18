@@ -3,6 +3,7 @@ import type { CartVariantOption } from "@/features/cart/types";
 import { useCartStore } from "@/features/cart/store/useCartStore";
 import { CategoryChips } from "@/features/menu/components/CategoryChips";
 import { ProductGrid } from "@/features/menu/components/ProductGrid";
+import { useMenuFilterStore } from "@/features/menu/store/useMenuFilterStore";
 import {
   getCategories,
   searchProducts,
@@ -13,7 +14,8 @@ import { SearchInput } from "@/shared/components/SearchInput";
 
 export function MenuPage() {
   const addItem = useCartStore((state) => state.addItem);
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const activeCategoryId = useMenuFilterStore((state) => state.selectedCategoryId);
+  const setActiveCategoryId = useMenuFilterStore((state) => state.setSelectedCategory);
   const [query, setQuery] = useState("");
   const categories = useMemo(() => getCategories(), []);
   const products = useMemo(() => {
@@ -32,6 +34,10 @@ export function MenuPage() {
       label?: string;
       displayName?: string;
       priceCents: number;
+      image?: {
+        src: string;
+        alt: string;
+      };
       variantOptions?: CartVariantOption[];
     },
   ) => {
@@ -41,6 +47,7 @@ export function MenuPage() {
 
     addItem({
       productId: product.id,
+      image: input.image,
       variantKey: input.variantKey,
       baseName: product.name,
       displayName: input.displayName ?? buildCartProductName(product, input.label),
@@ -74,7 +81,7 @@ export function MenuPage() {
         </div>
       </section>
 
-      <div className="sticky top-[73px] z-10 -mx-4 mt-6 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-[88px] z-10 -mx-4 mt-6 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <CategoryChips
           categories={categories}
           activeCategoryId={activeCategoryId}
