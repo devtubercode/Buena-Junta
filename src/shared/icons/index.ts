@@ -1,2 +1,2 @@
 export { HotDogIcon } from "@/shared/icons/HotDogIcon";
-export { notificationIcons } from "@/shared/icons/notificationIcons";
+export { WhatsappIcon } from "@/shared/icons/WhatsappIcon";
