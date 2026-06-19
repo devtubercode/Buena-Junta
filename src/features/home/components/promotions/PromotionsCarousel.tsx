@@ -71,7 +71,7 @@ export function PromotionsCarousel() {
             aria-current={activePromotion === index}
           >
             <article className="relative grid h-[470px] grid-rows-[230px_1fr] overflow-hidden bg-foreground text-left text-primary-foreground shadow-elevated sm:h-[460px] sm:grid-rows-[250px_1fr] md:h-[360px] md:grid-cols-[0.78fr_1.22fr] md:grid-rows-1">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,122,26,0.38),transparent_34%),linear-gradient(135deg,rgba(50,25,20,0.96),rgba(120,42,20,0.78))]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,var(--promotion-glow),transparent_34%),linear-gradient(135deg,var(--promotion-overlay-start),var(--promotion-overlay-end))]" />
 
               <div className="relative z-10 order-2 flex min-h-0 flex-col p-4 pb-5 sm:p-5 md:order-1 lg:p-6">
                 <div className="flex flex-wrap items-center gap-2">
@@ -83,16 +83,16 @@ export function PromotionsCarousel() {
                       Disponible hoy
                     </span>
                   ) : null}
-                  <span className="rounded-full border border-white/30 bg-white/12 px-3 py-1 text-xs font-bold uppercase tracking-normal text-white">
+                  <span className="rounded-full border border-[var(--promotion-text)]/30 bg-[var(--promotion-text)]/12 px-3 py-1 text-xs font-bold uppercase tracking-normal text-[var(--promotion-text)]">
                     {promotion.categoryName}
                   </span>
                 </div>
 
                 <div className="mt-3 max-w-xl sm:mt-4">
-                  <h3 className="font-heading text-3xl font-black leading-none tracking-normal text-white sm:text-4xl">
+                  <h3 className="font-heading text-3xl font-black leading-none tracking-normal text-[var(--promotion-text)] sm:text-4xl">
                     {promotion.title}
                   </h3>
-                  <p className="mt-2 max-w-md text-sm font-medium leading-5 text-white/82 sm:text-base sm:leading-6">
+                  <p className="mt-2 max-w-md text-sm font-medium leading-5 text-[var(--promotion-text)]/82 sm:text-base sm:leading-6">
                     {promotion.description}
                   </p>
                 </div>

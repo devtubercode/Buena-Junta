@@ -69,15 +69,18 @@
   --info-border: rgba(36, 107, 143, 0.34);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --text: var(--muted-foreground);
-  --text-h: var(--foreground);
-  --bg: var(--background);
-  --code-bg: var(--surface-muted);
-  --accent: var(--primary);
-  --accent-bg: var(--primary-soft);
-  --accent-border: var(--primary-border);
-  --social-bg: color-mix(in oklab, var(--surface-muted) 50%, transparent);
+  --promotion-glow: color-mix(in oklab, var(--primary) 38%, transparent);
+  --promotion-overlay-start: color-mix(
+    in oklab,
+    var(--foreground) 96%,
+    transparent
+  );
+  --promotion-overlay-end: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--primary) 40%, var(--foreground)) 78%,
+    transparent
+  );
+  --promotion-text: var(--background);
 
   --sans: "Poppins", system-ui, "Segoe UI", Roboto, sans-serif;
   --heading: "Lilita One", "Poppins", system-ui, sans-serif;
@@ -86,8 +89,8 @@
   font: 18px/145% var(--sans);
   letter-spacing: 0;
   color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--muted-foreground);
+  background: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -101,36 +104,6 @@
 .light,
 [data-theme="light"] {
   color-scheme: light;
-  --background: #fff4e3;
-  --foreground: #321914;
-  --muted-foreground: #7a4a2a;
-  --surface: #fffaf2;
-  --surface-muted: #ffe8c5;
-  --surface-raised: #ffffff;
-  --border: #efb15a;
-  --primary: #ff7a1a;
-  --primary-foreground: #ffffff;
-  --primary-soft: rgba(255, 122, 26, 0.14);
-  --primary-border: rgba(255, 122, 26, 0.48);
-  --placeholder: #a06e4b;
-  --success: #187a42;
-  --success-foreground: #ffffff;
-  --success-soft: rgba(24, 122, 66, 0.12);
-  --success-border: rgba(24, 122, 66, 0.34);
-  --warning: #a86400;
-  --warning-foreground: #2f1800;
-  --warning-soft: rgba(255, 176, 32, 0.18);
-  --warning-border: rgba(255, 176, 32, 0.5);
-  --error: #ba2d23;
-  --error-foreground: #ffffff;
-  --error-soft: rgba(186, 45, 35, 0.12);
-  --error-border: rgba(186, 45, 35, 0.36);
-  --info: #246b8f;
-  --info-foreground: #ffffff;
-  --info-soft: rgba(36, 107, 143, 0.12);
-  --info-border: rgba(36, 107, 143, 0.34);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 }
 
 .dark,
@@ -166,6 +139,17 @@
   --info-border: rgba(117, 199, 232, 0.42);
   --shadow:
     rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  --promotion-overlay-start: color-mix(
+    in oklab,
+    var(--background) 96%,
+    transparent
+  );
+  --promotion-overlay-end: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--primary) 40%, var(--background)) 78%,
+    transparent
+  );
+  --promotion-text: var(--foreground);
 }
 
 #root {
@@ -203,7 +187,7 @@ h1,
 h2 {
   font-family: var(--heading);
   font-weight: 900;
-  color: var(--text-h);
+  color: var(--foreground);
 }
 
 h1 {
@@ -230,158 +214,6 @@ h2 {
 
 p {
   margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-.flashy-container {
-  z-index: 80 !important;
-  top: 88px !important;
-  left: 12px !important;
-  right: 12px !important;
-  transform: none !important;
-  display: grid !important;
-  justify-items: center !important;
-  pointer-events: none !important;
-}
-
-.flashy-notification {
-  --flashy-accent: var(--info);
-  --flashy-accent-soft: var(--info-soft);
-  --flashy-accent-border: var(--info-border);
-  width: min(100%, 400px) !important;
-  min-width: 0 !important;
-  max-width: 400px !important;
-  gap: 11px !important;
-  margin: 6px 0 !important;
-  padding: 11px 12px !important;
-  border: 1px solid color-mix(in oklab, var(--border) 74%, var(--flashy-accent-border)) !important;
-  border-left: 4px solid var(--flashy-accent) !important;
-  border-radius: 8px !important;
-  background:
-    linear-gradient(90deg,
-      color-mix(in oklab, var(--flashy-accent-soft) 42%, transparent),
-      transparent 38%),
-    color-mix(in oklab, var(--surface) 96%, var(--surface-raised)) !important;
-  color: var(--foreground) !important;
-  box-shadow:
-    0 16px 32px color-mix(in oklab, #000 14%, transparent),
-    0 3px 0 color-mix(in oklab, var(--primary) 12%, transparent) !important;
-  font-family: var(--sans) !important;
-  font-size: 13px !important;
-  font-weight: 800 !important;
-  line-height: 1.35 !important;
-  letter-spacing: 0 !important;
-  backdrop-filter: blur(12px) !important;
-}
-
-.flashy-icon {
-  display: inline-flex !important;
-  width: 30px !important;
-  height: 30px !important;
-  min-height: 30px !important;
-  min-width: 30px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin-right: 0 !important;
-  border: 1px solid var(--flashy-accent-border) !important;
-  border-radius: 999px !important;
-  background: color-mix(in oklab, var(--flashy-accent-soft) 78%, var(--surface)) !important;
-  color: var(--flashy-accent) !important;
-  font-size: 0 !important;
-  font-weight: 900 !important;
-}
-
-.flashy-content {
-  min-width: 0 !important;
-  padding-top: 1px !important;
-}
-
-.flashy-close {
-  width: 28px !important;
-  height: 28px !important;
-  margin-left: 0 !important;
-  border-radius: 999px !important;
-  color: var(--muted-foreground) !important;
-  font-size: 18px !important;
-  opacity: 0.74 !important;
-}
-
-.flashy-close:hover {
-  background: var(--surface-muted) !important;
-  opacity: 1 !important;
-}
-
-.flashy-progress {
-  height: 2px !important;
-  background: var(--flashy-accent) !important;
-  opacity: 0.34 !important;
-}
-
-.notification-icon-svg {
-  width: 17px;
-  height: 17px;
-  display: block;
-  flex: none;
-}
-
-.flashy-notification.success {
-  --flashy-accent: var(--success);
-  --flashy-accent-soft: var(--success-soft);
-  --flashy-accent-border: var(--success-border);
-}
-
-.flashy-notification.warning {
-  --flashy-accent: var(--warning);
-  --flashy-accent-soft: var(--warning-soft);
-  --flashy-accent-border: var(--warning-border);
-}
-
-.flashy-notification.error {
-  --flashy-accent: var(--error);
-  --flashy-accent-soft: var(--error-soft);
-  --flashy-accent-border: var(--error-border);
-}
-
-.flashy-notification.info,
-.flashy-notification.default {
-  --flashy-accent: var(--info);
-  --flashy-accent-soft: var(--info-soft);
-  --flashy-accent-border: var(--info-border);
-}
-
-@media (max-width: 640px) {
-  .flashy-container {
-    top: 84px !important;
-    left: 10px !important;
-    right: 10px !important;
-  }
-
-  .flashy-notification {
-    max-width: calc(100vw - 20px) !important;
-    padding: 10px 11px !important;
-    font-size: 13px !important;
-  }
-
-  .flashy-icon {
-    width: 28px !important;
-    height: 28px !important;
-    min-height: 28px !important;
-    min-width: 28px !important;
-  }
 }
 
 /* Scrollbar personalizado para toda la app */
