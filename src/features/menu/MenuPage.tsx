@@ -14,18 +14,22 @@ import { SearchInput } from "@/shared/components/SearchInput";
 
 export function MenuPage() {
   const addItem = useCartStore((state) => state.addItem);
-  const activeCategoryId = useMenuFilterStore((state) => state.selectedCategoryId);
-  const setActiveCategoryId = useMenuFilterStore((state) => state.setSelectedCategory);
+  const activeCategoryId = useMenuFilterStore(
+    (state) => state.selectedCategoryId,
+  );
+  const setActiveCategoryId = useMenuFilterStore(
+    (state) => state.setSelectedCategory,
+  );
   const [query, setQuery] = useState("");
   const categories = useMemo(() => getCategories(), []);
   const products = useMemo(() => {
     const hasQuery = query.trim().length > 0;
 
-    return searchProducts(query, hasQuery ? undefined : activeCategoryId ?? undefined);
-  }, [
-    activeCategoryId,
-    query,
-  ]);
+    return searchProducts(
+      query,
+      hasQuery ? undefined : (activeCategoryId ?? undefined),
+    );
+  }, [activeCategoryId, query]);
 
   const handleAddProduct = (
     product: CatalogProduct,
@@ -50,7 +54,8 @@ export function MenuPage() {
       image: input.image,
       variantKey: input.variantKey,
       baseName: product.name,
-      displayName: input.displayName ?? buildCartProductName(product, input.label),
+      displayName:
+        input.displayName ?? buildCartProductName(product, input.label),
       name: input.displayName ?? buildCartProductName(product, input.label),
       unitPriceCents: input.priceCents,
       variantOptions: input.variantOptions,
@@ -69,8 +74,8 @@ export function MenuPage() {
               Pide rápido desde tu mesa
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-              Explora la carta completa, busca por nombre o descripción y agrega tus productos al
-              carrito.
+              Explora la carta completa, busca por nombre o descripción y agrega
+              tus productos al carrito.
             </p>
           </div>
           <SearchInput
@@ -81,7 +86,7 @@ export function MenuPage() {
         </div>
       </section>
 
-      <div className="sticky top-[88px] z-10 -mx-4 mt-6 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-[88px] z-10 -mx-4  border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <CategoryChips
           categories={categories}
           activeCategoryId={activeCategoryId}

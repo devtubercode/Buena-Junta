@@ -8,9 +8,9 @@ import { cn } from "@/shared/utils/cn";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-20 h-[88px] border-b border-border bg-background/95 backdrop-blur">
       <nav
-        className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8"
+        className="mx-auto flex h-full w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8"
         aria-label="Navegación principal"
       >
         <Link
