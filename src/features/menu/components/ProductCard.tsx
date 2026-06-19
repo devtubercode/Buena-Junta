@@ -1,6 +1,9 @@
 import { useState } from "react";
 import type { CartVariantOption } from "@/features/cart/types";
-import type { CatalogPriceOption, CatalogProduct } from "@/features/menu/services/menuRepository";
+import type {
+  CatalogPriceOption,
+  CatalogProduct,
+} from "@/features/menu/services/menuRepository";
 import {
   buildCartProductName,
   buildSelectedVariantLabel,
@@ -28,7 +31,9 @@ type ProductCardProps = {
 
 type SelectedVariants = Record<string, string>;
 
-function buildVariantOptions(product: CatalogProduct): CartVariantOption[] | undefined {
+function buildVariantOptions(
+  product: CatalogProduct,
+): CartVariantOption[] | undefined {
   const priceOptions = product.priceOptions ?? [];
 
   if (priceOptions.length > 0) {
@@ -44,7 +49,10 @@ function buildVariantOptions(product: CatalogProduct): CartVariantOption[] | und
     return product.variants[0].values.map((value) => ({
       key: `${product.variants[0].name}: ${value}`,
       label: value,
-      itemName: buildCartProductName(product, `${product.variants[0].name}: ${value}`),
+      itemName: buildCartProductName(
+        product,
+        `${product.variants[0].name}: ${value}`,
+      ),
       unitPriceCents: product.priceCents ?? 0,
     }));
   }
@@ -53,8 +61,11 @@ function buildVariantOptions(product: CatalogProduct): CartVariantOption[] | und
 }
 
 export function ProductCard({ product, onAdd }: ProductCardProps) {
-  const [selectedVariants, setSelectedVariants] = useState<SelectedVariants>({});
-  const [selectedPriceOption, setSelectedPriceOption] = useState<CatalogPriceOption | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<SelectedVariants>(
+    {},
+  );
+  const [selectedPriceOption, setSelectedPriceOption] =
+    useState<CatalogPriceOption | null>(null);
   const [showOptions, setShowOptions] = useState(false);
   const isUnavailable = !product.isAvailable;
   const hasBasePrice = product.priceCents !== null;
@@ -63,7 +74,10 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
   const cartVariantOptions = buildVariantOptions(product);
   const selectedVariantLabel = buildSelectedVariantLabel(selectedVariants);
   const isVariantSelectionComplete =
-    !hasVariants || product.variants.every((variant) => Boolean(selectedVariants[variant.name]));
+    !hasVariants ||
+    product.variants.every((variant) =>
+      Boolean(selectedVariants[variant.name]),
+    );
   const shouldUseExpandableOptions = hasVariants || priceOptions.length > 0;
   const handleAdd = (input: {
     variantKey?: string;
@@ -77,11 +91,16 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
     variantOptions?: CartVariantOption[];
   }) => {
     onAdd(input);
-    notify.cart(`Agregaste ${input.displayName ?? product.name} al carrito.`);
+    notify.whatsapp(
+      `Agregaste ${input.displayName ?? product.name} al carrito.`,
+    );
   };
 
   const handleSelectVariant = (groupName: string, value: string) => {
-    setSelectedVariants((currentVariants) => ({ ...currentVariants, [groupName]: value }));
+    setSelectedVariants((currentVariants) => ({
+      ...currentVariants,
+      [groupName]: value,
+    }));
   };
 
   const handleSelectPriceOption = (option: CatalogPriceOption) => {
@@ -145,7 +164,9 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
           ) : null}
         </div>
 
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{product.description}</p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          {product.description}
+        </p>
 
         {hasVariants ? (
           <div className="mt-4 rounded-lg border border-primary-border bg-primary-soft p-3">
