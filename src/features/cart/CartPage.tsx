@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useState } from "react";
 import { appRoutes } from "@/app/routes";
 import { CartItem } from "@/features/cart/components/CartItem";
 import { CustomerOrderForm } from "@/features/cart/components/CustomerOrderForm";
@@ -8,36 +9,16 @@ import {
   buildWhatsAppOrderMessage,
   buildWhatsAppUrl,
 } from "@/features/cart/utils/whatsapp";
-import { formatCOP } from "@/features/cart/utils/money";
+
+import { AppModal } from "@/shared/components/AppModal";
 import { EmptyState } from "@/shared/components/EmptyState";
-import {
-  ArrowLeft,
-  ClipboardList,
-  MessageCircle,
-  ReceiptText,
-  ShoppingBag,
-  ShoppingCart,
-  Trash2,
-} from "lucide-react";
+import { ClipboardList, Trash2 } from "lucide-react";
 import { notify } from "@/shared/notifications/notify";
-
-function getValidationErrors(itemCount: number, customerName: string) {
-  const errors: string[] = [];
-
-  if (itemCount === 0) {
-    errors.push(
-      "Tu carrito está vacío. Agrega un producto antes de enviar el pedido.",
-    );
-  }
-
-  if (!customerName.trim()) {
-    errors.push("Ingresa el nombre del responsable del pedido.");
-  }
-
-  return errors;
-}
+import { WhatsappIcon } from "@/shared/icons";
 
 export function CartPage() {
+  const navigate = useNavigate();
+  const [isOrderConfirmationOpen, setIsOrderConfirmationOpen] = useState(false);
   const items = useCartStore((state) => state.items);
   const orderDraft = useCartStore((state) => state.orderDraft);
   const incrementItem = useCartStore((state) => state.incrementItem);
@@ -48,20 +29,11 @@ export function CartPage() {
   const removeItem = useCartStore((state) => state.removeItem);
   const updateOrderDraft = useCartStore((state) => state.updateOrderDraft);
   const clearCart = useCartStore((state) => state.clearCart);
+  const clearCurrentOrder = useCartStore((state) => state.clearCurrentOrder);
   const totalCents = useCartStore((state) => state.getTotal());
   const totalQuantity = useCartStore((state) => state.getTotalQuantity());
 
   const handleSendOrder = () => {
-    const validationErrors = getValidationErrors(
-      items.length,
-      orderDraft.customerName,
-    );
-
-    if (validationErrors.length > 0) {
-      notify.warning(validationErrors[0]);
-      return;
-    }
-
     try {
       const message = buildWhatsAppOrderMessage({
         items,
@@ -80,7 +52,8 @@ export function CartPage() {
         return;
       }
 
-      notify.whatsapp("Tu pedido está listo para enviarse por WhatsApp.");
+      setIsOrderConfirmationOpen(true);
+      notify.whatsapp("Pedido preparado para WhatsApp.");
     } catch {
       notify.error(
         "No pudimos preparar el mensaje de WhatsApp. Intenta de nuevo.",
@@ -88,48 +61,20 @@ export function CartPage() {
     }
   };
 
+  const handleConfirmOrderSent = () => {
+    clearCurrentOrder();
+    setIsOrderConfirmationOpen(false);
+    notify.success("Carrito limpio para un nuevo pedido.");
+    navigate(appRoutes.menu);
+  };
+
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
+    <main className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8 lg:py-8">
       <h1 className="sr-only">Carrito</h1>
 
-      <div className="mb-4 rounded-lg border border-primary-border bg-primary-soft p-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevated">
-              <ShoppingCart className="size-5" />
-            </span>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
-              Tu pedido
-            </p>
-          </div>
-          <Link
-            to={appRoutes.menu}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface px-3 text-xs font-black text-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-4"
-          >
-            <ArrowLeft className="mr-1.5 size-4" />
-            Menú
-          </Link>
-        </div>
-
-        {items.length > 0 ? (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3">
-              <ShoppingBag className="size-4 shrink-0 text-primary" />
-              <p className="min-w-0 truncate text-sm font-black text-foreground">
-                <span className="text-muted-foreground">Productos:</span>{" "}
-                {totalQuantity}
-              </p>
-            </div>
-            <div className="flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3">
-              <ReceiptText className="size-4 shrink-0 text-primary" />
-              <p className="min-w-0 truncate text-sm font-black text-foreground">
-                <span className="text-muted-foreground">Total:</span>{" "}
-                {formatCOP(totalCents)}
-              </p>
-            </div>
-          </div>
-        ) : null}
-      </div>
+      <p className="text-lg font-black uppercase tracking-[0.16em] text-primary pb-3">
+        Tu pedido
+      </p>
 
       {items.length === 0 ? (
         <EmptyState
@@ -184,7 +129,7 @@ export function CartPage() {
                 className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 onClick={handleSendOrder}
               >
-                <MessageCircle className="mr-2 size-6" />
+                <WhatsappIcon className="mr-2 size-6" />
                 Enviar pedido por WhatsApp
               </button>
               <button
@@ -202,6 +147,29 @@ export function CartPage() {
           </aside>
         </div>
       )}
+
+      <AppModal
+        isOpen={isOrderConfirmationOpen}
+        title="¿Ya enviaste tu pedido?"
+        description="Se abrió WhatsApp con tu pedido preparado. Para que podamos empezar a elaborarlo, debes presionar Enviar dentro de WhatsApp."
+        icon={<WhatsappIcon className="size-6" />}
+        primaryActionLabel="Ya envié el pedido"
+        secondaryActionLabel="Volver al carrito"
+        onPrimaryAction={handleConfirmOrderSent}
+        onSecondaryAction={() => setIsOrderConfirmationOpen(false)}
+        onClose={() => setIsOrderConfirmationOpen(false)}
+      >
+        <div className="grid gap-2">
+          <p>
+            Cuando hayas enviado el mensaje, toca “Ya envié el pedido” para
+            limpiar tu carrito y empezar un nuevo pedido.
+          </p>
+          <p>
+            Si ya lo enviaste y olvidaste agregar algo, crea un nuevo pedido con
+            el mismo responsable y mesa para que podamos identificarlo.
+          </p>
+        </div>
+      </AppModal>
     </main>
   );
 }

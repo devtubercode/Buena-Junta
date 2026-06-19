@@ -16,9 +16,13 @@ type CartState = {
   decrementItem: (lineId: string) => void;
   updateQuantity: (lineId: string, quantity: number) => void;
   updateItemNote: (lineId: string, note: string) => void;
-  updateItemVariant: (lineId: string, variantKey: string) => UpdateCartItemVariantResult;
+  updateItemVariant: (
+    lineId: string,
+    variantKey: string,
+  ) => UpdateCartItemVariantResult;
   updateOrderDraft: (draft: Partial<OrderDraft>) => void;
   clearCart: () => void;
+  clearCurrentOrder: () => void;
   getItemSubtotal: (lineId: string) => number;
   getTotal: () => number;
   getTotalQuantity: () => number;
@@ -35,10 +39,18 @@ function normalizeNote(note?: string) {
 }
 
 function buildLineId(item: AddCartItemInput) {
-  return [item.productId, item.variantKey ?? "base", normalizeNote(item.note)].join("::");
+  return [
+    item.productId,
+    item.variantKey ?? "base",
+    normalizeNote(item.note),
+  ].join("::");
 }
 
-function buildLineIdFromParts(productId: string, variantKey?: string, note?: string) {
+function buildLineIdFromParts(
+  productId: string,
+  variantKey?: string,
+  note?: string,
+) {
   return [productId, variantKey ?? "base", normalizeNote(note)].join("::");
 }
 
@@ -64,7 +76,9 @@ export const useCartStore = create<CartState>()(
         const lineId = buildLineId(item);
 
         set((state) => {
-          const existingItem = state.items.find((cartItem) => cartItem.lineId === lineId);
+          const existingItem = state.items.find(
+            (cartItem) => cartItem.lineId === lineId,
+          );
 
           if (existingItem) {
             return {
@@ -98,12 +112,16 @@ export const useCartStore = create<CartState>()(
         });
       },
       removeItem: (lineId) => {
-        set((state) => ({ items: state.items.filter((item) => item.lineId !== lineId) }));
+        set((state) => ({
+          items: state.items.filter((item) => item.lineId !== lineId),
+        }));
       },
       incrementItem: (lineId) => {
         set((state) => ({
           items: state.items.map((item) =>
-            item.lineId === lineId ? { ...item, quantity: item.quantity + 1 } : item,
+            item.lineId === lineId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item,
           ),
         }));
       },
@@ -111,7 +129,9 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           items: state.items
             .map((item) =>
-              item.lineId === lineId ? { ...item, quantity: item.quantity - 1 } : item,
+              item.lineId === lineId
+                ? { ...item, quantity: item.quantity - 1 }
+                : item,
             )
             .filter((item) => item.quantity >= 1),
         }));
@@ -119,7 +139,9 @@ export const useCartStore = create<CartState>()(
       updateQuantity: (lineId, quantity) => {
         set((state) => ({
           items: state.items.map((item) =>
-            item.lineId === lineId ? { ...item, quantity: sanitizeQuantity(quantity) } : item,
+            item.lineId === lineId
+              ? { ...item, quantity: sanitizeQuantity(quantity) }
+              : item,
           ),
         }));
       },
@@ -138,7 +160,9 @@ export const useCartStore = create<CartState>()(
           return { status: "not-found" };
         }
 
-        const selectedOption = currentItem.variantOptions?.find((option) => option.key === variantKey);
+        const selectedOption = currentItem.variantOptions?.find(
+          (option) => option.key === variantKey,
+        );
 
         if (!selectedOption) {
           return { status: "not-found" };
@@ -164,7 +188,9 @@ export const useCartStore = create<CartState>()(
                   ...item,
                   lineId: nextLineId,
                   variantKey: selectedOption.key,
-                  name: selectedOption.itemName ?? `${item.baseName ?? item.displayName ?? item.name} (${selectedOption.label})`,
+                  name:
+                    selectedOption.itemName ??
+                    `${item.baseName ?? item.displayName ?? item.name} (${selectedOption.label})`,
                   unitPriceCents: selectedOption.unitPriceCents,
                 }
               : item,
@@ -179,13 +205,20 @@ export const useCartStore = create<CartState>()(
       clearCart: () => {
         set({ items: [] });
       },
+      clearCurrentOrder: () => {
+        set({ items: [], orderDraft: emptyOrderDraft });
+      },
       getItemSubtotal: (lineId) => {
         const item = get().items.find((cartItem) => cartItem.lineId === lineId);
         return item ? item.unitPriceCents * item.quantity : 0;
       },
       getTotal: () =>
-        get().items.reduce((total, item) => total + item.unitPriceCents * item.quantity, 0),
-      getTotalQuantity: () => get().items.reduce((total, item) => total + item.quantity, 0),
+        get().items.reduce(
+          (total, item) => total + item.unitPriceCents * item.quantity,
+          0,
+        ),
+      getTotalQuantity: () =>
+        get().items.reduce((total, item) => total + item.quantity, 0),
     }),
     {
       name: "buenajunta-cart",
