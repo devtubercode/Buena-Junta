@@ -1,11 +1,43 @@
 import flashy from "@pablotheblink/flashyjs";
-import { notificationIcons } from "@/shared/icons/notificationIcons";
+
+import "./notify.css";
+
+import {
+  Check,
+  AlertTriangle,
+  Info,
+  ShoppingCart,
+  X as CloseX,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { WhatsappIcon } from "@/shared/icons/WhatsappIcon";
+
+const lucideIconToSvg = (Icon: LucideIcon) => {
+  return renderToStaticMarkup(
+    createElement(Icon, {
+      size: 17,
+      strokeWidth: 2,
+      "aria-hidden": true,
+    }),
+  );
+};
+
+const notificationIcons = {
+  success: lucideIconToSvg(Check),
+  warning: lucideIconToSvg(AlertTriangle),
+  error: lucideIconToSvg(CloseX),
+  info: lucideIconToSvg(Info),
+  cart: lucideIconToSvg(ShoppingCart),
+  whatsapp: renderToStaticMarkup(createElement(WhatsappIcon, { size: 17 })),
+};
 
 type NotificationOptions = {
   duration?: number;
 };
 
-const defaultDuration = 3200;
+const defaultDuration = 2200;
 
 function getTheme(): "light" | "dark" {
   return document.documentElement.classList.contains("dark") ||
@@ -26,10 +58,16 @@ function baseOptions(options?: NotificationOptions) {
 
 export const notify = {
   success(message: string, options?: NotificationOptions) {
-    return flashy.success(message, { ...baseOptions(options), icon: notificationIcons.success });
+    return flashy.success(message, {
+      ...baseOptions(options),
+      icon: notificationIcons.success,
+    });
   },
   warning(message: string, options?: NotificationOptions) {
-    return flashy.warning(message, { ...baseOptions(options), icon: notificationIcons.warning });
+    return flashy.warning(message, {
+      ...baseOptions(options),
+      icon: notificationIcons.warning,
+    });
   },
   error(message: string, options?: NotificationOptions) {
     return flashy.error(message, {
@@ -39,13 +77,25 @@ export const notify = {
     });
   },
   info(message: string, options?: NotificationOptions) {
-    return flashy.info(message, { ...baseOptions(options), icon: notificationIcons.info });
+    return flashy.info(message, {
+      ...baseOptions(options),
+      icon: notificationIcons.info,
+    });
   },
-  cart(message = "Producto agregado al carrito.", options?: NotificationOptions) {
-    return flashy.success(message, { ...baseOptions(options), icon: notificationIcons.cart });
+  cart(
+    message = "Producto agregado al carrito.",
+    options?: NotificationOptions,
+  ) {
+    return flashy.success(message, {
+      ...baseOptions(options),
+      icon: notificationIcons.cart,
+    });
   },
   whatsapp(message: string, options?: NotificationOptions) {
-    return flashy.success(message, { ...baseOptions(options), icon: notificationIcons.whatsapp });
+    return flashy.success(message, {
+      ...baseOptions(options),
+      icon: notificationIcons.whatsapp,
+    });
   },
   closeAll() {
     flashy.closeAll();

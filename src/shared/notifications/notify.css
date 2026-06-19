@@ -1,0 +1,145 @@
+/* Estilos de @pablotheblink/flashyjs
+   Centralizados aquí para que viajen junto al módulo de notificaciones.
+   El diseño sigue el lenguaje visual de la app: superficies cálidas,
+   bordes redondeados, sombra elevada y acentos semánticos del tema.
+   flashy.js inyecta sus propios estilos por JS; usamos !important para
+   sobrescribirlos de forma estable sin depender del orden de inyección. */
+
+.flashy-container {
+  z-index: 80 !important;
+  top: 88px !important;
+  left: 12px !important;
+  right: 12px !important;
+  transform: none !important;
+  display: grid !important;
+  justify-items: center !important;
+  pointer-events: none !important;
+}
+
+.flashy-notification {
+  --flashy-accent: var(--info);
+  --flashy-accent-bg: var(--info-soft);
+  --flashy-accent-border: var(--info-border);
+  width: min(100%, 420px) !important;
+  min-width: 0 !important;
+  max-width: 420px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  margin: 8px 0 !important;
+  padding: 14px 16px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  background: var(--surface) !important;
+  color: var(--foreground) !important;
+  box-shadow: var(--shadow) !important;
+  font-family: var(--sans) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+}
+
+.flashy-icon {
+  display: inline-flex !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 0 !important;
+  border: 1px solid var(--flashy-accent-border) !important;
+  border-radius: 999px !important;
+  background: var(--flashy-accent-bg) !important;
+  color: var(--flashy-accent) !important;
+  font-size: 0 !important;
+  font-weight: 900 !important;
+}
+
+.flashy-content {
+  min-width: 0 !important;
+  padding-top: 6px !important;
+}
+
+.flashy-close {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  margin-left: 0 !important;
+  border-radius: 999px !important;
+  color: var(--muted-foreground) !important;
+  background: transparent !important;
+  font-size: 18px !important;
+  opacity: 0.7 !important;
+  transition: opacity 0.2s ease, background 0.2s ease !important;
+}
+
+.flashy-close:hover {
+  background: var(--surface-muted) !important;
+  opacity: 1 !important;
+}
+
+.flashy-progress {
+  height: 3px !important;
+  background: var(--flashy-accent) !important;
+  opacity: 0.25 !important;
+}
+
+.notification-icon-svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: none;
+}
+
+.flashy-notification.success {
+  --flashy-accent: var(--success);
+  --flashy-accent-bg: var(--success-soft);
+  --flashy-accent-border: var(--success-border);
+}
+
+.flashy-notification.warning {
+  --flashy-accent: var(--warning);
+  --flashy-accent-bg: var(--warning-soft);
+  --flashy-accent-border: var(--warning-border);
+}
+
+.flashy-notification.error {
+  --flashy-accent: var(--error);
+  --flashy-accent-bg: var(--error-soft);
+  --flashy-accent-border: var(--error-border);
+}
+
+.flashy-notification.info,
+.flashy-notification.default {
+  --flashy-accent: var(--info);
+  --flashy-accent-bg: var(--info-soft);
+  --flashy-accent-border: var(--info-border);
+}
+
+@media (max-width: 640px) {
+  .flashy-container {
+    top: 84px !important;
+    left: 10px !important;
+    right: 10px !important;
+  }
+
+  .flashy-notification {
+    max-width: calc(100vw - 20px) !important;
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+  }
+
+  .flashy-icon {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+
+  .flashy-content {
+    padding-top: 5px !important;
+  }
+}
