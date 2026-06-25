@@ -1,27 +1,23 @@
 import { BlossomCarousel } from "@blossom-carousel/react";
 import "@blossom-carousel/core/style.css";
-import { promotions } from "@/features/home/components/promotions/promotions";
-import {
-  getCurrentWeekday,
-  sortPromotionsForWeekday,
-} from "@/features/home/components/promotions/promotionSchedule";
-import { usePromotionsCarousel } from "@/features/home/components/promotions/usePromotionsCarousel";
+import { usePromotionsCarousel } from "@/features/home/hooks/usePromotionCarousel";
+import { usePromotionData } from "@/features/home/hooks/usePromotionData";
 import { useMenuFilterStore } from "@/features/menu/store/useMenuFilterStore";
 
+import type { Promotion } from "@/features/home/types/promotion.types";
+import { PromotionsCarouselSkeleton } from "./PromotionsCarouselSkeleton";
+
 export function PromotionsCarousel() {
-  const applyPromotionFilter = useMenuFilterStore(
-    (state) => state.applyPromotionFilter,
-  );
-  const today = getCurrentWeekday();
-  const orderedPromotions = sortPromotionsForWeekday(promotions, today);
+  const { promotions, isLoading, error } = usePromotionData();
+  const { applyPromotionFilter } = useMenuFilterStore((state) => state);
 
   const { activePromotion, carouselRef, pauseTemporarily } =
-    usePromotionsCarousel({ itemCount: orderedPromotions.length });
+    usePromotionsCarousel({ itemCount: promotions.length });
 
-  const handlePromotionAction = (promotion: (typeof promotions)[number]) => {
+  const handlePromotionAction = (promotion: Promotion) => {
     applyPromotionFilter({
-      categoryId: promotion.categoryId,
-      promotionId: promotion.id,
+      categorySlug: promotion.categorySlug,
+      promotionSlug: promotion.slug,
     });
 
     window.setTimeout(() => {
@@ -43,6 +39,14 @@ export function PromotionsCarousel() {
     }, 0);
   };
 
+  if (isLoading) {
+    return <PromotionsCarouselSkeleton />;
+  }
+
+  if (error || promotions.length === 0) {
+    return null;
+  }
+
   return (
     <section
       aria-labelledby="promotions-heading"
@@ -62,15 +66,15 @@ export function PromotionsCarousel() {
         as="ul"
         className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-0 py-0 scrollbar-none sm:gap-4 [&::-webkit-scrollbar]:hidden"
       >
-        {orderedPromotions.map((promotion, index) => (
+        {promotions.map((promotion, index) => (
           <li
-            key={promotion.id}
-            id={`promotion-slide-${promotion.id}`}
+            key={promotion.slug}
+            id={`promotion-slide-${promotion.slug}`}
             className="min-w-[92%] list-none snap-center sm:min-w-[76%] lg:min-w-[64%]"
             data-blossom-slide
             aria-current={activePromotion === index}
           >
-            <article className="relative grid h-[470px] grid-rows-[230px_1fr] overflow-hidden bg-foreground text-left text-primary-foreground shadow-elevated sm:h-[460px] sm:grid-rows-[250px_1fr] md:h-[360px] md:grid-cols-[0.78fr_1.22fr] md:grid-rows-1">
+            <article className="relative grid h-117.5 grid-rows-[230px_1fr] overflow-hidden bg-foreground text-left text-primary-foreground shadow-elevated sm:h-115 sm:grid-rows-[250px_1fr] md:h-90 md:grid-cols-[0.78fr_1.22fr] md:grid-rows-1">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,var(--promotion-glow),transparent_34%),linear-gradient(135deg,var(--promotion-overlay-start),var(--promotion-overlay-end))]" />
 
               <div className="relative z-10 order-2 flex min-h-0 flex-col p-4 pb-5 sm:p-5 md:order-1 lg:p-6">
@@ -83,16 +87,16 @@ export function PromotionsCarousel() {
                       Disponible hoy
                     </span>
                   ) : null}
-                  <span className="rounded-full border border-[var(--promotion-text)]/30 bg-[var(--promotion-text)]/12 px-3 py-1 text-xs font-bold uppercase tracking-normal text-[var(--promotion-text)]">
+                  <span className="rounded-full border border-(--promotion-text)/30 bg-(--promotion-text)/12 px-3 py-1 text-xs font-bold uppercase tracking-normal text-(--promotion-text)">
                     {promotion.categoryName}
                   </span>
                 </div>
 
                 <div className="mt-3 max-w-xl sm:mt-4">
-                  <h3 className="font-heading text-3xl font-black leading-none tracking-normal text-[var(--promotion-text)] sm:text-4xl">
+                  <h3 className="font-heading text-3xl font-black leading-none tracking-normal text-(--promotion-text) sm:text-4xl">
                     {promotion.title}
                   </h3>
-                  <p className="mt-2 max-w-md text-sm font-medium leading-5 text-[var(--promotion-text)]/82 sm:text-base sm:leading-6">
+                  <p className="mt-2 max-w-md text-sm font-medium leading-5 text-(--promotion-text)/82 sm:text-base sm:leading-6">
                     {promotion.description}
                   </p>
                 </div>

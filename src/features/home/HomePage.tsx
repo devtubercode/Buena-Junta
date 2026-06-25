@@ -1,5 +1,5 @@
-import { MenuSection } from "@/features/menu/components/MenuSection";
-import { PromotionsCarousel } from "@/features/home/components/promotions/PromotionsCarousel";
+import { HomeMenuSection } from "@/features/home/components/HomeMenuSection";
+import { PromotionsCarousel } from "@/features/home/components/PromotionsCarousel";
 
 export function HomePage() {
   return (
@@ -8,7 +8,7 @@ export function HomePage() {
         <PromotionsCarousel />
       </section>
 
-      <MenuSection />
+      <HomeMenuSection />
     </main>
   );
 }

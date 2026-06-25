@@ -1,5 +1,5 @@
-import type { Weekday } from "@/features/menu/types";
-import type { Promotion } from "@/features/home/components/promotions/types";
+import type { Promotion } from "@/features/home/types/promotion.types";
+import type { Weekday } from "@/types/weekday";
 
 const weekdaysByDateIndex: Weekday[] = [
   "sunday",

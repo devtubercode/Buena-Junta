@@ -1,7 +1,7 @@
-import type { Weekday } from "@/features/menu/types";
+import type { Weekday } from "@/types/weekday";
 
 export type Promotion = {
-  id: string;
+  slug: string;
   title: string;
   description: string;
   activeDays: Weekday[];
@@ -9,7 +9,6 @@ export type Promotion = {
   dayLabel: string;
   dayShortLabel: string;
   tag: string;
-  categoryId: string;
   categoryName: string;
   categorySlug: string;
   image: string;
