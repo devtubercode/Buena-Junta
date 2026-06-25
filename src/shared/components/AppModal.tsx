@@ -1,11 +1,13 @@
 import { useEffect, useId, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { cn } from "@/shared/utils/cn";
 
 type AppModalProps = {
   isOpen: boolean;
   title: string;
   description?: string;
   icon?: ReactNode;
+  contentClassName?: string;
   primaryActionLabel?: string;
   secondaryActionLabel?: string;
   onPrimaryAction?: () => void;
@@ -19,6 +21,7 @@ export function AppModal({
   title,
   description,
   icon,
+  contentClassName,
   primaryActionLabel,
   secondaryActionLabel,
   onPrimaryAction,
@@ -64,7 +67,10 @@ export function AppModal({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className="w-full max-w-md rounded-lg border border-border bg-surface p-4 shadow-elevated sm:p-5"
+        className={cn(
+          "w-full max-w-md rounded-lg border border-border bg-surface p-4 shadow-elevated sm:p-5",
+          contentClassName,
+        )}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
