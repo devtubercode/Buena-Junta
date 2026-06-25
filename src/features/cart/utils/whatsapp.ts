@@ -1,4 +1,4 @@
-import type { CartItem, OrderDraft } from "@/features/cart/types";
+import type { CartItem, OrderDraft } from "@/features/cart/types/cart.types";
 import { formatCartItemName } from "@/features/cart/utils/cartCopy";
 import { formatCOP } from "@/features/cart/utils/money";
 
@@ -7,7 +7,7 @@ const whatsappPhone = "573174263716";
 type BuildMessageInput = {
   items: CartItem[];
   orderDraft: OrderDraft;
-  totalCents: number;
+  total: number;
 };
 
 function compactLines(lines: Array<string | false | null | undefined>) {
@@ -17,15 +17,21 @@ function compactLines(lines: Array<string | false | null | undefined>) {
 export function buildWhatsAppOrderMessage({
   items,
   orderDraft,
-  totalCents,
+  total,
 }: BuildMessageInput) {
   const productLines = items
     .map((item, index) =>
       compactLines([
         `${index + 1}. ${formatCartItemName(item.name)}`,
+        item.variantKey?.trim() ? `   Opción: ${item.variantKey.trim()}` : false,
         `   Cantidad: ${item.quantity}`,
-        `   Precio unitario: ${formatCOP(item.unitPriceCents)}`,
-        `   Subtotal: ${formatCOP(item.unitPriceCents * item.quantity)}`,
+        `   Precio unitario: ${formatCOP(item.unitPrice)}`,
+        `   Subtotal: ${formatCOP(item.unitPrice * item.quantity)}`,
+        item.additionOptions?.length
+          ? `   Acompañantes: ${item.additionOptions
+              .map((addition) => `${addition.label} (${formatCOP(addition.unitPrice)})`)
+              .join(", ")}`
+          : false,
         item.note?.trim() ? `   Observación: ${item.note.trim()}` : false,
       ]),
     )
@@ -43,7 +49,7 @@ export function buildWhatsAppOrderMessage({
     orderDraft.generalNotes.trim() ? "Observaciones del pedido:" : false,
     orderDraft.generalNotes.trim() || false,
     "",
-    `*Total: ${formatCOP(totalCents)}*`,
+    `*Total: ${formatCOP(total)}*`,
   ]);
 }
 

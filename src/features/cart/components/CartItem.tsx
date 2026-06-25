@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CartItem as CartItemType } from "@/features/cart/types";
+import type { CartItem as CartItemType } from "@/features/cart/types/cart.types";
 import { formatCartItemName } from "@/features/cart/utils/cartCopy";
 import { formatCOP } from "@/features/cart/utils/money";
 import { QuantityControl } from "@/features/cart/components/QuantityControl";
@@ -57,6 +57,7 @@ export function CartItem({
   const [isChangingVariant, setIsChangingVariant] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const hasVariantOptions = Boolean(item.variantOptions?.length);
+  const hasAdditionOptions = Boolean(item.additionOptions?.length);
   const note = item.note?.trim() ?? "";
   const title = getCartItemTitle(item);
 
@@ -110,11 +111,11 @@ export function CartItem({
             {title}
           </h3>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-muted-foreground">
-            <span>{formatCOP(item.unitPriceCents)} c/u</span>
+            <span>{formatCOP(item.unitPrice)} c/u</span>
           </div>
         </div>
         <p className="font-heading text-2xl font-black leading-none text-foreground sm:text-3xl">
-          {formatCOP(item.unitPriceCents * item.quantity)}
+          {formatCOP(item.unitPrice * item.quantity)}
         </p>
       </div>
 
@@ -156,6 +157,25 @@ export function CartItem({
               ))}
             </div>
           ) : null}
+        </section>
+      ) : null}
+
+      {hasAdditionOptions ? (
+        <section className="mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2">
+          <p className="text-xs font-black uppercase tracking-[0.12em] text-muted-foreground">
+            Acompañantes
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {item.additionOptions?.map((addition) => (
+              <span
+                key={addition.key}
+                className="inline-flex items-center gap-1 rounded-full border border-primary-border bg-surface px-3 py-1 text-xs font-black text-foreground"
+              >
+                <span>{addition.label}</span>
+                <span className="text-primary">{formatCOP(addition.unitPrice)}</span>
+              </span>
+            ))}
+          </div>
         </section>
       ) : null}
 

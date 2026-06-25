@@ -30,7 +30,7 @@ export function CartPage() {
   const updateOrderDraft = useCartStore((state) => state.updateOrderDraft);
   const clearCart = useCartStore((state) => state.clearCart);
   const clearCurrentOrder = useCartStore((state) => state.clearCurrentOrder);
-  const totalCents = useCartStore((state) => state.getTotal());
+  const total = useCartStore((state) => state.getTotal());
   const totalQuantity = useCartStore((state) => state.getTotalQuantity());
 
   const handleSendOrder = () => {
@@ -38,7 +38,7 @@ export function CartPage() {
       const message = buildWhatsAppOrderMessage({
         items,
         orderDraft,
-        totalCents,
+        total,
       });
 
       const openedWindow = window.open(
@@ -119,7 +119,7 @@ export function CartPage() {
           <aside className="grid gap-4 lg:sticky lg:top-24">
             <CustomerOrderForm draft={orderDraft} onChange={updateOrderDraft} />
             <OrderSummary
-              totalCents={totalCents}
+              total={total}
               totalQuantity={totalQuantity}
             />
 

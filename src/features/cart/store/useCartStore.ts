@@ -5,7 +5,7 @@ import type {
   CartItem,
   OrderDraft,
   UpdateCartItemVariantResult,
-} from "@/features/cart/types";
+} from "@/features/cart/types/cart.types";
 
 type CartState = {
   items: CartItem[];
@@ -38,11 +38,19 @@ function normalizeNote(note?: string) {
   return note?.trim().replace(/\s+/g, " ").toLowerCase() ?? "";
 }
 
+function normalizeAdditionKeys(additionOptions?: AddCartItemInput["additionOptions"]) {
+  return [...(additionOptions ?? [])]
+    .map((option) => option.key)
+    .sort()
+    .join("|");
+}
+
 function buildLineId(item: AddCartItemInput) {
   return [
     item.productId,
     item.variantKey ?? "base",
     normalizeNote(item.note),
+    normalizeAdditionKeys(item.additionOptions),
   ].join("::");
 }
 
@@ -50,8 +58,14 @@ function buildLineIdFromParts(
   productId: string,
   variantKey?: string,
   note?: string,
+  additionOptions?: AddCartItemInput["additionOptions"],
 ) {
-  return [productId, variantKey ?? "base", normalizeNote(note)].join("::");
+  return [
+    productId,
+    variantKey ?? "base",
+    normalizeNote(note),
+    normalizeAdditionKeys(additionOptions),
+  ].join("::");
 }
 
 function sanitizeQuantity(quantity: number) {
@@ -102,10 +116,11 @@ export const useCartStore = create<CartState>()(
                 baseName: item.baseName,
                 displayName: item.displayName,
                 name: item.name,
-                unitPriceCents: item.unitPriceCents,
+                unitPrice: item.unitPrice,
                 quantity,
                 note: item.note?.trim() || undefined,
                 variantOptions: item.variantOptions,
+                additionOptions: item.additionOptions,
               },
             ],
           };
@@ -172,6 +187,7 @@ export const useCartStore = create<CartState>()(
           currentItem.productId,
           selectedOption.key,
           currentItem.note,
+          currentItem.additionOptions,
         );
         const duplicateItem = state.items.find(
           (item) => item.lineId !== lineId && item.lineId === nextLineId,
@@ -191,7 +207,7 @@ export const useCartStore = create<CartState>()(
                   name:
                     selectedOption.itemName ??
                     `${item.baseName ?? item.displayName ?? item.name} (${selectedOption.label})`,
-                  unitPriceCents: selectedOption.unitPriceCents,
+                  unitPrice: selectedOption.unitPrice,
                 }
               : item,
           ),
@@ -210,11 +226,11 @@ export const useCartStore = create<CartState>()(
       },
       getItemSubtotal: (lineId) => {
         const item = get().items.find((cartItem) => cartItem.lineId === lineId);
-        return item ? item.unitPriceCents * item.quantity : 0;
+        return item ? item.unitPrice * item.quantity : 0;
       },
       getTotal: () =>
         get().items.reduce(
-          (total, item) => total + item.unitPriceCents * item.quantity,
+          (total, item) => total + item.unitPrice * item.quantity,
           0,
         ),
       getTotalQuantity: () =>
@@ -222,12 +238,19 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "buenajunta-cart",
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         items: state.items,
         orderDraft: state.orderDraft,
       }),
-      migrate: (persistedState) => persistedState as CartState,
+      migrate: (persistedState) => {
+        const state = persistedState as Partial<CartState>;
+
+        return {
+          items: [],
+          orderDraft: state.orderDraft ?? emptyOrderDraft,
+        } as unknown as CartState;
+      },
     },
   ),
 );

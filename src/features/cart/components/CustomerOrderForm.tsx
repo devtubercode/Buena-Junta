@@ -1,4 +1,4 @@
-import type { OrderDraft } from "@/features/cart/types";
+import type { OrderDraft } from "@/features/cart/types/cart.types";
 
 type CustomerOrderFormProps = {
   draft: OrderDraft;

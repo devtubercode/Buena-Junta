@@ -2,7 +2,13 @@ export type CartVariantOption = {
   key: string;
   label: string;
   itemName?: string;
-  unitPriceCents: number;
+  unitPrice: number;
+};
+
+export type CartAdditionOption = {
+  key: string;
+  label: string;
+  unitPrice: number;
 };
 
 export type CartItem = {
@@ -17,10 +23,11 @@ export type CartItem = {
   baseName?: string;
   displayName?: string;
   name: string;
-  unitPriceCents: number;
+  unitPrice: number;
   quantity: number;
   note?: string;
   variantOptions?: CartVariantOption[];
+  additionOptions?: CartAdditionOption[];
 };
 
 export type OrderDraft = {
@@ -39,10 +46,11 @@ export type AddCartItemInput = {
   baseName?: string;
   displayName?: string;
   name: string;
-  unitPriceCents: number;
+  unitPrice: number;
   quantity?: number;
   note?: string;
   variantOptions?: CartVariantOption[];
+  additionOptions?: CartAdditionOption[];
 };
 
 export type UpdateCartItemVariantResult =
