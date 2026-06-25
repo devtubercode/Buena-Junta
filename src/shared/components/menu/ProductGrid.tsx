@@ -1,35 +1,21 @@
-import type {
-  CartAdditionOption,
-  CartVariantOption,
-} from "@/features/cart/types/cart.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { ProductCard } from "@/shared/components/menu/ProductCard";
 
 type ProductGridProps = {
   products: MenuProduct[];
-  onAddProduct: (
-    product: MenuProduct,
-    input: {
-      variantKey?: string;
-      label?: string;
-      displayName?: string;
-      price: number;
-      image?: {
-        src: string;
-        alt: string;
-      };
-      variantOptions?: CartVariantOption[];
-      additionOptions?: CartAdditionOption[];
-    },
-  ) => void;
+  getQuantityInCart?: (productId: string) => number;
+  onQuickAdd: (product: MenuProduct) => void;
+  onOpenCustomization: (product: MenuProduct) => void;
   emptyTitle?: string;
   emptyDescription?: string;
 };
 
 export function ProductGrid({
   products,
-  onAddProduct,
+  getQuantityInCart,
+  onQuickAdd,
+  onOpenCustomization,
   emptyTitle = "No hay productos para mostrar",
   emptyDescription = "Prueba con otra categoría o cambia la búsqueda.",
 }: ProductGridProps) {
@@ -43,7 +29,9 @@ export function ProductGrid({
         <ProductCard
           key={product.id}
           product={product}
-          onAdd={(input) => onAddProduct(product, input)}
+          quantityInCart={getQuantityInCart?.(product.id)}
+          onQuickAdd={() => onQuickAdd(product)}
+          onOpenCustomization={() => onOpenCustomization(product)}
         />
       ))}
     </div>

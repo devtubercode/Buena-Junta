@@ -2,9 +2,8 @@ import { useState } from "react";
 import type { CartItem as CartItemType } from "@/features/cart/types/cart.types";
 import { formatCartItemName } from "@/features/cart/utils/cartCopy";
 import { formatCOP } from "@/features/cart/utils/money";
-import { QuantityControl } from "@/features/cart/components/QuantityControl";
-import { ChevronDown, Pencil, Trash2, X } from "lucide-react";
-import { notify } from "@/shared/notifications/notify";
+import { QuantityStepper } from "@/shared/components/QuantityStepper";
+import { Pencil, Trash2, X } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
 type CartItemProps = {
@@ -13,36 +12,23 @@ type CartItemProps = {
   onDecrement: () => void;
   onQuantityChange: (quantity: number) => void;
   onNoteChange: (note: string) => void;
-  onVariantChange: (
-    variantKey: string,
-  ) => "updated" | "duplicate" | "not-found";
+  onEdit: () => void;
   onRemove: () => void;
 };
 
-function getVariantTitle(variantKey?: string) {
-  const normalizedKey = formatVariantKey(variantKey);
-
-  if (normalizedKey?.toLocaleLowerCase("es-CO").startsWith("sabor:")) {
-    return "Sabor seleccionado";
-  }
-
-  return "Opción seleccionada";
-}
-
-function getVariantNoun(variantKey?: string) {
-  const normalizedKey = formatVariantKey(variantKey);
-
-  return normalizedKey?.toLocaleLowerCase("es-CO").startsWith("sabor:")
-    ? "sabor"
-    : "opción";
-}
-
-function formatVariantKey(variantKey?: string) {
-  return variantKey?.replace(/^Sabores:/i, "Sabor:");
-}
-
 function getCartItemTitle(item: CartItemType) {
   return formatCartItemName(item.baseName ?? item.name);
+}
+
+function getSelectedOptionsDisplay(item: CartItemType) {
+  if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
+    return null;
+  }
+
+  return Object.entries(item.selectedOptions).map(([groupName, optionName]) => ({
+    groupName,
+    optionName,
+  }));
 }
 
 export function CartItem({
@@ -51,42 +37,17 @@ export function CartItem({
   onDecrement,
   onQuantityChange,
   onNoteChange,
-  onVariantChange,
+  onEdit,
   onRemove,
 }: CartItemProps) {
-  const [isChangingVariant, setIsChangingVariant] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
-  const hasVariantOptions = Boolean(item.variantOptions?.length);
   const hasAdditionOptions = Boolean(item.additionOptions?.length);
+  const hasSelectedOptions = Boolean(
+    item.selectedOptions && Object.keys(item.selectedOptions).length > 0,
+  );
   const note = item.note?.trim() ?? "";
   const title = getCartItemTitle(item);
-
-  const handleVariantChange = (variantKey: string) => {
-    if (variantKey === item.variantKey) {
-      return;
-    }
-
-    const result = onVariantChange(variantKey);
-
-    if (result === "updated") {
-      notify.success(
-        `${getVariantNoun(variantKey) === "sabor" ? "Sabor" : "Opción"} actualizada.`,
-      );
-      return;
-    }
-
-    if (result === "duplicate") {
-      notify.warning(
-        `Este producto ya está en el carrito con ese ${getVariantNoun(variantKey)}. Aumenta la cantidad si deseas más unidades.`,
-        { duration: 5200 },
-      );
-      return;
-    }
-
-    notify.warning(
-      `No pudimos encontrar ese ${getVariantNoun(variantKey)} para este producto.`,
-    );
-  };
+  const selectedOptionsDisplay = getSelectedOptionsDisplay(item);
 
   return (
     <article className="rounded-lg border border-border bg-surface p-3 shadow-elevated sm:p-4">
@@ -110,7 +71,7 @@ export function CartItem({
           <h3 className="font-heading text-xl font-black leading-tight text-foreground sm:text-2xl">
             {title}
           </h3>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-muted-foreground">
+          <div className="mt-1 grid gap-0.5 text-xs font-bold text-muted-foreground">
             <span>{formatCOP(item.unitPrice)} c/u</span>
           </div>
         </div>
@@ -119,44 +80,18 @@ export function CartItem({
         </p>
       </div>
 
-      {hasVariantOptions ? (
+      {hasSelectedOptions && selectedOptionsDisplay ? (
         <section className="mt-3 rounded-lg border border-primary-border bg-primary-soft px-3 py-2">
-          <div className="flex items-center justify-between gap-2">
-            <p className="min-w-0 text-xs font-black uppercase tracking-[0.12em] text-primary">
-              <span className="sr-only">{getVariantTitle(item.variantKey)}: </span>
-              <span className="normal-case tracking-normal text-foreground">
-                {formatVariantKey(item.variantKey) ?? "Sin opción"}
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {selectedOptionsDisplay.map(({ groupName, optionName }) => (
+              <span
+                key={groupName}
+                className="text-xs font-black text-foreground"
+              >
+                <span className="text-primary">{groupName}:</span> {optionName}
               </span>
-            </p>
-            <button
-              type="button"
-              className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1 rounded-full border border-primary bg-surface px-3 text-xs font-black text-primary transition hover:bg-background focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              aria-expanded={isChangingVariant}
-              onClick={() => setIsChangingVariant((current) => !current)}
-            >
-              Cambiar
-              <ChevronDown
-                className="size-4 transition data-[open=true]:rotate-180"
-                data-open={isChangingVariant}
-              />
-            </button>
+            ))}
           </div>
-
-          {isChangingVariant ? (
-            <div className="mt-2 flex max-h-36 flex-wrap gap-2 overflow-y-auto pr-1">
-              {item.variantOptions?.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  className="relative min-h-9 rounded-full border px-3 text-xs font-black transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground data-[selected=false]:border-border data-[selected=false]:bg-surface data-[selected=false]:text-muted-foreground"
-                  data-selected={option.key === item.variantKey}
-                  onClick={() => handleVariantChange(option.key)}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </section>
       ) : null}
 
@@ -180,24 +115,22 @@ export function CartItem({
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <QuantityControl
-          compact
+        <QuantityStepper
+          size="sm"
           quantity={item.quantity}
           onIncrement={onIncrement}
           onDecrement={onDecrement}
           onChange={onQuantityChange}
         />
         <div className="flex items-center gap-2">
-          {!isEditingNote && !note ? (
-            <button
-              type="button"
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-border px-3 text-xs font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              onClick={() => setIsEditingNote(true)}
-            >
-              <Pencil className="size-4" />
-              Añadir nota
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-border px-3 text-xs font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            onClick={onEdit}
+          >
+            <Pencil className="size-4" />
+            Editar
+          </button>
           <button
             type="button"
             className="inline-flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"

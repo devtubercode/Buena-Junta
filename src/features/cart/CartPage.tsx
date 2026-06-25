@@ -15,18 +15,25 @@ import { EmptyState } from "@/shared/components/EmptyState";
 import { ClipboardList, Trash2 } from "lucide-react";
 import { notify } from "@/shared/notifications/notify";
 import { WhatsappIcon } from "@/shared/icons";
+import { ProductCustomizationModal } from "@/features/menu/components/ProductCustomizationModal";
+import { ProductCustomizationSheet } from "@/features/menu/components/ProductCustomizationSheet";
+import type { CartItem as CartItemType } from "@/features/cart/types/cart.types";
+import type { MenuProduct } from "@/features/menu/types/menu.types";
 
 export function CartPage() {
   const navigate = useNavigate();
   const [isOrderConfirmationOpen, setIsOrderConfirmationOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<CartItemType | null>(null);
+  const [editingProduct, setEditingProduct] = useState<MenuProduct | null>(null);
+
   const items = useCartStore((state) => state.items);
   const orderDraft = useCartStore((state) => state.orderDraft);
+  const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
   const incrementItem = useCartStore((state) => state.incrementItem);
   const decrementItem = useCartStore((state) => state.decrementItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const updateItemNote = useCartStore((state) => state.updateItemNote);
-  const updateItemVariant = useCartStore((state) => state.updateItemVariant);
-  const removeItem = useCartStore((state) => state.removeItem);
   const updateOrderDraft = useCartStore((state) => state.updateOrderDraft);
   const clearCart = useCartStore((state) => state.clearCart);
   const clearCurrentOrder = useCartStore((state) => state.clearCurrentOrder);
@@ -68,6 +75,61 @@ export function CartPage() {
     navigate(appRoutes.menu);
   };
 
+  const handleEditItem = (item: CartItemType) => {
+    const product: MenuProduct = {
+      id: item.productId,
+      slug: "",
+      name: item.baseName ?? item.name,
+      description: "",
+      price: item.variantOptions?.length ? null : item.unitPrice,
+      image_path: item.image?.src ?? null,
+      is_available: true,
+      sort_order: 0,
+      tags: null,
+      categories: null,
+      product_variants:
+        item.variantOptions?.map((option) => ({
+          id: option.key,
+          name: option.label,
+          price: option.unitPrice,
+          is_default: false,
+          is_active: true,
+          sort_order: 0,
+        })) ?? [],
+      product_option_groups:
+        item.optionGroups?.map((group) => ({
+          option_groups: group,
+        })) ?? [],
+      urlImage: item.image,
+      option_groups: item.optionGroups ?? [],
+      variants: [],
+      priceOptions:
+        item.variantOptions?.map((option) => ({
+          label: option.label,
+          price: option.unitPrice,
+        })) ?? [],
+      additions: item.availableAdditions ?? [],
+    };
+
+    setEditingItem(item);
+    setEditingProduct(product);
+  };
+
+  const handleCloseEdit = () => {
+    setEditingItem(null);
+    setEditingProduct(null);
+  };
+
+  const handleSaveEdit = (input: Parameters<typeof addItem>[0]) => {
+    if (editingItem) {
+      removeItem(editingItem.lineId);
+    }
+
+    addItem(input);
+    notify.success("Producto actualizado.");
+    handleCloseEdit();
+  };
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8 lg:py-8">
       <h1 className="sr-only">Carrito</h1>
@@ -105,9 +167,7 @@ export function CartPage() {
                   updateQuantity(item.lineId, quantity);
                 }}
                 onNoteChange={(note) => updateItemNote(item.lineId, note)}
-                onVariantChange={(variantKey) =>
-                  updateItemVariant(item.lineId, variantKey).status
-                }
+                onEdit={() => handleEditItem(item)}
                 onRemove={() => {
                   removeItem(item.lineId);
                   notify.success("Producto eliminado del carrito.");
@@ -170,6 +230,29 @@ export function CartPage() {
           </p>
         </div>
       </AppModal>
+
+      {editingProduct ? (
+        <>
+          <div className="hidden sm:block">
+            <ProductCustomizationModal
+              product={editingProduct}
+              initialCartItem={editingItem ?? undefined}
+              isOpen={Boolean(editingProduct)}
+              onClose={handleCloseEdit}
+              onAdd={handleSaveEdit}
+            />
+          </div>
+          <div className="sm:hidden">
+            <ProductCustomizationSheet
+              product={editingProduct}
+              initialCartItem={editingItem ?? undefined}
+              isOpen={Boolean(editingProduct)}
+              onClose={handleCloseEdit}
+              onAdd={handleSaveEdit}
+            />
+          </div>
+        </>
+      ) : null}
     </main>
   );
 }

@@ -14,6 +14,18 @@ function compactLines(lines: Array<string | false | null | undefined>) {
   return lines.filter(Boolean).join("\n");
 }
 
+function formatSelectedOptions(item: CartItem): string | false {
+  if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
+    return false;
+  }
+
+  const options = Object.entries(item.selectedOptions)
+    .map(([groupName, optionName]) => `${groupName}: ${optionName}`)
+    .join(", ");
+
+  return `   Opciones: ${options}`;
+}
+
 export function buildWhatsAppOrderMessage({
   items,
   orderDraft,
@@ -24,6 +36,7 @@ export function buildWhatsAppOrderMessage({
       compactLines([
         `${index + 1}. ${formatCartItemName(item.name)}`,
         item.variantKey?.trim() ? `   Opción: ${item.variantKey.trim()}` : false,
+        formatSelectedOptions(item),
         `   Cantidad: ${item.quantity}`,
         `   Precio unitario: ${formatCOP(item.unitPrice)}`,
         `   Subtotal: ${formatCOP(item.unitPrice * item.quantity)}`,

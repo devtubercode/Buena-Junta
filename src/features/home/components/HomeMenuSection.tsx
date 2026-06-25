@@ -1,25 +1,34 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { appRoutes } from "@/app/routes";
-import type {
-  CartAdditionOption,
-  CartVariantOption,
-} from "@/features/cart/types/cart.types";
+import type { AddCartItemInput, CartItem } from "@/features/cart/types/cart.types";
 import { useCartStore } from "@/features/cart/store/useCartStore";
+import { ProductCustomizationModal } from "@/features/menu/components/ProductCustomizationModal";
+import { ProductCustomizationSheet } from "@/features/menu/components/ProductCustomizationSheet";
 import { useMenuFilterStore } from "@/features/menu/store/useMenuFilterStore";
 import { type MenuProduct } from "@/features/menu/types/menu.types";
-import { buildCartProductName } from "@/features/menu/utils/productCopy";
 import { CategoryChips } from "@/shared/components/menu/CategoryChips";
 import { ProductGrid } from "@/shared/components/menu/ProductGrid";
 import { CategoryChipsSkeleton } from "@/shared/components/menu/skeletons/CategoryChipsSkeleton";
 import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductGridSkeleton";
 import { useMenuData } from "@/features/menu/hooks/useMenuData";
+import { notify } from "@/shared/notifications/notify";
 
 export const HomeMenuSection = () => {
   const { categories, products, isLoading, error } = useMenuData();
   const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const items = useCartStore((state) => state.items);
+
   const { setSelectedCategorySlug, selectedCategorySlug } = useMenuFilterStore(
     (state) => state,
+  );
+
+  const [customizingProduct, setCustomizingProduct] = useState<MenuProduct | null>(
+    null,
+  );
+  const [editingCartItem, setEditingCartItem] = useState<CartItem | undefined>(
+    undefined,
   );
 
   const filteredProducts = useMemo(() => {
@@ -32,37 +41,64 @@ export const HomeMenuSection = () => {
     return products;
   }, [selectedCategorySlug, products]);
 
-  const handleAddProduct = (
-    product: MenuProduct,
-    input: {
-      variantKey?: string;
-      label?: string;
-      displayName?: string;
-      price: number;
-      variantOptions?: CartVariantOption[];
-      additionOptions?: CartAdditionOption[];
-      image?: {
-        src: string;
-        alt: string;
-      };
-    },
-  ) => {
+  const simpleProductItemsByProductId = useMemo(() => {
+    const map = new Map<string, CartItem>();
+
+    for (const item of items) {
+      if (!map.has(item.productId)) {
+        map.set(item.productId, item);
+      }
+    }
+
+    return map;
+  }, [items]);
+
+  const getQuantityInCart = (productId: string) => {
+    const item = simpleProductItemsByProductId.get(productId);
+    return item?.quantity ?? 0;
+  };
+
+  const handleOpenCustomization = (product: MenuProduct, item?: CartItem) => {
+    setEditingCartItem(item);
+    setCustomizingProduct(product);
+  };
+
+  const handleCloseCustomization = () => {
+    setCustomizingProduct(null);
+    setEditingCartItem(undefined);
+  };
+
+  const handleAddCustomized = (input: AddCartItemInput) => {
+    if (editingCartItem) {
+      removeItem(editingCartItem.lineId);
+    }
+
+    addItem(input);
+
+    notify.whatsapp(
+      editingCartItem
+        ? `Actualizaste ${input.name} en el carrito.`
+        : `Agregaste ${input.name} al carrito.`,
+    );
+  };
+
+  const handleQuickAdd = (product: MenuProduct) => {
     if (!product.is_available) {
       return;
     }
 
     addItem({
       productId: product.id,
-      image: input.image,
-      variantKey: input.variantKey,
+      image: product.urlImage,
       baseName: product.name,
-      displayName:
-        input.displayName ?? buildCartProductName(product, input.label),
-      name: input.displayName ?? buildCartProductName(product, input.label),
-      unitPrice: input.price,
-      variantOptions: input.variantOptions,
-      additionOptions: input.additionOptions,
+      displayName: product.name,
+      name: product.name,
+      unitPrice: product.price ?? 0,
+      variantOptions: [],
+      additionOptions: [],
     });
+
+    notify.whatsapp(`Agregaste ${product.name} al carrito.`);
   };
 
   return (
@@ -100,7 +136,9 @@ export const HomeMenuSection = () => {
       ) : error ? null : (
         <ProductGrid
           products={filteredProducts}
-          onAddProduct={handleAddProduct}
+          getQuantityInCart={getQuantityInCart}
+          onQuickAdd={handleQuickAdd}
+          onOpenCustomization={handleOpenCustomization}
         />
       )}
 
@@ -112,6 +150,29 @@ export const HomeMenuSection = () => {
           Ver menú completo
         </Link>
       </div>
+
+      {customizingProduct ? (
+        <>
+          <div className="hidden sm:block">
+            <ProductCustomizationModal
+              product={customizingProduct}
+              initialCartItem={editingCartItem}
+              isOpen={Boolean(customizingProduct)}
+              onClose={handleCloseCustomization}
+              onAdd={handleAddCustomized}
+            />
+          </div>
+          <div className="sm:hidden">
+            <ProductCustomizationSheet
+              product={customizingProduct}
+              initialCartItem={editingCartItem}
+              isOpen={Boolean(customizingProduct)}
+              onClose={handleCloseCustomization}
+              onAdd={handleAddCustomized}
+            />
+          </div>
+        </>
+      ) : null}
     </section>
   );
 };

@@ -45,12 +45,22 @@ function normalizeAdditionKeys(additionOptions?: AddCartItemInput["additionOptio
     .join("|");
 }
 
+function normalizeSelectedOptions(selectedOptions?: Record<string, string>) {
+  const entries = Object.entries(selectedOptions ?? {})
+    .map(([key, value]) => [key.trim().toLowerCase(), value.trim().toLowerCase()])
+    .filter(([, value]) => value.length > 0)
+    .sort(([a], [b]) => String(a).localeCompare(String(b)));
+
+  return entries.map(([key, value]) => `${key}=${value}`).join("|");
+}
+
 function buildLineId(item: AddCartItemInput) {
   return [
     item.productId,
     item.variantKey ?? "base",
     normalizeNote(item.note),
     normalizeAdditionKeys(item.additionOptions),
+    normalizeSelectedOptions(item.selectedOptions),
   ].join("::");
 }
 
@@ -59,12 +69,14 @@ function buildLineIdFromParts(
   variantKey?: string,
   note?: string,
   additionOptions?: AddCartItemInput["additionOptions"],
+  selectedOptions?: Record<string, string>,
 ) {
   return [
     productId,
     variantKey ?? "base",
     normalizeNote(note),
     normalizeAdditionKeys(additionOptions),
+    normalizeSelectedOptions(selectedOptions),
   ].join("::");
 }
 
@@ -119,8 +131,11 @@ export const useCartStore = create<CartState>()(
                 unitPrice: item.unitPrice,
                 quantity,
                 note: item.note?.trim() || undefined,
+                selectedOptions: item.selectedOptions,
                 variantOptions: item.variantOptions,
                 additionOptions: item.additionOptions,
+                optionGroups: item.optionGroups,
+                availableAdditions: item.availableAdditions,
               },
             ],
           };
@@ -188,6 +203,7 @@ export const useCartStore = create<CartState>()(
           selectedOption.key,
           currentItem.note,
           currentItem.additionOptions,
+          currentItem.selectedOptions,
         );
         const duplicateItem = state.items.find(
           (item) => item.lineId !== lineId && item.lineId === nextLineId,
@@ -238,17 +254,15 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "buenajunta-cart",
-      version: 3,
+      version: 4,
       partialize: (state) => ({
         items: state.items,
         orderDraft: state.orderDraft,
       }),
-      migrate: (persistedState) => {
-        const state = persistedState as Partial<CartState>;
-
+      migrate: () => {
         return {
           items: [],
-          orderDraft: state.orderDraft ?? emptyOrderDraft,
+          orderDraft: emptyOrderDraft,
         } as unknown as CartState;
       },
     },

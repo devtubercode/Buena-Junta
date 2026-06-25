@@ -1,180 +1,62 @@
 import { useState } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, SlidersHorizontal, Check } from "lucide-react";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
-import type {
-  CartAdditionOption,
-  CartVariantOption,
-} from "@/features/cart/types/cart.types";
-import { formatCOP } from "@/features/cart/utils/money";
-import type {
-  MenuOptionGroup,
-  MenuPriceOption,
-  MenuProduct,
-} from "@/features/menu/types/menu.types";
+import type { MenuProduct } from "@/features/menu/types/menu.types";
 import {
-  buildCartProductName,
-  getMissingSelectionMessage,
-} from "@/features/menu/utils/productCopy";
-import { notify } from "@/shared/notifications/notify";
+  getProductButtonLabel,
+  getProductCardPriceLabel,
+  isSimpleProduct,
+  requiresCustomization,
+  hasAdditions,
+  hasRequiredOptions,
+} from "@/features/menu/utils/productHelpers";
 import { cn } from "@/shared/utils/cn";
 
 type ProductCardProps = {
   product: MenuProduct;
-  onAdd: (input: {
-    variantKey?: string;
-    label?: string;
-    displayName?: string;
-    price: number;
-    image?: {
-      src: string;
-      alt: string;
-    };
-    variantOptions?: CartVariantOption[];
-    additionOptions?: CartAdditionOption[];
-  }) => void;
+  quantityInCart?: number;
+  onQuickAdd: () => void;
+  onOpenCustomization: () => void;
 };
 
-type SelectedOptions = Record<string, string>;
-type SelectedAdditions = Record<string, boolean>;
-
-function getActiveOptionGroups(product: MenuProduct) {
-  return [...(product.option_groups ?? [])]
-    .filter((group) => group.is_active)
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map((group) => ({
-      ...group,
-      option_values: [...(group.option_values ?? [])]
-        .filter((option) => option.is_active)
-        .sort((a, b) => a.created_at.localeCompare(b.created_at)),
-    }))
-    .filter((group) => group.option_values.length > 0);
+function getProductImage(product: MenuProduct) {
+  return (
+    product.urlImage ?? {
+      src: productPlaceholderImage,
+      alt: `Imagen de referencia para ${product.name}`,
+    }
+  );
 }
 
-function getActiveAdditions(product: MenuProduct) {
-  return [...(product.additions ?? [])];
-}
+function getBadges(product: MenuProduct) {
+  const badges: { label: string; variant: "required" | "additions" }[] = [];
 
-function getPriceOptions(
-  product: MenuProduct,
-  priceOptions: MenuPriceOption[],
-): CartVariantOption[] | undefined {
-  if (priceOptions.length === 0) {
-    return undefined;
+  if (hasRequiredOptions(product)) {
+    badges.push({ label: "Requiere selección", variant: "required" });
   }
 
-  return priceOptions.map((option) => ({
-    key: option.label,
-    label: option.label,
-    itemName: buildCartProductName(product, option.label),
-    unitPrice: option.price,
-  }));
+  if (hasAdditions(product)) {
+    badges.push({ label: "Adiciones disponibles", variant: "additions" });
+  }
+
+  return badges;
 }
 
-export function ProductCard({ product, onAdd }: ProductCardProps) {
-  const priceOptions = product.priceOptions ?? [];
-  const optionGroups = getActiveOptionGroups(product);
-  const additionOptions = getActiveAdditions(product);
-  const [selectedPriceOption, setSelectedPriceOption] =
-    useState<MenuPriceOption | null>(() => priceOptions[0] ?? null);
-  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
-  const [selectedAdditions, setSelectedAdditions] =
-    useState<SelectedAdditions>({});
+export function ProductCard({
+  product,
+  quantityInCart = 0,
+  onQuickAdd,
+  onOpenCustomization,
+}: ProductCardProps) {
+  const [imageError, setImageError] = useState(false);
   const isUnavailable = !product.is_available;
-  const hasProductImage = Boolean(product.urlImage);
-  const productImage = product.urlImage ?? {
-    src: productPlaceholderImage,
-    alt: `Imagen de referencia para ${product.name}`,
-  };
-
-  const selectedOptionSummary = optionGroups
-    .map((group) => selectedOptions[group.name])
-    .filter((label): label is string => Boolean(label))
-    .join(" / ");
-  const selectedVariantLabel = [
-    selectedPriceOption?.label,
-    selectedOptionSummary ? `Sabor: ${selectedOptionSummary}` : null,
-  ]
-    .filter(Boolean)
-    .join(" / ");
-  const selectedAdditionsList = additionOptions.filter(
-    (addition) => selectedAdditions[addition.id],
-  );
-  const additionTotal = selectedAdditionsList.reduce(
-    (total, addition) => total + addition.price,
-    0,
-  );
-  const selectedBasePrice =
-    selectedPriceOption !== null ? selectedPriceOption.price : product.price;
-  const totalPrice =
-    selectedBasePrice === null ? null : selectedBasePrice + additionTotal;
-  const formattedPrice =
-    totalPrice === null ? null : formatCOP(totalPrice);
-  const cartVariantOptions = getPriceOptions(product, priceOptions);
-  const cartAdditionOptions = selectedAdditionsList.map((addition) => ({
-    key: addition.id,
-    label: addition.name,
-    unitPrice: addition.price,
-  }));
-
-  const isOptionSelectionComplete = optionGroups.every((group) => {
-    if (!group.is_required) {
-      return true;
-    }
-
-    return Boolean(selectedOptions[group.name]);
-  });
-
-  const handleSelectOption = (group: MenuOptionGroup, optionName: string) => {
-    setSelectedOptions((currentOptions) => {
-      const currentValue = currentOptions[group.name];
-
-      if (!group.is_required && currentValue === optionName) {
-        const nextOptions = { ...currentOptions };
-        delete nextOptions[group.name];
-        return nextOptions;
-      }
-
-      return {
-        ...currentOptions,
-        [group.name]: optionName,
-      };
-    });
-  };
-
-  const handleToggleAddition = (additionId: string) => {
-    setSelectedAdditions((currentAdditions) => ({
-      ...currentAdditions,
-      [additionId]: !currentAdditions[additionId],
-    }));
-  };
-
-  const handleConfirmAdd = () => {
-    if (totalPrice === null) {
-      notify.warning(getMissingSelectionMessage(product));
-      return;
-    }
-
-    if (!isOptionSelectionComplete) {
-      notify.warning(getMissingSelectionMessage(product));
-      return;
-    }
-
-    const displayName = buildCartProductName(
-      product,
-      selectedVariantLabel || undefined,
-    );
-
-    onAdd({
-      variantKey: selectedVariantLabel || undefined,
-      label: selectedVariantLabel || undefined,
-      displayName,
-      price: totalPrice,
-      image: productImage,
-      variantOptions: cartVariantOptions,
-      additionOptions: cartAdditionOptions,
-    });
-    notify.whatsapp(`Agregaste ${displayName} al carrito.`);
-  };
+  const productImage = imageError ? getProductImage(product) : (product.urlImage ?? getProductImage(product));
+  const priceLabel = getProductCardPriceLabel(product);
+  const buttonLabel = getProductButtonLabel(product, true);
+  const badges = getBadges(product);
+  const isInCart = quantityInCart > 0;
+  const isSimple = isSimpleProduct(product);
+  const showAddedBadge = isSimple && isInCart;
 
   return (
     <article
@@ -184,9 +66,10 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
       <img
         src={productImage.src}
         alt={productImage.alt}
+        onError={() => setImageError(true)}
         className={cn(
           "h-full min-h-28 w-full rounded-md border border-border object-cover",
-          hasProductImage
+          product.urlImage && !imageError
             ? "bg-surface-muted"
             : "bg-surface-raised object-contain p-2",
         )}
@@ -194,123 +77,76 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
       />
 
       <div className="flex min-w-0 flex-col py-1 pr-1">
-        <h3 className="line-clamp-2 font-heading text-[1.55rem] font-black leading-[0.98] text-foreground">
-          {product.name}
-        </h3>
-        <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-muted-foreground">
-          {product.description}
-        </p>
-
-        {priceOptions.length > 0 ? (
-          <div
-            className="mt-2 flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
-            aria-label="Presentaciones"
-          >
-            {priceOptions.map((option) => {
-              const isSelected = selectedPriceOption?.label === option.label;
-
-              return (
-                <button
-                  key={option.label}
-                  type="button"
-                  disabled={isUnavailable}
-                  data-selected={isSelected}
-                  className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] font-black transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary data-[selected=true]:border-primary data-[selected=true]:bg-primary-soft data-[selected=true]:text-primary data-[selected=false]:border-primary-border data-[selected=false]:bg-surface data-[selected=false]:text-muted-foreground"
-                  onClick={() => setSelectedPriceOption(option)}
-                >
-                  <span>{option.label}</span>
-                  <span className="font-semibold">
-                    {formatCOP(option.price)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-
-        {optionGroups.length > 0 ? (
-          <div className="mt-2 grid gap-1.5">
-            {optionGroups.map((group) => (
-              <fieldset key={group.name} className="min-w-0">
-                <legend className="text-xs font-black uppercase tracking-[0.12em] text-muted-foreground">
-                  {group.name}
-                </legend>
-                <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
-                  {group.option_values.map((option) => {
-                    const isSelected =
-                      selectedOptions[group.name] === option.name;
-
-                    return (
-                      <button
-                        key={`${group.name}-${option.name}`}
-                        type="button"
-                        disabled={isUnavailable}
-                        data-selected={isSelected}
-                        className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] font-black transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground data-[selected=false]:border-primary-border data-[selected=false]:bg-surface data-[selected=false]:text-muted-foreground"
-                        onClick={() => handleSelectOption(group, option.name)}
-                      >
-                        <span>{option.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-            ))}
-          </div>
-        ) : null}
-
-        {additionOptions.length > 0 ? (
-          <div className="mt-2 grid gap-1.5">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-muted-foreground">
-              Acompañantes
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="line-clamp-2 font-heading text-[1.55rem] font-black leading-[0.98] text-foreground">
+              {product.name}
+            </h3>
+            <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-muted-foreground">
+              {product.description}
             </p>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
-              {additionOptions.map((addition) => {
-                const isSelected = Boolean(selectedAdditions[addition.id]);
+          </div>
+          {showAddedBadge ? (
+            <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-success p-1 text-success-foreground shadow-elevated">
+              <Check className="size-3.5" />
+            </span>
+          ) : null}
+        </div>
 
-                return (
-                  <button
-                    key={addition.id}
-                    type="button"
-                    disabled={isUnavailable}
-                    data-selected={isSelected}
-                    className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] font-black transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary data-[selected=true]:border-primary data-[selected=true]:bg-primary-soft data-[selected=true]:text-primary data-[selected=false]:border-primary-border data-[selected=false]:bg-surface data-[selected=false]:text-muted-foreground"
-                    onClick={() => handleToggleAddition(addition.id)}
-                  >
-                    <span>{addition.name}</span>
-                    <span className="font-semibold">{formatCOP(addition.price)}</span>
-                  </button>
-                );
-              })}
-            </div>
+        {badges.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {badges.map((badge) => (
+              <span
+                key={badge.label}
+                className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide",
+                  badge.variant === "required"
+                    ? "bg-warning-soft text-warning"
+                    : "bg-primary-soft text-primary",
+                )}
+              >
+                {badge.label}
+              </span>
+            ))}
           </div>
         ) : null}
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
           <div className="min-w-0">
-            {formattedPrice ? (
+            {priceLabel ? (
               <p className="font-heading text-[1.55rem] font-black leading-none text-primary">
-                {formattedPrice}
+                {priceLabel}
               </p>
             ) : (
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
                 Precio no disponible
               </p>
             )}
-            {additionTotal > 0 ? (
-              <p className="mt-1 text-[11px] font-bold text-muted-foreground">
-                Incluye {formatCOP(additionTotal)} en acompañantes
-              </p>
-            ) : null}
           </div>
+
           <button
             type="button"
-            disabled={isUnavailable}
-            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 text-[13px] font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={handleConfirmAdd}
+            disabled={isUnavailable || priceLabel === null}
+            onClick={() => {
+              if (requiresCustomization(product)) {
+                onOpenCustomization();
+              } else {
+                onQuickAdd();
+              }
+            }}
+            className="relative inline-flex min-h-10 items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 text-[13px] font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <ShoppingCart className="size-4" />
-            Agregar
+            {showAddedBadge ? (
+              <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full border border-background bg-success text-[9px] font-black text-success-foreground shadow-elevated">
+                {quantityInCart}
+              </span>
+            ) : null}
+            {requiresCustomization(product) ? (
+              <SlidersHorizontal className="size-4" />
+            ) : (
+              <ShoppingCart className="size-4" />
+            )}
+            {buttonLabel}
           </button>
         </div>
       </div>

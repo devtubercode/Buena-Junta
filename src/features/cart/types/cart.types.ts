@@ -1,3 +1,8 @@
+import type {
+  MenuAddition,
+  MenuOptionGroup,
+} from "@/features/menu/types/menu.types";
+
 export type CartVariantOption = {
   key: string;
   label: string;
@@ -26,8 +31,11 @@ export type CartItem = {
   unitPrice: number;
   quantity: number;
   note?: string;
+  selectedOptions?: Record<string, string>;
   variantOptions?: CartVariantOption[];
   additionOptions?: CartAdditionOption[];
+  optionGroups?: MenuOptionGroup[];
+  availableAdditions?: MenuAddition[];
 };
 
 export type OrderDraft = {
@@ -49,8 +57,11 @@ export type AddCartItemInput = {
   unitPrice: number;
   quantity?: number;
   note?: string;
+  selectedOptions?: Record<string, string>;
   variantOptions?: CartVariantOption[];
   additionOptions?: CartAdditionOption[];
+  optionGroups?: MenuOptionGroup[];
+  availableAdditions?: MenuAddition[];
 };
 
 export type UpdateCartItemVariantResult =
