@@ -14,6 +14,7 @@ import {
   saveOptionGroup,
   saveOptionValue,
 } from "@/features/admin/services/admin-option-groups.service";
+import { Checkbox } from "@/shared/components/Checkbox";
 import type {
   OptionGroupInput,
   OptionGroupRow,
@@ -300,32 +301,26 @@ export function OptionGroupsPage() {
                 }
               />
             </AdminField>
-            <label className="flex items-center gap-2 text-sm font-black text-foreground">
-              <input
-                type="checkbox"
-                checked={groupForm.is_required}
-                onChange={(event) =>
-                  setGroupForm((current) => ({
-                    ...current,
-                    is_required: event.target.checked,
-                  }))
-                }
-              />
-              Requerido
-            </label>
-            <label className="flex items-center gap-2 text-sm font-black text-foreground">
-              <input
-                type="checkbox"
-                checked={groupForm.is_active}
-                onChange={(event) =>
-                  setGroupForm((current) => ({
-                    ...current,
-                    is_active: event.target.checked,
-                  }))
-                }
-              />
-              Activo
-            </label>
+            <Checkbox
+              label="Requerido"
+              checked={groupForm.is_required}
+              onCheckedChange={(checked) =>
+                setGroupForm((current) => ({
+                  ...current,
+                  is_required: checked,
+                }))
+              }
+            />
+            <Checkbox
+              label="Activo"
+              checked={groupForm.is_active}
+              onCheckedChange={(checked) =>
+                setGroupForm((current) => ({
+                  ...current,
+                  is_active: checked,
+                }))
+              }
+            />
             <button
               type="submit"
               disabled={isSavingGroup}
@@ -425,19 +420,16 @@ export function OptionGroupsPage() {
                         required
                       />
                     </AdminField>
-                    <label className="flex items-center gap-2 text-sm font-black text-foreground">
-                      <input
-                        type="checkbox"
-                        checked={optionForm.is_active}
-                        onChange={(event) =>
-                          setOptionForm((current) => ({
-                            ...current,
-                            is_active: event.target.checked,
-                          }))
-                        }
-                      />
-                      Activa
-                    </label>
+                    <Checkbox
+                      label="Activa"
+                      checked={optionForm.is_active}
+                      onCheckedChange={(checked) =>
+                        setOptionForm((current) => ({
+                          ...current,
+                          is_active: checked,
+                        }))
+                      }
+                    />
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="submit"

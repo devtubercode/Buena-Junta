@@ -1,6 +1,9 @@
 import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
-import type { CartItem, AddCartItemInput } from "@/features/cart/types/cart.types";
+import type {
+  CartItem,
+  AddCartItemInput,
+} from "@/features/cart/types/cart.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import { useProductCustomization } from "@/features/menu/hooks/useProductCustomization";
 import { AdditionSelector } from "@/features/menu/components/AdditionSelector";
@@ -152,9 +155,7 @@ export function ProductCustomizationForm({
           )}
         >
           {submitLabel}
-          {totalPrice !== null ? (
-            <span>· {formatCOP(totalPrice)}</span>
-          ) : null}
+          {totalPrice !== null ? <span>· {formatCOP(totalPrice)}</span> : null}
         </button>
       </footer>
     </div>

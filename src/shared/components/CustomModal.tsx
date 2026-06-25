@@ -2,33 +2,25 @@ import { useEffect, useId, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
-type AppModalProps = {
+type CustomModalProps = {
   isOpen: boolean;
   title: string;
   description?: string;
   icon?: ReactNode;
   contentClassName?: string;
-  primaryActionLabel?: string;
-  secondaryActionLabel?: string;
-  onPrimaryAction?: () => void;
-  onSecondaryAction?: () => void;
   onClose: () => void;
   children?: ReactNode;
 };
 
-export function AppModal({
+export function CustomModal({
   isOpen,
   title,
   description,
   icon,
   contentClassName,
-  primaryActionLabel,
-  secondaryActionLabel,
-  onPrimaryAction,
-  onSecondaryAction,
   onClose,
   children,
-}: AppModalProps) {
+}: CustomModalProps) {
   const titleId = useId();
   const descriptionId = useId();
 
@@ -68,7 +60,7 @@ export function AppModal({
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         className={cn(
-          "w-full max-w-md rounded-lg border border-border bg-surface p-4 shadow-elevated sm:p-5",
+          "w-full max-w-md rounded-t-2xl border border-border bg-surface p-4 shadow-elevated sm:rounded-2xl sm:p-5",
           contentClassName,
         )}
       >
@@ -110,29 +102,6 @@ export function AppModal({
         {children ? (
           <div className="mt-4 text-sm font-medium leading-6 text-muted-foreground">
             {children}
-          </div>
-        ) : null}
-
-        {primaryActionLabel || secondaryActionLabel ? (
-          <div className="mt-5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
-            {primaryActionLabel ? (
-              <button
-                type="button"
-                className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                onClick={onPrimaryAction}
-              >
-                {primaryActionLabel}
-              </button>
-            ) : null}
-            {secondaryActionLabel ? (
-              <button
-                type="button"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                onClick={onSecondaryAction ?? onClose}
-              >
-                {secondaryActionLabel}
-              </button>
-            ) : null}
           </div>
         ) : null}
       </section>

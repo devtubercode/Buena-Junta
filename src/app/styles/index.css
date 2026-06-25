@@ -222,3 +222,10 @@ p {
   scrollbar-width: thin;
   scrollbar-color: var(--primary) var(--surface-muted);
 }
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(48%) sepia(82%) saturate(2241%) hue-rotate(360deg) brightness(101%) contrast(101%);
+  cursor: pointer;
+}

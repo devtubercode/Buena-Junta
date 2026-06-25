@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
-import type { AddCartItemInput, CartItem } from "@/features/cart/types/cart.types";
+import type {
+  AddCartItemInput,
+  CartItem,
+} from "@/features/cart/types/cart.types";
 import { useCartStore } from "@/features/cart/store/useCartStore";
 import { ProductCustomizationModal } from "@/features/menu/components/ProductCustomizationModal";
-import { ProductCustomizationSheet } from "@/features/menu/components/ProductCustomizationSheet";
 import { useMenuData } from "@/features/menu/hooks/useMenuData";
 import { useMenuFilterStore } from "@/features/menu/store/useMenuFilterStore";
 import { type MenuProduct } from "@/features/menu/types/menu.types";
@@ -14,6 +16,8 @@ import { ProductGrid } from "@/shared/components/menu/ProductGrid";
 import { CategoryChipsSkeleton } from "@/shared/components/menu/skeletons/CategoryChipsSkeleton";
 import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductGridSkeleton";
 import { notify } from "@/shared/notifications/notify";
+import { ProductCustomizationForm } from "./components/ProductCustomizationForm";
+import { ButtonSheetModal } from "../../shared/components/ButtonSheetModal";
 
 export function MenuPage() {
   const addItem = useCartStore((state) => state.addItem);
@@ -27,9 +31,8 @@ export function MenuPage() {
     (state) => state.setSelectedCategorySlug,
   );
   const [query, setQuery] = useState("");
-  const [customizingProduct, setCustomizingProduct] = useState<MenuProduct | null>(
-    null,
-  );
+  const [customizingProduct, setCustomizingProduct] =
+    useState<MenuProduct | null>(null);
   const [editingCartItem, setEditingCartItem] = useState<CartItem | undefined>(
     undefined,
   );
@@ -167,13 +170,25 @@ export function MenuPage() {
             />
           </div>
           <div className="sm:hidden">
-            <ProductCustomizationSheet
-              product={customizingProduct}
-              initialCartItem={editingCartItem}
+            <ButtonSheetModal
               isOpen={Boolean(customizingProduct)}
+              title=""
+              description=""
+              contentClassName="max-w-lg p-0 sm:p-1"
               onClose={handleCloseCustomization}
-              onAdd={handleAddCustomized}
-            />
+            >
+              <div className="p-3">
+                <ProductCustomizationForm
+                  product={customizingProduct}
+                  initialCartItem={editingCartItem}
+                  submitLabel={
+                    editingCartItem ? "Guardar cambios" : "Agregar al carrito"
+                  }
+                  onSubmit={handleAddCustomized}
+                  onClose={handleCloseCustomization}
+                />
+              </div>
+            </ButtonSheetModal>
           </div>
         </>
       ) : null}

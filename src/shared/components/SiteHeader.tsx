@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router";
 import { Home, Info, MapPin, UtensilsCrossed } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { publicLocation } from "@/features/menu/content/menuContent";
-import { AppModal } from "@/shared/components/AppModal";
+import { CustomModal } from "@/shared/components/CustomModal";
 import logoImage from "@/assets/buenajunta-logo.webp";
 import { CartButton } from "@/shared/components/CartButton";
 import { ThemeSwitch } from "@/shared/components/ThemeSwitch";
@@ -83,13 +83,12 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <AppModal
+      <CustomModal
         isOpen={isLocationModalOpen}
         title={publicLocation.shortLabel}
         description={publicLocation.address}
         icon={<MapPin className="size-5" />}
         contentClassName="max-w-3xl"
-        secondaryActionLabel="Cerrar"
         onClose={() => setIsLocationModalOpen(false)}
       >
         <div className="space-y-4">
@@ -110,16 +109,25 @@ export function SiteHeader() {
               Nos ayuda a que más personas encuentren BuenaJunta.
             </p>
           </div>
-          <a
-            href={publicLocation.mapsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            Abrir mapa completo
-          </a>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              onClick={() => setIsLocationModalOpen(false)}
+            >
+              Cerrar
+            </button>
+            <a
+              href={publicLocation.mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Abrir mapa completo
+            </a>
+          </div>
         </div>
-      </AppModal>
+      </CustomModal>
     </>
   );
 }

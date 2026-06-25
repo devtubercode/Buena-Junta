@@ -67,40 +67,56 @@ export function AdminMediaListSkeleton() {
 
 export function AdminCategoriesSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_420px]" aria-hidden="true">
-      <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-elevated">
-        <div className="grid grid-cols-[1fr_90px_80px] gap-3 border-b border-border px-4 py-3">
-          <SkeletonBlock className="h-3 w-20" />
-          <SkeletonBlock className="h-3 w-14" />
-          <span />
-        </div>
-        {Array.from({ length: 8 }).map((_, index) => (
-          <div
-            key={index}
-            className="grid grid-cols-[1fr_90px_80px] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
-          >
-            <div className="grid gap-2">
-              <SkeletonBlock className="h-4 w-36" />
-              <SkeletonBlock className="h-3 w-24" />
-            </div>
-            <SkeletonBlock className="h-4 w-8" />
+    <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-elevated" aria-hidden="true">
+      <div className="grid grid-cols-[1fr_70px_80px] gap-3 border-b border-border px-4 py-3 sm:grid-cols-[1fr_90px_80px]">
+        <SkeletonBlock className="h-3 w-20" />
+        <SkeletonBlock className="h-3 w-14" />
+        <span />
+      </div>
+      {Array.from({ length: 8 }).map((_, index) => (
+        <div
+          key={index}
+          className="grid grid-cols-[1fr_70px_80px] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:grid-cols-[1fr_90px_80px]"
+        >
+          <div className="grid gap-2">
+            <SkeletonBlock className="h-4 w-36" />
+            <SkeletonBlock className="h-3 w-24" />
+          </div>
+          <SkeletonBlock className="h-4 w-8" />
+          <div className="flex items-center justify-end gap-1">
+            <SkeletonBlock className="size-9 rounded-full" />
             <SkeletonBlock className="size-9 rounded-full" />
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-      <div className="grid content-start gap-4 rounded-lg border border-border bg-surface p-4 shadow-elevated">
-        <SkeletonBlock className="h-7 w-48" />
-        <SkeletonBlock className="h-4 w-20" />
-        <SkeletonBlock className="h-12 w-full" />
-        <SkeletonBlock className="h-4 w-16" />
-        <SkeletonBlock className="h-12 w-full" />
-        <SkeletonBlock className="h-4 w-24" />
-        <SkeletonBlock className="h-24 w-full" />
-        <SkeletonBlock className="h-4 w-16" />
-        <SkeletonBlock className="h-12 w-full" />
-        <SkeletonBlock className="h-12 w-full rounded-full" />
+export function AdminAdditionsSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-elevated" aria-hidden="true">
+      <div className="grid grid-cols-[1fr_90px_80px] gap-3 border-b border-border px-4 py-3 sm:grid-cols-[1fr_120px_80px]">
+        <SkeletonBlock className="h-3 w-20" />
+        <SkeletonBlock className="h-3 w-14" />
+        <span />
       </div>
+      {Array.from({ length: 8 }).map((_, index) => (
+        <div
+          key={index}
+          className="grid grid-cols-[1fr_90px_80px] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:grid-cols-[1fr_120px_80px]"
+        >
+          <div className="grid gap-2">
+            <SkeletonBlock className="h-4 w-36" />
+            <SkeletonBlock className="h-3 w-48" />
+          </div>
+          <SkeletonBlock className="h-4 w-12" />
+          <div className="flex items-center justify-end gap-1">
+            <SkeletonBlock className="size-9 rounded-full" />
+            <SkeletonBlock className="size-9 rounded-full" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

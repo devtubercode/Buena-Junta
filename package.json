@@ -12,14 +12,17 @@
   "dependencies": {
     "@blossom-carousel/core": "^1.1.7",
     "@blossom-carousel/react": "^1.1.1",
+    "@hookform/resolvers": "^5.4.0",
     "@pablotheblink/flashyjs": "^1.0.5",
     "@supabase/supabase-js": "^2.108.2",
     "clsx": "^2.1.1",
     "lucide-react": "^1.20.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-hook-form": "^7.80.0",
     "react-router": "^7.18.0",
     "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

@@ -1,13 +1,16 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ArrowLeft,
+  ImagePlus,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
-import { ArrowLeft, ImagePlus, Save, Trash2 } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { AdminDataState } from "@/features/admin/components/AdminDataState";
-import {
-  AdminField,
-  adminInputClass,
-  adminTextareaClass,
-} from "@/features/admin/components/AdminField";
+import { AdminField, adminInputClass } from "@/features/admin/components/AdminField";
 import { AdminSection } from "@/features/admin/components/AdminSection";
 import { usePromotionDetailData } from "@/features/admin/hooks/usePromotionDetailData";
 import {
@@ -26,29 +29,17 @@ import {
   SUPABASE_BUCKETS,
   SUPABASE_STORAGE_PATHS,
 } from "@/lib/supabase/constants";
+import { InputField } from "@/shared/components/InputField";
+import { TextAreaField } from "@/shared/components/TextAreaField";
+import { Checkbox } from "@/shared/components/Checkbox";
+import {
+  promotionSchema,
+  type PromotionFormData,
+} from "@/features/admin/schemas/promotionSchema";
 import type {
   PromotionInput,
   PromotionRow,
 } from "@/features/admin/types/admin.types";
-
-type PromotionForm = Omit<PromotionInput, "active_weekdays"> & {
-  active_weekdays: Set<number>;
-};
-
-const emptyPromotionForm: PromotionForm = {
-  category_id: null,
-  product_id: null,
-  slug: "",
-  title: "",
-  description: null,
-  is_active: true,
-  active_weekdays: new Set<number>(),
-  starts_at: null,
-  ends_at: null,
-  image_path: null,
-  terms: null,
-  sort_order: 0,
-};
 
 const weekdays = [
   { value: 0, label: "Dom" },
@@ -60,18 +51,31 @@ const weekdays = [
   { value: 6, label: "Sáb" },
 ];
 
-function toPromotionForm(promotion: PromotionRow): PromotionForm {
+const defaultValues: PromotionFormData = {
+  title: "",
+  slug: "",
+  description: null,
+  category_id: null,
+  product_id: null,
+  is_active: true,
+  active_weekdays: [],
+  starts_at: null,
+  ends_at: null,
+  terms: null,
+  sort_order: 0,
+};
+
+function toPromotionForm(promotion: PromotionRow): PromotionFormData {
   return {
+    title: promotion.title,
+    slug: promotion.slug,
+    description: promotion.description,
     category_id: promotion.category_id,
     product_id: promotion.product_id,
-    slug: promotion.slug,
-    title: promotion.title,
-    description: promotion.description,
     is_active: promotion.is_active,
-    active_weekdays: new Set(promotion.active_weekdays),
+    active_weekdays: [...promotion.active_weekdays].sort((a, b) => a - b),
     starts_at: promotion.starts_at,
     ends_at: promotion.ends_at,
-    image_path: promotion.image_path,
     terms: promotion.terms,
     sort_order: promotion.sort_order,
   };
@@ -94,13 +98,46 @@ export function PromotionDetailPage() {
     reload,
   } = usePromotionDetailData(promotionId, slug, isNewPromotion);
   const { categories, products, promotion: selected } = promotionDetail;
-  const formKey = selected?.id ?? (isNewPromotion ? "new" : "missing");
-  const baseForm = selected ? toPromotionForm(selected) : emptyPromotionForm;
-  const [formDraft, setFormDraft] = useState<{
-    key: string;
-    value: PromotionForm;
-  } | null>(null);
-  const form = formDraft?.key === formKey ? formDraft.value : baseForm;
+
+  const form = useForm<PromotionFormData>({
+    resolver: zodResolver(promotionSchema),
+    defaultValues,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    getValues,
+  } = form;
+
+  const titleValue = watch("title");
+
+  useEffect(() => {
+    if (selected) {
+      reset(toPromotionForm(selected));
+      return;
+    }
+
+    if (isNewPromotion) {
+      reset(defaultValues);
+    }
+  }, [selected, isNewPromotion, reset]);
+
+  useEffect(() => {
+    if (selected) {
+      return;
+    }
+
+    const slugValue = getValues("slug");
+
+    if (titleValue && !slugValue) {
+      setValue("slug", normalizeSlug(titleValue), { shouldValidate: true });
+    }
+  }, [titleValue, selected, getValues, setValue]);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
@@ -115,13 +152,6 @@ export function PromotionDetailPage() {
     [imagePreviewUrl],
   );
 
-  const setForm = (
-    updater: PromotionForm | ((current: PromotionForm) => PromotionForm),
-  ) => {
-    const nextForm = typeof updater === "function" ? updater(form) : updater;
-    setFormDraft({ key: formKey, value: nextForm });
-  };
-
   const setSelectedImageFile = (file: File | null) => {
     setImagePreviewUrl((currentUrl) => {
       if (currentUrl) {
@@ -133,29 +163,22 @@ export function PromotionDetailPage() {
     setImageFile(file);
   };
 
+  const displayImagePath = selected?.image_path ?? null;
+
   const toggleWeekday = (weekday: number) => {
-    setForm((current) => {
-      const active_weekdays = new Set(current.active_weekdays);
+    const currentWeekdays = getValues("active_weekdays");
+    const nextWeekdays = currentWeekdays.includes(weekday)
+      ? currentWeekdays.filter((value) => value !== weekday)
+      : [...currentWeekdays, weekday];
 
-      if (active_weekdays.has(weekday)) {
-        active_weekdays.delete(weekday);
-      } else {
-        active_weekdays.add(weekday);
-      }
-
-      return {
-        ...current,
-        active_weekdays,
-      };
-    });
+    setValue("active_weekdays", nextWeekdays, { shouldValidate: true });
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const onSubmit = async (data: PromotionFormData) => {
     setIsSaving(true);
 
     try {
-      let image_path = form.image_path;
+      let image_path: string | null = displayImagePath;
 
       if (imageFile) {
         image_path = await uploadStorageImage(
@@ -167,19 +190,19 @@ export function PromotionDetailPage() {
 
       const savedPromotion = await savePromotion(
         {
-          category_id: form.category_id,
-          product_id: form.product_id,
-          slug: normalizeSlug(form.slug),
-          title: form.title.trim(),
-          description: form.description?.trim() || null,
-          is_active: form.is_active,
-          active_weekdays: [...form.active_weekdays].sort(),
-          starts_at: form.starts_at,
-          ends_at: form.ends_at,
+          category_id: data.category_id,
+          product_id: data.product_id,
+          slug: normalizeSlug(data.slug),
+          title: data.title.trim(),
+          description: data.description?.trim() || null,
+          is_active: data.is_active,
+          active_weekdays: [...data.active_weekdays].sort((a, b) => a - b),
+          starts_at: data.starts_at,
+          ends_at: data.ends_at,
           image_path: shouldRemoveImage ? null : image_path?.trim() || null,
-          terms: form.terms?.trim() || null,
-          sort_order: Number(form.sort_order) || 0,
-        },
+          terms: data.terms?.trim() || null,
+          sort_order: Number(data.sort_order) || 0,
+        } satisfies PromotionInput,
         selected?.id,
       );
 
@@ -191,16 +214,14 @@ export function PromotionDetailPage() {
       }
 
       notify.success("Promoción guardada.");
-      setFormDraft({
-        key: savedPromotion.id,
-        value: toPromotionForm(savedPromotion),
-      });
       setSelectedImageFile(null);
       setShouldRemoveImage(false);
       await reload();
       navigate(getPromotionDetailPath(savedPromotion), { replace: true });
-    } catch (error) {
-      notify.error(error instanceof Error ? error.message : String(error));
+    } catch (submitError) {
+      notify.error(
+        submitError instanceof Error ? submitError.message : String(submitError),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -249,62 +270,47 @@ export function PromotionDetailPage() {
     >
       <form
         className="grid min-w-0 max-w-full gap-4 rounded-lg border border-border bg-surface p-3 shadow-elevated sm:p-4 xl:grid-cols-[minmax(0,1fr)_420px] xl:gap-5"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
       >
         <div className="grid min-w-0 content-start gap-4">
           <h2 className="m-0 font-heading text-2xl font-black text-foreground">
             Datos de la promoción
           </h2>
-          <AdminField label="Título">
-            <input
-              className={adminInputClass}
-              value={form.title}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  title: event.target.value,
-                  slug: current.slug || normalizeSlug(event.target.value),
-                }))
-              }
-              required
-            />
-          </AdminField>
-          <AdminField label="Slug">
-            <input
-              className={adminInputClass}
-              value={form.slug}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  slug: normalizeSlug(event.target.value),
-                }))
-              }
-              required
-            />
-          </AdminField>
-          <AdminField label="Descripción">
-            <textarea
-              className={adminTextareaClass}
-              value={form.description ?? ""}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  description: event.target.value,
-                }))
-              }
-            />
-          </AdminField>
+
+          <InputField
+            name="title"
+            control={form.control}
+            label="Título"
+            placeholder="Ej: Promo del fin de semana"
+            autoComplete="off"
+          />
+
+          <InputField
+            name="slug"
+            control={form.control}
+            label="Slug"
+            placeholder="Ej: promo-fin-de-semana"
+            autoComplete="off"
+          />
+
+          <TextAreaField
+            name="description"
+            form={form}
+            label="Descripción"
+            placeholder="Descripción opcional de la promoción"
+          />
+
           <div className="grid gap-3 sm:grid-cols-2">
             <AdminField label="Categoría relacionada">
               <select
                 className={adminInputClass}
-                value={form.category_id ?? ""}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    category_id: event.target.value || null,
-                  }))
-                }
+                {...register("category_id")}
+                onChange={(event) => {
+                  setValue("category_id", event.target.value || null, {
+                    shouldValidate: true,
+                  });
+                }}
               >
                 <option value="">Sin categoría</option>
                 {categories.map((category) => (
@@ -317,13 +323,12 @@ export function PromotionDetailPage() {
             <AdminField label="Producto relacionado">
               <select
                 className={adminInputClass}
-                value={form.product_id ?? ""}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    product_id: event.target.value || null,
-                  }))
-                }
+                {...register("product_id")}
+                onChange={(event) => {
+                  setValue("product_id", event.target.value || null, {
+                    shouldValidate: true,
+                  });
+                }}
               >
                 <option value="">Sin producto</option>
                 {products.map((product) => (
@@ -334,61 +339,65 @@ export function PromotionDetailPage() {
               </select>
             </AdminField>
           </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
-            <AdminField label="Inicio">
-              <input
-                className={adminInputClass}
-                type="datetime-local"
-                value={toDatetimeLocal(form.starts_at)}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    starts_at: fromDatetimeLocal(event.target.value),
-                  }))
-                }
-              />
-            </AdminField>
-            <AdminField label="Fin">
-              <input
-                className={adminInputClass}
-                type="datetime-local"
-                value={toDatetimeLocal(form.ends_at)}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    ends_at: fromDatetimeLocal(event.target.value),
-                  }))
-                }
-              />
-            </AdminField>
+            <InputField
+              name="starts_at"
+              control={form.control}
+              label="Inicio"
+              type="datetime-local"
+              defaultValue={toDatetimeLocal(watch("starts_at"))}
+              onChange={(event) => {
+                setValue(
+                  "starts_at",
+                  fromDatetimeLocal(event.target.value),
+                  { shouldValidate: true },
+                );
+              }}
+            />
+            <InputField
+              name="ends_at"
+              control={form.control}
+              label="Fin"
+              type="datetime-local"
+              defaultValue={toDatetimeLocal(watch("ends_at"))}
+              onChange={(event) => {
+                setValue(
+                  "ends_at",
+                  fromDatetimeLocal(event.target.value),
+                  { shouldValidate: true },
+                );
+              }}
+            />
           </div>
+
           <AdminField label="Días activos">
             <div className="flex flex-wrap gap-2">
-              {weekdays.map((weekday) => (
-                <button
-                  key={weekday.value}
-                  type="button"
-                  className="min-h-10 rounded-full border px-3 text-xs font-black data-[active=true]:border-primary data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=false]:border-border data-[active=false]:bg-surface-muted"
-                  data-active={form.active_weekdays.has(weekday.value)}
-                  onClick={() => toggleWeekday(weekday.value)}
-                >
-                  {weekday.label}
-                </button>
-              ))}
+              {weekdays.map((weekday) => {
+                const activeWeekdays = getValues("active_weekdays");
+                const isActive = activeWeekdays.includes(weekday.value);
+
+                return (
+                  <button
+                    key={weekday.value}
+                    type="button"
+                    className="min-h-10 rounded-full border px-3 text-xs font-black data-[active=true]:border-primary data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=false]:border-border data-[active=false]:bg-surface-muted"
+                    data-active={isActive}
+                    onClick={() => toggleWeekday(weekday.value)}
+                  >
+                    {weekday.label}
+                  </button>
+                );
+              })}
             </div>
           </AdminField>
-          <AdminField label="Términos">
-            <textarea
-              className={adminTextareaClass}
-              value={form.terms ?? ""}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  terms: event.target.value,
-                }))
-              }
-            />
-          </AdminField>
+
+          <TextAreaField
+            name="terms"
+            form={form}
+            label="Términos"
+            placeholder="Términos y condiciones de la promoción"
+          />
         </div>
 
         <div className="grid min-w-0 content-start gap-4">
@@ -406,19 +415,19 @@ export function PromotionDetailPage() {
               }}
             />
           </AdminField>
-          {(imagePreviewUrl || form.image_path) && !shouldRemoveImage ? (
+          {(imagePreviewUrl || displayImagePath) && !shouldRemoveImage ? (
             <div className="grid gap-2 rounded-lg border border-border bg-surface-muted p-3">
               <img
                 src={
                   imagePreviewUrl ??
-                  (form.image_path
+                  (displayImagePath
                     ? getStorageImageUrl(
-                        form.image_path,
+                        displayImagePath,
                         SUPABASE_BUCKETS.PROMOTION_IMAGES,
                       )
                     : "")
                 }
-                alt={form.title || "Promoción"}
+                alt={watch("title") || "Promoción"}
                 className="aspect-video rounded-md object-cover"
               />
               <button
@@ -439,32 +448,26 @@ export function PromotionDetailPage() {
               Sin imagen seleccionada
             </div>
           )}
-          <AdminField label="Orden">
-            <input
-              className={adminInputClass}
-              type="number"
-              value={form.sort_order}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  sort_order: Number(event.target.value),
-                }))
-              }
-            />
-          </AdminField>
-          <label className="flex items-center gap-2 text-sm font-black text-foreground">
-            <input
-              type="checkbox"
-              checked={form.is_active}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  is_active: event.target.checked,
-                }))
-              }
-            />
-            Activa
-          </label>
+
+          <InputField
+            name="sort_order"
+            control={form.control}
+            label="Orden"
+            type="number"
+            min={0}
+            step={1}
+          />
+
+          <Checkbox
+            label="Activa"
+            checked={watch("is_active")}
+            onCheckedChange={(checked) => {
+              setValue("is_active", checked, {
+                shouldValidate: true,
+              });
+            }}
+          />
+
           <button
             type="submit"
             disabled={isSaving}

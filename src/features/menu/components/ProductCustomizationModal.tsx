@@ -1,4 +1,4 @@
-import { AppModal } from "@/shared/components/AppModal";
+import { CustomModal } from "@/shared/components/CustomModal";
 import { ProductCustomizationForm } from "@/features/menu/components/ProductCustomizationForm";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import type { CartItem, AddCartItemInput } from "@/features/cart/types/cart.types";
@@ -19,7 +19,7 @@ export function ProductCustomizationModal({
   onAdd,
 }: ProductCustomizationModalProps) {
   return (
-    <AppModal
+    <CustomModal
       isOpen={isOpen}
       title=""
       description=""
@@ -35,6 +35,6 @@ export function ProductCustomizationModal({
           onClose={onClose}
         />
       </div>
-    </AppModal>
+    </CustomModal>
   );
 }

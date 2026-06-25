@@ -10,21 +10,24 @@ import {
   buildWhatsAppUrl,
 } from "@/features/cart/utils/whatsapp";
 
-import { AppModal } from "@/shared/components/AppModal";
+import { CustomModal } from "@/shared/components/CustomModal";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { ClipboardList, Trash2 } from "lucide-react";
 import { notify } from "@/shared/notifications/notify";
 import { WhatsappIcon } from "@/shared/icons";
 import { ProductCustomizationModal } from "@/features/menu/components/ProductCustomizationModal";
-import { ProductCustomizationSheet } from "@/features/menu/components/ProductCustomizationSheet";
 import type { CartItem as CartItemType } from "@/features/cart/types/cart.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
+import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
+import { ProductCustomizationForm } from "../menu/components/ProductCustomizationForm";
 
 export function CartPage() {
   const navigate = useNavigate();
   const [isOrderConfirmationOpen, setIsOrderConfirmationOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CartItemType | null>(null);
-  const [editingProduct, setEditingProduct] = useState<MenuProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<MenuProduct | null>(
+    null,
+  );
 
   const items = useCartStore((state) => state.items);
   const orderDraft = useCartStore((state) => state.orderDraft);
@@ -178,10 +181,7 @@ export function CartPage() {
 
           <aside className="grid gap-4 lg:sticky lg:top-24">
             <CustomerOrderForm draft={orderDraft} onChange={updateOrderDraft} />
-            <OrderSummary
-              total={total}
-              totalQuantity={totalQuantity}
-            />
+            <OrderSummary total={total} totalQuantity={totalQuantity} />
 
             <div className="grid gap-3">
               <button
@@ -208,15 +208,12 @@ export function CartPage() {
         </div>
       )}
 
-      <AppModal
+      <CustomModal
         isOpen={isOrderConfirmationOpen}
         title="¿Ya enviaste tu pedido?"
         description="Se abrió WhatsApp con tu pedido preparado. Para que podamos empezar a elaborarlo, debes presionar Enviar dentro de WhatsApp."
         icon={<WhatsappIcon className="size-6" />}
-        primaryActionLabel="Ya envié el pedido"
-        secondaryActionLabel="Volver al carrito"
-        onPrimaryAction={handleConfirmOrderSent}
-        onSecondaryAction={() => setIsOrderConfirmationOpen(false)}
+        contentClassName="max-w-lg"
         onClose={() => setIsOrderConfirmationOpen(false)}
       >
         <div className="grid gap-2">
@@ -229,7 +226,23 @@ export function CartPage() {
             el mismo responsable y mesa para que podamos identificarlo.
           </p>
         </div>
-      </AppModal>
+        <div className="mt-5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+          <button
+            type="button"
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            onClick={handleConfirmOrderSent}
+          >
+            Ya envié el pedido
+          </button>
+          <button
+            type="button"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            onClick={() => setIsOrderConfirmationOpen(false)}
+          >
+            Volver al carrito
+          </button>
+        </div>
+      </CustomModal>
 
       {editingProduct ? (
         <>
@@ -243,13 +256,25 @@ export function CartPage() {
             />
           </div>
           <div className="sm:hidden">
-            <ProductCustomizationSheet
-              product={editingProduct}
-              initialCartItem={editingItem ?? undefined}
+            <ButtonSheetModal
               isOpen={Boolean(editingProduct)}
+              title=""
+              description=""
+              contentClassName="max-w-lg p-0 sm:p-1"
               onClose={handleCloseEdit}
-              onAdd={handleSaveEdit}
-            />
+            >
+              <div className="p-3">
+                <ProductCustomizationForm
+                  product={editingProduct}
+                  initialCartItem={editingItem ?? undefined}
+                  submitLabel={
+                    editingItem ? "Guardar cambios" : "Agregar al carrito"
+                  }
+                  onSubmit={handleSaveEdit}
+                  onClose={handleCloseEdit}
+                />
+              </div>
+            </ButtonSheetModal>
           </div>
         </>
       ) : null}
