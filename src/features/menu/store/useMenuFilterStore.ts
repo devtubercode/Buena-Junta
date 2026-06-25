@@ -1,28 +1,28 @@
 import { create } from "zustand";
 
 type MenuFilterState = {
-  selectedCategoryId: string | null;
-  selectedPromotionId: string | null;
-  setSelectedCategory: (categoryId: string | null) => void;
+  selectedCategorySlug: string | null;
+  selectedPromotionSlug: string | null;
+  setSelectedCategorySlug: (categorySlug: string | null) => void;
   clearSelectedPromotion: () => void;
   applyPromotionFilter: (input: {
-    categoryId: string;
-    promotionId: string;
+    categorySlug: string;
+    promotionSlug: string;
   }) => void;
 };
 
 export const useMenuFilterStore = create<MenuFilterState>()((set) => ({
-  selectedCategoryId: null,
-  selectedPromotionId: null,
-  setSelectedCategory: (categoryId) =>
+  selectedCategorySlug: null,
+  selectedPromotionSlug: null,
+  setSelectedCategorySlug: (categorySlug) =>
     set({
-      selectedCategoryId: categoryId,
-      selectedPromotionId: null,
+      selectedCategorySlug: categorySlug,
+      selectedPromotionSlug: null,
     }),
-  clearSelectedPromotion: () => set({ selectedPromotionId: null }),
-  applyPromotionFilter: ({ categoryId, promotionId }) =>
+  clearSelectedPromotion: () => set({ selectedPromotionSlug: null }),
+  applyPromotionFilter: ({ categorySlug, promotionSlug }) =>
     set({
-      selectedCategoryId: categoryId,
-      selectedPromotionId: promotionId,
+      selectedCategorySlug: categorySlug,
+      selectedPromotionSlug: promotionSlug,
     }),
 }));

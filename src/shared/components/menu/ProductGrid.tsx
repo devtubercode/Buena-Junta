@@ -1,18 +1,26 @@
-import type { CatalogProduct } from "@/features/menu/services/menuRepository";
-import type { CartVariantOption } from "@/features/cart/types";
+import type {
+  CartAdditionOption,
+  CartVariantOption,
+} from "@/features/cart/types/cart.types";
+import type { MenuProduct } from "@/features/menu/types/menu.types";
 import { EmptyState } from "@/shared/components/EmptyState";
-import { ProductCard } from "@/features/menu/components/ProductCard";
+import { ProductCard } from "@/shared/components/menu/ProductCard";
 
 type ProductGridProps = {
-  products: CatalogProduct[];
+  products: MenuProduct[];
   onAddProduct: (
-    product: CatalogProduct,
+    product: MenuProduct,
     input: {
       variantKey?: string;
       label?: string;
       displayName?: string;
-      priceCents: number;
+      price: number;
+      image?: {
+        src: string;
+        alt: string;
+      };
       variantOptions?: CartVariantOption[];
+      additionOptions?: CartAdditionOption[];
     },
   ) => void;
   emptyTitle?: string;
@@ -30,7 +38,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3 lg:grid-cols-2">
       {products.map((product) => (
         <ProductCard
           key={product.id}

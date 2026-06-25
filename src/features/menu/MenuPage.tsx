@@ -1,51 +1,57 @@
 import { useMemo, useState } from "react";
-import type { CartVariantOption } from "@/features/cart/types";
+import type {
+  CartAdditionOption,
+  CartVariantOption,
+} from "@/features/cart/types/cart.types";
 import { useCartStore } from "@/features/cart/store/useCartStore";
-import { CategoryChips } from "@/features/menu/components/CategoryChips";
-import { ProductGrid } from "@/features/menu/components/ProductGrid";
+import { useMenuData } from "@/features/menu/hooks/useMenuData";
 import { useMenuFilterStore } from "@/features/menu/store/useMenuFilterStore";
-import {
-  getCategories,
-  searchProducts,
-  type CatalogProduct,
-} from "@/features/menu/services/menuRepository";
+import { type MenuProduct } from "@/features/menu/types/menu.types";
+import { searchMenuProducts } from "@/features/menu/utils/searchMenuProducts";
 import { buildCartProductName } from "@/features/menu/utils/productCopy";
+import { EmptyState } from "@/shared/components/EmptyState";
 import { SearchInput } from "@/shared/components/SearchInput";
+import { CategoryChips } from "@/shared/components/menu/CategoryChips";
+import { ProductGrid } from "@/shared/components/menu/ProductGrid";
+import { CategoryChipsSkeleton } from "@/shared/components/menu/skeletons/CategoryChipsSkeleton";
+import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductGridSkeleton";
 
 export function MenuPage() {
   const addItem = useCartStore((state) => state.addItem);
-  const activeCategoryId = useMenuFilterStore(
-    (state) => state.selectedCategoryId,
+  const activeCategorySlug = useMenuFilterStore(
+    (state) => state.selectedCategorySlug,
   );
-  const setActiveCategoryId = useMenuFilterStore(
-    (state) => state.setSelectedCategory,
+  const setActiveCategorySlug = useMenuFilterStore(
+    (state) => state.setSelectedCategorySlug,
   );
   const [query, setQuery] = useState("");
-  const categories = useMemo(() => getCategories(), []);
-  const products = useMemo(() => {
+  const { categories, products, isLoading, error } = useMenuData();
+  const filteredProducts = useMemo(() => {
     const hasQuery = query.trim().length > 0;
 
-    return searchProducts(
+    return searchMenuProducts(
+      products,
       query,
-      hasQuery ? undefined : (activeCategoryId ?? undefined),
+      hasQuery ? undefined : (activeCategorySlug ?? undefined),
     );
-  }, [activeCategoryId, query]);
+  }, [activeCategorySlug, products, query]);
 
   const handleAddProduct = (
-    product: CatalogProduct,
+    product: MenuProduct,
     input: {
       variantKey?: string;
       label?: string;
       displayName?: string;
-      priceCents: number;
+      price: number;
       image?: {
         src: string;
         alt: string;
       };
       variantOptions?: CartVariantOption[];
+      additionOptions?: CartAdditionOption[];
     },
   ) => {
-    if (!product.isAvailable) {
+    if (!product.is_available) {
       return;
     }
 
@@ -57,50 +63,58 @@ export function MenuPage() {
       displayName:
         input.displayName ?? buildCartProductName(product, input.label),
       name: input.displayName ?? buildCartProductName(product, input.label),
-      unitPriceCents: input.priceCents,
+      unitPrice: input.price,
       variantOptions: input.variantOptions,
+      additionOptions: input.additionOptions,
     });
   };
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-      <section className="grid gap-4 rounded-lg border border-primary-border bg-primary-soft p-5 sm:p-6">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">
-          Menú digital
-        </p>
-        <div className="grid gap-3 md:grid-cols-[1fr_340px] md:items-end">
-          <div>
-            <h1 className="m-0 font-heading text-5xl font-black leading-none text-foreground">
-              Pide rápido desde tu mesa
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-              Explora la carta completa, busca por nombre o descripción y agrega
-              tus productos al carrito.
-            </p>
-          </div>
-          <SearchInput
-            value={query}
-            onChange={setQuery}
-            placeholder="Buscar hamburguesas, pizzas, bebidas..."
-          />
+    <main className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
+      <section className="mb-4 grid gap-3 md:grid-cols-[1fr_340px] md:items-end">
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">
+            Menú digital
+          </p>
+          <h1 className="mt-2 font-heading text-4xl font-black leading-none text-foreground">
+            Pide rápido desde tu mesa
+          </h1>
         </div>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Buscar hamburguesas, pizzas, bebidas..."
+        />
       </section>
 
-      <div className="sticky top-[88px] z-10 -mx-4  border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <CategoryChips
-          categories={categories}
-          activeCategoryId={activeCategoryId}
-          onChange={setActiveCategoryId}
-        />
+      <div className="sticky top-22 z-10 -mx-4 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        {isLoading ? (
+          <CategoryChipsSkeleton />
+        ) : (
+          <CategoryChips
+            categories={categories}
+            activeCategorySlug={activeCategorySlug}
+            onChange={setActiveCategorySlug}
+          />
+        )}
       </div>
 
       <section className="mt-5" aria-label="Productos del menú">
-        <ProductGrid
-          products={products}
-          onAddProduct={handleAddProduct}
-          emptyTitle="No encontramos productos"
-          emptyDescription="Prueba otra búsqueda o revisa una categoría diferente."
-        />
+        {isLoading ? (
+          <ProductGridSkeleton count={5} />
+        ) : error ? (
+          <EmptyState
+            title="No pudimos cargar el menú"
+            description="Revisa la conexión e intenta nuevamente."
+          />
+        ) : (
+          <ProductGrid
+            products={filteredProducts}
+            onAddProduct={handleAddProduct}
+            emptyTitle="No encontramos productos"
+            emptyDescription="Prueba otra búsqueda o revisa una categoría diferente."
+          />
+        )}
       </section>
     </main>
   );
