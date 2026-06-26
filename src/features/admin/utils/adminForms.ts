@@ -46,3 +46,19 @@ export function toDatetimeLocal(value: string | null) {
 export function fromDatetimeLocal(value: string) {
   return value ? new Date(value).toISOString() : null;
 }
+
+export function normalizeAdminString(value: string) {
+  return value.trim();
+}
+
+export function normalizeAdminNullableString(value: string | null) {
+  return value?.trim() || null;
+}
+
+export function normalizeAdminPrice(value: string) {
+  return Math.max(0, Math.round(Number(value) || 0));
+}
+
+export function normalizeAdminSortOrder(value: string | number) {
+  return Math.max(0, Number(value) || 0);
+}
