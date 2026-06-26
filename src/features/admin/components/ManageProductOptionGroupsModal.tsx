@@ -9,6 +9,10 @@ import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { notify } from "@/shared/notifications/notify";
 import {
+  normalizeAdminSortOrder,
+  normalizeAdminString,
+} from "@/features/admin/utils/adminForms";
+import {
   deleteProductOptionValue,
   saveProductOptionGroup,
   saveProductOptionValue,
@@ -25,6 +29,7 @@ interface ManageProductOptionGroupsModalProps {
   optionGroups: (ProductOptionGroupRow & {
     product_option_values: ProductOptionValueRow[];
   })[];
+  selectedGroupId: string | null;
   isOpen: boolean;
   onClose: () => void;
   onGroupsChange: () => void;
@@ -46,13 +51,28 @@ const emptyOptionForm: ProductOptionValueInput = {
 export function ManageProductOptionGroupsModal({
   productId,
   optionGroups,
+  selectedGroupId: initialSelectedGroupId,
   isOpen,
   onClose,
   onGroupsChange,
 }: ManageProductOptionGroupsModalProps) {
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [groupForm, setGroupForm] =
-    useState<ProductOptionGroupInput>(emptyGroupForm);
+  const initialSelectedGroup = optionGroups.find(
+    (group) => group.id === initialSelectedGroupId,
+  );
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
+    initialSelectedGroupId,
+  );
+  const [groupForm, setGroupForm] = useState<ProductOptionGroupInput>(
+    initialSelectedGroup
+      ? {
+          name: initialSelectedGroup.name,
+          is_required: initialSelectedGroup.is_required,
+          is_active: initialSelectedGroup.is_active,
+          sort_order: initialSelectedGroup.sort_order,
+        }
+      : { ...emptyGroupForm },
+  );
   const [optionForm, setOptionForm] =
     useState<ProductOptionValueInput>(emptyOptionForm);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(
@@ -89,10 +109,10 @@ export function ManageProductOptionGroupsModal({
     try {
       const savedGroup = await saveProductOptionGroup(
         {
-          name: groupForm.name.trim(),
+          name: normalizeAdminString(groupForm.name),
           is_required: groupForm.is_required,
           is_active: groupForm.is_active,
-          sort_order: Number(groupForm.sort_order) || 0,
+          sort_order: normalizeAdminSortOrder(groupForm.sort_order),
         },
         productId,
         selectedGroup?.id ?? undefined,
@@ -126,9 +146,9 @@ export function ManageProductOptionGroupsModal({
     try {
       await saveProductOptionValue(
         {
-          name: optionForm.name.trim(),
+          name: normalizeAdminString(optionForm.name),
           is_active: optionForm.is_active,
-          sort_order: Number(optionForm.sort_order) || 0,
+          sort_order: normalizeAdminSortOrder(optionForm.sort_order),
         },
         selectedGroup.id,
         selectedOptionId ?? undefined,

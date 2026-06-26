@@ -136,6 +136,7 @@ export function ProductOptionGroupsManager({
         key={isModalOpen ? selectedGroupId ?? "new" : "closed"}
         productId={productId}
         optionGroups={optionGroups}
+        selectedGroupId={selectedGroupId}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
