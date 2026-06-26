@@ -14,26 +14,54 @@ export type ProductAvailableAdditionRow = {
 };
 
 export async function fetchProducts(): Promise<MenuProductRow[]> {
-  const { data, error } = await supabase
+  // Fetch products with basic relations
+  const { data: products, error: productsError } = await supabase
     .from(SUPABASE_TABLES.PRODUCTS)
     .select(
       `
         *,
         categories(*),
-        product_variants(*),
-        product_option_groups(
-          option_groups(
-            *,
-            option_values(*)
-          )
-        )
+        product_variants(*)
       `,
     )
     .order("sort_order");
 
-  throwIfSupabaseError(error);
+  throwIfSupabaseError(productsError);
 
-  return (data ?? []) as MenuProductRow[];
+  if (!products || products.length === 0) {
+    return [];
+  }
+
+  // Fetch option groups for all products in a single query
+  const productIds = products.map((p: Record<string, unknown>) => p.id as string);
+  const { data: optionGroups, error: optionGroupsError } = await supabase
+    .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
+    .select(`
+      *,
+      product_option_values(*)
+    `)
+    .in("product_id", productIds)
+    .order("sort_order");
+
+  throwIfSupabaseError(optionGroupsError);
+
+  // Group option groups by product_id
+  const optionGroupsByProduct = new Map<string, unknown[]>();
+  for (const group of (optionGroups ?? [])) {
+    const productId = (group as Record<string, unknown>).product_id as string;
+    if (!optionGroupsByProduct.has(productId)) {
+      optionGroupsByProduct.set(productId, []);
+    }
+    optionGroupsByProduct.get(productId)!.push(group);
+  }
+
+  // Combine products with their option groups
+  const productsWithGroups = (products ?? []).map((product: Record<string, unknown>) => ({
+    ...product,
+    product_option_groups: optionGroupsByProduct.get(product.id as string) ?? [],
+  }));
+
+  return productsWithGroups as MenuProductRow[];
 }
 
 export async function fetchProductAvailableAdditions(): Promise<

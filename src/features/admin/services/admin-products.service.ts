@@ -1,134 +1,160 @@
-import { fetchAdminCategories } from "@/features/admin/services/admin-categories.service";
 import { supabase } from "@/lib/supabase/client";
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { throwIfSupabaseError as throwIfError } from "@/shared/errors/handle-supabase-error";
 import type {
-  AdditionRow,
   AdminProductDetailData,
   AdminProductListRow,
-  OptionGroupRow,
   ProductInput,
   ProductOptionGroupRow,
+  ProductOptionValueRow,
   ProductRow,
   ProductVariantInput,
   ProductVariantRow,
 } from "@/features/admin/types/admin.types";
 
-type AdditionRelationRow = {
-  addition_id: string;
-};
+// ==========================================
+// Product List
+// ==========================================
 
 export async function fetchAdminProductsList(): Promise<AdminProductListRow[]> {
-  const { data, error } = await supabase
+  const { data: products, error } = await supabase
     .from(SUPABASE_TABLES.PRODUCTS)
     .select(
       `
         *,
         categories(id, name),
-        product_variants(*),
-        product_additions(
-          additions(id, name)
-        ),
-        product_option_groups(
-          option_groups(id, name)
-        )
+        product_variants(*)
       `,
     )
     .order("sort_order");
 
   throwIfError(error);
 
-  return (data ?? []) as unknown as AdminProductListRow[];
+  return (products ?? []) as unknown as AdminProductListRow[];
 }
+
+// ==========================================
+// Product Detail
+// ==========================================
 
 export async function fetchAdminProductDetail(
-  productId: string | null,
-  slug: string | undefined,
+  productId: string,
 ): Promise<AdminProductDetailData> {
-  const [categories, additions, optionGroups, productResult] = await Promise.all([
-    fetchAdminCategories(),
-    supabase
-      .from(SUPABASE_TABLES.ADDITIONS)
-      .select("*")
-      .order("name"),
-    supabase
-      .from(SUPABASE_TABLES.OPTION_GROUPS)
-      .select("id, name, is_active, is_required, sort_order")
-      .order("sort_order"),
-    productId
-      ? supabase
-          .from(SUPABASE_TABLES.PRODUCTS)
-          .select("*")
-          .eq("id", productId)
-          .maybeSingle()
-      : slug
-        ? supabase
-            .from(SUPABASE_TABLES.PRODUCTS)
-            .select("*")
-            .eq("slug", slug)
-            .maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
+  const [product, variants, additions, optionGroups] = await Promise.all([
+    fetchProductById(productId),
+    fetchProductVariants(productId),
+    fetchProductAdditions(productId),
+    fetchProductOptionGroupsWithValues(productId),
   ]);
-
-  throwIfError(optionGroups.error);
-  throwIfError(additions.error);
-  throwIfError(productResult.error);
-
-  const product = productResult.data as unknown as ProductRow | null;
-
-  if (!product) {
-    return {
-      categories,
-      product: null,
-      product_variants: [],
-      additions: (additions.data ?? []) as AdditionRow[],
-      product_addition_ids: [],
-      option_groups: (optionGroups.data ?? []) as Pick<
-        OptionGroupRow,
-        "id" | "name" | "is_active" | "is_required" | "sort_order"
-      >[],
-      product_option_group_ids: [],
-    };
-  }
-
-  const [productVariants, productAdditions, productOptionGroups] = await Promise.all([
-    supabase
-      .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
-      .select("*")
-      .eq("product_id", product.id)
-      .order("sort_order"),
-    supabase
-      .from(SUPABASE_TABLES.PRODUCT_ADDITIONS)
-      .select("addition_id")
-      .eq("product_id", product.id)
-      .order("created_at"),
-    supabase
-      .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
-      .select("option_group_id")
-      .eq("product_id", product.id),
-  ]);
-
-  throwIfError(productVariants.error);
-  throwIfError(productAdditions.error);
-  throwIfError(productOptionGroups.error);
 
   return {
-    categories,
     product,
-    product_variants: (productVariants.data ?? []) as unknown as ProductVariantRow[],
-    additions: (additions.data ?? []) as AdditionRow[],
-    product_addition_ids: (productAdditions.data ?? []).map(
-      (row) => (row as AdditionRelationRow).addition_id,
-    ),
-    option_groups: (optionGroups.data ?? []) as Pick<
-      OptionGroupRow,
-      "id" | "name" | "is_active" | "is_required" | "sort_order"
-    >[],
-    product_option_group_ids: (productOptionGroups.data ?? []).map(
-      (row) => (row as ProductOptionGroupRow).option_group_id,
-    ),
+    product_variants: variants,
+    product_additions: additions,
+    product_option_groups: optionGroups,
   };
 }
+
+// ==========================================
+// Data Fetchers
+// ==========================================
+
+async function fetchProductById(
+  productId: string,
+): Promise<ProductRow | null> {
+  const { data, error } = await supabase
+    .from(SUPABASE_TABLES.PRODUCTS)
+    .select("*")
+    .eq("id", productId)
+    .maybeSingle();
+
+  throwIfError(error);
+
+  return data as unknown as ProductRow | null;
+}
+
+async function fetchProductVariants(
+  productId: string,
+): Promise<ProductVariantRow[]> {
+  const { data, error } = await supabase
+    .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
+    .select("*")
+    .eq("product_id", productId)
+    .order("sort_order");
+
+  throwIfError(error);
+
+  return (data ?? []) as unknown as ProductVariantRow[];
+}
+
+async function fetchProductAdditions(productId: string) {
+  const { data, error } = await supabase
+    .from(SUPABASE_TABLES.ADDITIONS)
+    .select("*")
+    .eq("product_id", productId)
+    .order("created_at");
+
+  throwIfError(error);
+
+  return (data ?? []) as unknown as AdminProductDetailData["product_additions"];
+}
+
+async function fetchProductOptionGroupsWithValues(
+  productId: string,
+): Promise<
+  (ProductOptionGroupRow & { product_option_values: ProductOptionValueRow[] })[]
+> {
+  const { data: groups, error: groupsError } = await supabase
+    .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
+    .select("*")
+    .eq("product_id", productId)
+    .order("sort_order");
+
+  throwIfError(groupsError);
+
+  const optionGroups = (groups ?? []) as unknown as ProductOptionGroupRow[];
+
+  if (optionGroups.length === 0) {
+    return [];
+  }
+
+  const groupIds = optionGroups.map((g) => g.id);
+  const { data: values, error: valuesError } = await supabase
+    .from(SUPABASE_TABLES.PRODUCT_OPTION_VALUES)
+    .select("*")
+    .in("product_option_group_id", groupIds)
+    .order("sort_order");
+
+  throwIfError(valuesError);
+
+  const valuesByGroupId = groupValuesByParent(
+    (values ?? []) as unknown as ProductOptionValueRow[],
+  );
+
+  return optionGroups.map((group) => ({
+    ...group,
+    product_option_values: valuesByGroupId.get(group.id) ?? [],
+  }));
+}
+
+function groupValuesByParent(
+  values: ProductOptionValueRow[],
+): Map<string, ProductOptionValueRow[]> {
+  const grouped = new Map<string, ProductOptionValueRow[]>();
+
+  for (const value of values) {
+    const groupId = value.product_option_group_id;
+    const existing = grouped.get(groupId) ?? [];
+    existing.push(value);
+    grouped.set(groupId, existing);
+  }
+
+  return grouped;
+}
+
+// ==========================================
+// Mutations
+// ==========================================
 
 export async function saveProduct(input: ProductInput, id?: string) {
   const result = id
@@ -147,35 +173,6 @@ export async function saveProduct(input: ProductInput, id?: string) {
   throwIfError(result.error);
 
   return result.data as unknown as ProductRow;
-}
-
-export async function syncProductOptionGroups(
-  productId: string,
-  optionGroupIds: string[],
-) {
-  const uniqueIds = [...new Set(optionGroupIds)];
-
-  const deleteResult = await supabase
-    .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
-    .delete()
-    .eq("product_id", productId);
-
-  throwIfError(deleteResult.error);
-
-  if (uniqueIds.length === 0) {
-    return;
-  }
-
-  const insertResult = await supabase
-    .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
-    .insert(
-      uniqueIds.map((optionGroupId) => ({
-        product_id: productId,
-        option_group_id: optionGroupId,
-      })),
-    );
-
-  throwIfError(insertResult.error);
 }
 
 export async function deleteProduct(id: string) {

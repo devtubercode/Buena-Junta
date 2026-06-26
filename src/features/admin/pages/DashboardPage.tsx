@@ -1,6 +1,5 @@
 import { Link } from "react-router";
 import {
-  FolderTree,
   Gift,
   Package,
   Tags,
@@ -26,7 +25,7 @@ export function DashboardPage() {
     return (
       <AdminSection
         title="Resumen"
-        description="Atajos de gestión para catálogo, promociones y grupos."
+        description="Atajos de gestión para catálogo, promociones y adiciones."
       >
         <AdminDashboardSkeleton />
       </AdminSection>
@@ -51,12 +50,6 @@ export function DashboardPage() {
       value: dashboard.promotionsCount,
       to: appRoutes.adminPromotions,
       icon: Gift,
-    },
-    {
-      label: "Grupos",
-      value: dashboard.optionGroupsCount,
-      to: appRoutes.adminOptionGroups,
-      icon: FolderTree,
     },
   ];
 

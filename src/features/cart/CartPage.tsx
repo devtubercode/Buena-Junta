@@ -101,7 +101,7 @@ export function CartPage() {
         })) ?? [],
       product_option_groups:
         item.optionGroups?.map((group) => ({
-          option_groups: group,
+          ...group,
         })) ?? [],
       urlImage: item.image,
       option_groups: item.optionGroups ?? [],

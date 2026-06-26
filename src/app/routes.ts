@@ -7,8 +7,8 @@ export const appRoutes = {
   admin: "/admin",
   adminLogin: "/admin/login",
   adminProducts: "/admin/productos",
+  adminProduct: "/admin/producto",
   adminCategories: "/admin/categorias",
   adminAdditions: "/admin/adiciones",
   adminPromotions: "/admin/promociones",
-  adminOptionGroups: "/admin/grupos-opciones",
 } as const;

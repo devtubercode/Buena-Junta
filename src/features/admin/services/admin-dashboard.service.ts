@@ -6,7 +6,7 @@ import type { AdminDashboardData } from "@/features/admin/types/admin.types";
 type CountableAdminTable =
   (typeof SUPABASE_TABLES)[keyof Pick<
     typeof SUPABASE_TABLES,
-    "CATEGORIES" | "OPTION_GROUPS" | "PRODUCTS" | "PROMOTIONS"
+    "CATEGORIES" | "PRODUCTS" | "PROMOTIONS"
   >];
 
 async function countRows(table: CountableAdminTable) {
@@ -24,18 +24,16 @@ export async function fetchAdminDashboard(): Promise<AdminDashboardData> {
     productsCount,
     categoriesCount,
     promotionsCount,
-    optionGroupsCount,
   ] = await Promise.all([
     countRows(SUPABASE_TABLES.PRODUCTS),
     countRows(SUPABASE_TABLES.CATEGORIES),
     countRows(SUPABASE_TABLES.PROMOTIONS),
-    countRows(SUPABASE_TABLES.OPTION_GROUPS),
   ]);
 
   return {
     productsCount,
     categoriesCount,
     promotionsCount,
-    optionGroupsCount,
+    optionGroupsCount: 0, // Legacy field, no longer used
   };
 }

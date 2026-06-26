@@ -31,6 +31,7 @@ export type ProductVariantRow = {
 
 export type AdditionRow = {
   id: string;
+  product_id: string | null;
   name: string;
   description: string | null;
   price: number;
@@ -38,18 +39,31 @@ export type AdditionRow = {
   updated_at: string;
 };
 
-export type CategoryAdditionRow = {
-  category_id: string;
-  addition_id: string;
-  created_at: string;
-};
-
+// NEW: Product-specific option groups (replaces global option_groups)
 export type ProductOptionGroupRow = {
+  id: string;
   product_id: string;
-  option_group_id: string;
+  name: string;
+  is_required: boolean;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 };
 
-export type OptionGroupRow = {
+// NEW: Product-specific option values (replaces global option_values)
+export type ProductOptionValueRow = {
+  id: string;
+  product_option_group_id: string;
+  name: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+// DEPRECATED: Global option groups (to be removed)
+export type LegacyOptionGroupRow = {
   id: string;
   name: string;
   is_required: boolean;
@@ -57,10 +71,11 @@ export type OptionGroupRow = {
   sort_order: number;
   created_at: string;
   updated_at: string;
-  option_values: OptionValueRow[];
+  option_values: LegacyOptionValueRow[];
 };
 
-export type OptionValueRow = {
+// DEPRECATED: Global option values (to be removed)
+export type LegacyOptionValueRow = {
   id: string;
   option_group_id: string;
   name: string;
@@ -88,40 +103,49 @@ export type PromotionRow = {
 export type CategoryInput = Omit<CategoryRow, "id">;
 export type ProductInput = Omit<ProductRow, "id">;
 export type ProductVariantInput = Omit<ProductVariantRow, "id">;
-export type AdditionInput = Omit<AdditionRow, "id" | "created_at" | "updated_at">;
-export type CategoryAdditionInput = Omit<CategoryAdditionRow, "created_at">;
-export type OptionGroupInput = Omit<
-  OptionGroupRow,
+export type AdditionInput = {
+  product_id?: string | null;
+  name: string;
+  description: string | null;
+  price: number;
+};
+// NEW: Input types for product-specific option groups
+export type ProductOptionGroupInput = Omit<
+  ProductOptionGroupRow,
+  "id" | "product_id" | "created_at" | "updated_at"
+>;
+
+export type ProductOptionValueInput = Omit<
+  ProductOptionValueRow,
+  "id" | "product_option_group_id" | "created_at" | "updated_at"
+>;
+
+// DEPRECATED: Legacy input types (to be removed)
+export type LegacyOptionGroupInput = Omit<
+  LegacyOptionGroupRow,
   "id" | "created_at" | "updated_at" | "option_values"
 >;
-export type OptionValueInput = Omit<
-  OptionValueRow,
+export type LegacyOptionValueInput = Omit<
+  LegacyOptionValueRow,
   "id" | "created_at" | "updated_at"
 >;
+
 export type PromotionInput = Omit<PromotionRow, "id">;
 
 export type AdminProductListRow = ProductRow & {
   categories: Pick<CategoryRow, "id" | "name"> | null;
   product_variants: ProductVariantRow[];
-  product_additions: {
-    additions: Pick<AdditionRow, "id" | "name">;
-  }[];
-  product_option_groups: {
-    option_groups: Pick<OptionGroupRow, "id" | "name">;
-  }[];
+  // NEW: Product-specific option groups
+  product_option_groups: ProductOptionGroupRow[];
 };
 
 export type AdminProductDetailData = {
-  categories: CategoryRow[];
   product: ProductRow | null;
   product_variants: ProductVariantRow[];
-  additions: AdditionRow[];
-  product_addition_ids: string[];
-  option_groups: Pick<
-    OptionGroupRow,
-    "id" | "name" | "is_active" | "sort_order" | "is_required"
-  >[];
-  product_option_group_ids: string[];
+  product_additions: AdditionRow[];
+  product_option_groups: (ProductOptionGroupRow & {
+    product_option_values: ProductOptionValueRow[];
+  })[];
 };
 
 export type AdminPromotionListRow = PromotionRow & {
@@ -135,18 +159,20 @@ export type AdminPromotionDetailData = {
   promotion: PromotionRow | null;
 };
 
+// DEPRECATED: Legacy option groups data (to be removed)
 export type AdminOptionGroupsData = {
-  option_groups: OptionGroupRow[];
+  option_groups: LegacyOptionGroupRow[];
 };
 
 export type AdminAdditionsData = {
   additions: AdditionRow[];
 };
 
+// DEPRECATED: Legacy options data (to be removed)
 export type AdminOptionsData = {
   products: ProductRow[];
-  option_groups: OptionGroupRow[];
-  option_values: OptionValueRow[];
+  option_groups: LegacyOptionGroupRow[];
+  option_values: LegacyOptionValueRow[];
 };
 
 export type AdminDashboardData = {

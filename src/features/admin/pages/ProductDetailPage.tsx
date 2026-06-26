@@ -4,17 +4,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
   ImagePlus,
+  Pencil,
   Plus,
   Save,
   Trash2,
   X,
 } from "lucide-react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { appRoutes } from "@/app/routes";
 import { AdminDataState } from "@/features/admin/components/AdminDataState";
-import { AdminField, adminInputClass } from "@/features/admin/components/AdminField";
+import {
+  AdminField,
+  adminInputClass,
+} from "@/features/admin/components/AdminField";
 import { AdminSection } from "@/features/admin/components/AdminSection";
 import { useProductDetailData } from "@/features/admin/hooks/useProductDetailData";
+import { useCategoriesData } from "@/features/admin/hooks/useCategoriesData";
 import {
   inputValueToPrice,
   normalizeSlug,
@@ -23,24 +28,29 @@ import {
   textToTags,
 } from "@/features/admin/utils/adminForms";
 import { notify } from "@/shared/notifications/notify";
-import { cn } from "@/shared/utils/cn";
-import { syncProductAdditions } from "@/features/admin/services/admin-additions.service";
+import {
+  deleteAddition,
+  saveAddition,
+} from "@/features/admin/services/admin-additions.service";
 import {
   deleteProductVariant,
   saveProduct,
   saveProductVariant,
-  syncProductOptionGroups,
 } from "@/features/admin/services/admin-products.service";
 import {
   getStorageImageUrl,
   removeStorageImage,
   uploadStorageImage,
 } from "@/shared/services/storage.service";
-import { SUPABASE_BUCKETS, SUPABASE_STORAGE_PATHS } from "@/lib/supabase/constants";
+import {
+  SUPABASE_BUCKETS,
+  SUPABASE_STORAGE_PATHS,
+} from "@/lib/supabase/constants";
 import { InputField } from "@/shared/components/InputField";
 import { TextAreaField } from "@/shared/components/TextAreaField";
 import { Checkbox } from "@/shared/components/Checkbox";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
+import { EmptyState } from "@/shared/components/EmptyState";
 import {
   productSchema,
   type ProductFormData,
@@ -49,6 +59,11 @@ import {
   productVariantSchema,
   type ProductVariantFormData,
 } from "@/features/admin/schemas/productVariantSchema";
+import {
+  additionSchema,
+  type AdditionFormData,
+} from "@/features/admin/schemas/additionSchema";
+import { ProductOptionGroupsManager } from "@/features/admin/components/ProductOptionGroupsManager";
 import type {
   AdditionRow,
   ProductInput,
@@ -76,6 +91,12 @@ const defaultVariantValues: ProductVariantFormData = {
   sort_order: 0,
 };
 
+const defaultAdditionValues: AdditionFormData = {
+  name: "",
+  description: null,
+  price: 0,
+};
+
 function toProductForm(product: ProductRow): ProductFormData {
   return {
     category_id: product.category_id,
@@ -89,31 +110,39 @@ function toProductForm(product: ProductRow): ProductFormData {
   };
 }
 
-function getProductDetailPath(product: Pick<ProductRow, "id" | "slug">) {
-  return `${appRoutes.adminProducts}/${product.slug}?id=${product.id}`;
+function getProductDetailPath(product: Pick<ProductRow, "id">) {
+  return `${appRoutes.adminProduct}?id=${product.id}`;
 }
 
 export function ProductDetailPage() {
-  const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const productId = searchParams.get("id");
-  const isNewProduct = !slug || slug === "nuevo";
+  const isNewProduct = !productId || productId === "new";
+
   const {
     data: productDetail,
-    isLoading,
-    error,
-    reload,
-  } = useProductDetailData(productId, slug, isNewProduct);
+    isLoading: isLoadingProductDetail,
+    error: productDetailError,
+    reload: reloadProductDetail,
+  } = useProductDetailData(productId, isNewProduct);
+
   const {
-    categories,
-    additions,
-    option_groups,
+    data: categories,
+    isLoading: isLoadingCategories,
+    error: categoriesError,
+  } = useCategoriesData();
+
+  const isLoading = isLoadingProductDetail || isLoadingCategories;
+  const error = productDetailError ?? categoriesError;
+
+  const {
     product: selected,
-    product_addition_ids,
-    product_option_group_ids,
+    product_additions,
+    product_option_groups,
     product_variants,
   } = productDetail;
+
   const selectedProductVariants = useMemo(
     () =>
       selected
@@ -162,7 +191,9 @@ export function ProductDetailPage() {
     const slugValue = getProductValues("slug");
 
     if (nameValue && !slugValue) {
-      setProductValue("slug", normalizeSlug(nameValue), { shouldValidate: true });
+      setProductValue("slug", normalizeSlug(nameValue), {
+        shouldValidate: true,
+      });
     }
   }, [nameValue, selected, getProductValues, setProductValue]);
 
@@ -178,31 +209,29 @@ export function ProductDetailPage() {
     watch: watchVariant,
   } = variantForm;
 
+  const additionForm = useForm<AdditionFormData>({
+    resolver: zodResolver(additionSchema),
+    defaultValues: defaultAdditionValues,
+  });
+
+  const { reset: resetAddition, handleSubmit: handleSubmitAddition } =
+    additionForm;
+
   const [selectedVariant, setSelectedVariant] =
     useState<ProductVariantRow | null>(null);
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
-  const [groupDraft, setGroupDraft] = useState<{
-    key: string;
-    value: string[];
-  } | null>(null);
-  const selectedGroupIds =
-    groupDraft?.key === (selected?.id ?? "new")
-      ? groupDraft.value
-      : product_option_group_ids;
-  const [additionDraft, setAdditionDraft] = useState<{
-    key: string;
-    value: string[];
-  } | null>(null);
-  const selectedAdditionIds =
-    additionDraft?.key === (selected?.id ?? "new")
-      ? additionDraft.value
-      : product_addition_ids;
+
+  const [selectedAddition, setSelectedAddition] = useState<AdditionRow | null>(
+    null,
+  );
+  const [isAdditionModalOpen, setIsAdditionModalOpen] = useState(false);
+  const [isSavingAddition, setIsSavingAddition] = useState(false);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingVariant, setIsSavingVariant] = useState(false);
-  const [isSavingAdditions, setIsSavingAdditions] = useState(false);
 
   useEffect(
     () => () => {
@@ -248,16 +277,24 @@ export function ProductDetailPage() {
     setIsVariantModalOpen(false);
   };
 
-  const toggleGroupSelection = (groupId: string) => {
-    const currentIds = selectedGroupIds;
-    const formKey = selected?.id ?? "new";
-
-    setGroupDraft({
-      key: formKey,
-      value: currentIds.includes(groupId)
-        ? currentIds.filter((currentId) => currentId !== groupId)
-        : [...currentIds, groupId],
+  const selectAddition = (addition: AdditionRow) => {
+    setSelectedAddition(addition);
+    resetAddition({
+      name: addition.name,
+      description: addition.description,
+      price: addition.price,
     });
+    setIsAdditionModalOpen(true);
+  };
+
+  const startNewAddition = () => {
+    setSelectedAddition(null);
+    resetAddition(defaultAdditionValues);
+    setIsAdditionModalOpen(true);
+  };
+
+  const closeAdditionModal = () => {
+    setIsAdditionModalOpen(false);
   };
 
   const onSubmitProduct = async (data: ProductFormData) => {
@@ -296,19 +333,16 @@ export function ProductDetailPage() {
         );
       }
 
-      await syncProductOptionGroups(savedProduct.id, selectedGroupIds);
-      await syncProductAdditions(savedProduct.id, selectedAdditionIds);
-
       notify.success("Producto guardado.");
-      setGroupDraft(null);
-      setAdditionDraft(null);
       setSelectedImageFile(null);
       setShouldRemoveImage(false);
-      await reload();
+      await reloadProductDetail();
       navigate(getProductDetailPath(savedProduct), { replace: true });
     } catch (submitError) {
       notify.error(
-        submitError instanceof Error ? submitError.message : String(submitError),
+        submitError instanceof Error
+          ? submitError.message
+          : String(submitError),
       );
     } finally {
       setIsSaving(false);
@@ -338,13 +372,51 @@ export function ProductDetailPage() {
       notify.success("Variante guardada.");
       startNewVariant();
       closeVariantModal();
-      await reload();
+      await reloadProductDetail();
     } catch (submitError) {
       notify.error(
-        submitError instanceof Error ? submitError.message : String(submitError),
+        submitError instanceof Error
+          ? submitError.message
+          : String(submitError),
       );
     } finally {
       setIsSavingVariant(false);
+    }
+  };
+
+  const onSubmitAddition = async (data: AdditionFormData) => {
+    if (!selected) {
+      notify.warning("Guarda el producto antes de agregar adiciones.");
+      return;
+    }
+
+    setIsSavingAddition(true);
+
+    try {
+      await saveAddition(
+        {
+          name: data.name.trim(),
+          description: data.description?.trim() || null,
+          price: Math.max(0, Number(data.price) || 0),
+          product_id: selected.id,
+        },
+        selectedAddition?.id,
+      );
+      notify.success(
+        selectedAddition ? "Adición actualizada." : "Adición creada.",
+      );
+      closeAdditionModal();
+      setSelectedAddition(null);
+      resetAddition(defaultAdditionValues);
+      await reloadProductDetail();
+    } catch (submitError) {
+      notify.error(
+        submitError instanceof Error
+          ? submitError.message
+          : String(submitError),
+      );
+    } finally {
+      setIsSavingAddition(false);
     }
   };
 
@@ -359,46 +431,35 @@ export function ProductDetailPage() {
       if (selectedVariant?.id === variant.id) {
         startNewVariant();
       }
-      await reload();
+      await reloadProductDetail();
     } catch (deleteError) {
       notify.error(
-        deleteError instanceof Error ? deleteError.message : String(deleteError),
+        deleteError instanceof Error
+          ? deleteError.message
+          : String(deleteError),
       );
     }
   };
 
-  const toggleAdditionSelection = (additionId: string) => {
-    const formKey = selected?.id ?? "new";
-
-    setAdditionDraft({
-      key: formKey,
-      value: selectedAdditionIds.includes(additionId)
-        ? selectedAdditionIds.filter((currentId) => currentId !== additionId)
-        : [...selectedAdditionIds, additionId],
-    });
-  };
-
-  const handleSaveProductAdditions = async () => {
-    if (!selected) {
-      notify.warning("Guarda el producto antes de asignar adiciones.");
+  const handleAdditionDelete = async (addition: AdditionRow) => {
+    if (!window.confirm(`¿Eliminar ${addition.name}?`)) {
       return;
     }
 
-    setIsSavingAdditions(true);
-
     try {
-      await syncProductAdditions(selected.id, selectedAdditionIds);
-      setAdditionDraft(null);
-      notify.success("Adiciones guardadas.");
-      await reload();
-    } catch (additionsError) {
+      await deleteAddition(addition.id);
+      notify.success("Adición eliminada.");
+      if (selectedAddition?.id === addition.id) {
+        setSelectedAddition(null);
+        resetAddition(defaultAdditionValues);
+      }
+      await reloadProductDetail();
+    } catch (deleteError) {
       notify.error(
-        additionsError instanceof Error
-          ? additionsError.message
-          : String(additionsError),
+        deleteError instanceof Error
+          ? deleteError.message
+          : String(deleteError),
       );
-    } finally {
-      setIsSavingAdditions(false);
     }
   };
 
@@ -586,59 +647,16 @@ export function ProductDetailPage() {
           </button>
         </form>
 
-        <section className="grid h-fit min-w-0 content-start gap-4 rounded-lg border border-border bg-surface p-3 shadow-elevated sm:p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="m-0 font-heading text-2xl font-black text-foreground">
-                Grupos de opciones
-              </h2>
-              <p className="mt-1 text-xs font-bold text-muted-foreground">
-                {selectedGroupIds.length} seleccionados
-              </p>
-            </div>
-          </div>
-
-          {option_groups.length > 0 ? (
-            <div className="grid gap-2">
-              {option_groups.map((group) => {
-                const isSelected = selectedGroupIds.includes(group.id);
-
-                return (
-                  <button
-                    key={group.id}
-                    type="button"
-                    className={cn(
-                      "flex items-start gap-3 rounded-lg border p-3 text-left transition",
-                      isSelected
-                        ? "border-primary bg-primary-soft"
-                        : "border-border bg-surface-muted hover:border-primary/50"
-                    )}
-                    onClick={() => toggleGroupSelection(group.id)}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleGroupSelection(group.id)}
-                      containerClassName="pointer-events-none"
-                    />
-                    <span className="min-w-0">
-                      <span className="block text-sm font-black text-foreground">
-                        {group.name}
-                      </span>
-                      <span className="mt-1 block text-xs font-bold text-muted-foreground">
-                        {group.is_required ? "Requerido" : "Opcional"} ·{" "}
-                        {group.is_active ? "Activo" : "Inactivo"}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="m-0 rounded-lg border border-border bg-surface-muted p-3 text-sm font-bold text-muted-foreground">
-              No hay grupos creados todavía.
-            </p>
-          )}
-        </section>
+        {/* Product-specific Option Groups Manager */}
+        {selected && (
+          <section className="grid h-fit min-w-0 content-start gap-4 rounded-lg border border-border bg-surface p-3 shadow-elevated sm:p-4 xl:col-span-2">
+            <ProductOptionGroupsManager
+              productId={selected.id}
+              optionGroups={product_option_groups}
+              onGroupsChange={reloadProductDetail}
+            />
+          </section>
+        )}
 
         <section className="grid h-fit min-w-0 content-start gap-4 rounded-lg border border-border bg-surface p-3 shadow-elevated sm:p-4">
           <div className="flex items-center justify-between gap-3">
@@ -647,67 +665,85 @@ export function ProductDetailPage() {
                 Adiciones
               </h2>
               <p className="mt-1 text-xs font-bold text-muted-foreground">
-                {selectedAdditionIds.length} seleccionadas
+                {product_additions.length} adicion
+                {product_additions.length === 1 ? "" : "es"}
               </p>
             </div>
             {selected ? (
               <button
                 type="button"
-                disabled={isSavingAdditions}
                 className="inline-flex min-h-10 items-center gap-2 rounded-full border border-primary bg-primary px-3 text-xs font-black text-primary-foreground sm:px-4"
-                onClick={() => void handleSaveProductAdditions()}
+                onClick={startNewAddition}
               >
-                <Save className="size-4" />
-                {isSavingAdditions ? "Guardando" : "Guardar"}
+                <Plus className="size-4" />
+                Nueva
               </button>
             ) : null}
           </div>
 
           {selected ? (
-            <>
-              {additions.length > 0 ? (
-                <div className="grid gap-2">
-                  {additions.map((addition: AdditionRow) => {
-                    const isSelected = selectedAdditionIds.includes(addition.id);
-
-                    return (
+            product_additions.length > 0 ? (
+              <div className="grid max-h-[400px] gap-2 overflow-y-auto pr-1">
+                {product_additions.map((addition) => (
+                  <article
+                    key={addition.id}
+                    className="grid gap-2 rounded-lg border border-border bg-surface-muted p-3 sm:grid-cols-[1fr_auto]"
+                  >
+                    <button
+                      type="button"
+                      className="min-w-0 text-left"
+                      onClick={() => selectAddition(addition)}
+                    >
+                      <span className="block text-sm font-black text-foreground">
+                        {addition.name}
+                      </span>
+                      <span className="mt-1 block text-xs font-bold text-muted-foreground">
+                        ${addition.price}
+                        {addition.description
+                          ? ` · ${addition.description}`
+                          : ""}
+                      </span>
+                    </button>
+                    <div className="flex items-center justify-end gap-1">
                       <button
-                        key={addition.id}
                         type="button"
-                        className={cn(
-                          "flex items-start gap-3 rounded-lg border p-3 text-left transition",
-                          isSelected
-                            ? "border-primary bg-primary-soft"
-                          : "border-border bg-surface-muted hover:border-primary/50"
-                        )}
-                        onClick={() => toggleAdditionSelection(addition.id)}
+                        className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary"
+                        onClick={() => selectAddition(addition)}
+                        aria-label={`Editar ${addition.name}`}
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleAdditionSelection(addition.id)}
-                          containerClassName="pointer-events-none"
-                        />
-                        <span className="min-w-0">
-                          <span className="block text-sm font-black text-foreground">
-                            {addition.name}
-                          </span>
-                          <span className="mt-1 block text-xs font-bold text-muted-foreground">
-                            ${addition.price}
-                          </span>
-                        </span>
+                        <Pencil className="size-4" />
                       </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="m-0 rounded-lg border border-border bg-surface-muted p-3 text-sm font-bold text-muted-foreground">
-                  No hay adiciones creadas todavía.
-                </p>
-              )}
-            </>
+                      <button
+                        type="button"
+                        className="inline-flex size-9 items-center justify-center rounded-full border border-error-border bg-error-soft text-error"
+                        onClick={() => void handleAdditionDelete(addition)}
+                        aria-label={`Eliminar ${addition.name}`}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="Sin adiciones"
+                description="Este producto no tiene adiciones configuradas."
+                action={
+                  <button
+                    type="button"
+                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground"
+                    onClick={startNewAddition}
+                  >
+                    <Plus className="size-4" />
+                    Nueva adición
+                  </button>
+                }
+              />
+            )
           ) : (
             <p className="m-0 rounded-lg border border-border bg-surface-muted p-3 text-sm font-bold text-muted-foreground">
-              Guarda el producto para asignarle adiciones.
+              Guarda el producto para activar la gestión de adiciones.
             </p>
           )}
         </section>
@@ -730,9 +766,9 @@ export function ProductDetailPage() {
           </div>
 
           {selected ? (
-            <div className="grid gap-2">
-              {selectedProductVariants.length > 0 ? (
-                selectedProductVariants.map((variant) => (
+            selectedProductVariants.length > 0 ? (
+              <div className="grid max-h-[400px] gap-2 overflow-y-auto pr-1">
+                {selectedProductVariants.map((variant) => (
                   <article
                     key={variant.id}
                     className="grid gap-2 rounded-lg border border-border bg-surface-muted p-3 sm:grid-cols-[1fr_auto]"
@@ -760,13 +796,24 @@ export function ProductDetailPage() {
                       <Trash2 className="size-4" />
                     </button>
                   </article>
-                ))
-              ) : (
-                <p className="m-0 rounded-lg border border-border bg-surface-muted p-3 text-sm font-bold text-muted-foreground">
-                  Este producto no tiene variantes.
-                </p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="Sin variantes"
+                description="Este producto no tiene variantes configuradas."
+                action={
+                  <button
+                    type="button"
+                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground"
+                    onClick={startNewVariant}
+                  >
+                    <Plus className="size-4" />
+                    Nueva variante
+                  </button>
+                }
+              />
+            )
           ) : (
             <p className="m-0 rounded-lg border border-border bg-surface-muted p-3 text-sm font-bold text-muted-foreground">
               Guarda el producto para activar la gestión de variantes.
@@ -852,6 +899,67 @@ export function ProductDetailPage() {
               type="button"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
               onClick={closeVariantModal}
+            >
+              <X className="size-4" />
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </ButtonSheetModal>
+
+      <ButtonSheetModal
+        isOpen={isAdditionModalOpen}
+        title={selectedAddition ? "Editar adición" : "Nueva adición"}
+        description={
+          selectedAddition
+            ? "Actualiza los datos de la adición seleccionada."
+            : "Completa los datos para crear una nueva adición."
+        }
+        contentClassName="max-w-lg"
+        onClose={closeAdditionModal}
+      >
+        <form
+          className="grid gap-4"
+          onSubmit={handleSubmitAddition(onSubmitAddition)}
+          noValidate
+        >
+          <InputField
+            name="name"
+            control={additionForm.control}
+            label="Nombre"
+            placeholder="Ej: Queso extra"
+            autoComplete="off"
+          />
+
+          <TextAreaField
+            name="description"
+            form={additionForm}
+            label="Descripción"
+            placeholder="Descripción opcional de la adición"
+          />
+
+          <InputField
+            name="price"
+            control={additionForm.control}
+            label="Precio"
+            type="number"
+            min={0}
+            step={1}
+          />
+
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <button
+              type="submit"
+              disabled={isSavingAddition}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
+            >
+              <Save className="size-4" />
+              {isSavingAddition ? "Guardando" : "Guardar"}
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
+              onClick={closeAdditionModal}
             >
               <X className="size-4" />
               Cancelar

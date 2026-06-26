@@ -1,6 +1,5 @@
 import {
   CirclePlus,
-  FolderTree,
   Gift,
   LayoutDashboard,
   Package,
@@ -14,5 +13,4 @@ export const adminNavItems = [
   { to: appRoutes.adminCategories, label: "Categorías", icon: Tags },
   { to: appRoutes.adminAdditions, label: "Adiciones", icon: CirclePlus },
   { to: appRoutes.adminPromotions, label: "Promociones", icon: Gift },
-  { to: appRoutes.adminOptionGroups, label: "Grupos", icon: FolderTree },
 ] as const;

@@ -17,7 +17,7 @@ export function OptionGroupSelector({
   return (
     <section className="grid gap-4">
       {groups.map((group) => (
-        <fieldset key={group.name} className="grid gap-2">
+        <fieldset key={group.id} className="grid gap-2">
           <legend className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
             {group.name}
             {group.is_required ? (
@@ -25,12 +25,12 @@ export function OptionGroupSelector({
             ) : null}
           </legend>
           <div className="flex flex-wrap gap-2">
-            {group.option_values.map((option) => {
+            {group.product_option_values.map((option) => {
               const isSelected = selectedOptions[group.name] === option.name;
 
               return (
                 <button
-                  key={`${group.name}-${option.name}`}
+                  key={`${group.id}-${option.id}`}
                   type="button"
                   data-selected={isSelected}
                   onClick={() => onSelect(group.name, option.name)}

@@ -14,9 +14,9 @@ function getProductVariants(optionGroups: MenuOptionGroup[]) {
     .filter((group) => group.is_active)
     .map((group) => ({
       name: group.name,
-      values: [...group.option_values]
+      values: [...group.product_option_values]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.created_at.localeCompare(b.created_at))
+        .sort((a, b) => a.sort_order - b.sort_order)
         .map((option) => option.name),
     }))
     .filter((variant) => variant.values.length > 0);
@@ -60,8 +60,9 @@ export function mapCatalogProduct(
   getImageUrl: (storagePath: string) => string,
   additions: ProductAvailableAdditionRow[] = [],
 ): MenuProduct {
+  // NEW: Product-specific option groups (flat array, no nested relation table)
   const optionGroups = sortOptionGroups(
-    (product.product_option_groups ?? []).map((row) => row.option_groups),
+    (product.product_option_groups ?? []),
   );
   const productAdditions = additions.filter(
     (addition) => addition.product_id === product.id,
@@ -72,9 +73,9 @@ export function mapCatalogProduct(
     product_variants: product.product_variants ?? [],
     option_groups: optionGroups.map((group) => ({
       ...group,
-      option_values: [...group.option_values]
+      product_option_values: [...group.product_option_values]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.created_at.localeCompare(b.created_at)),
+        .sort((a, b) => a.sort_order - b.sort_order),
     })),
     urlImage: product.image_path
       ? {

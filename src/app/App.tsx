@@ -6,7 +6,6 @@ import { DashboardPage } from "@/features/admin/pages/DashboardPage";
 import { AdditionsPage } from "@/features/admin/pages/AdditionsPage";
 import { LoginPage } from "@/features/admin/pages/LoginPage";
 import { CategoriesPage } from "@/features/admin/pages/CategoriesPage";
-import { OptionGroupsPage } from "@/features/admin/pages/OptionGroupsPage";
 import { ProductDetailPage } from "@/features/admin/pages/ProductDetailPage";
 import { ProductsPage } from "@/features/admin/pages/ProductsPage";
 import { PromotionDetailPage } from "@/features/admin/pages/PromotionDetailPage";
@@ -25,14 +24,12 @@ export function App() {
         <Route path="admin" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="productos" element={<ProductsPage />} />
-          <Route path="productos/nuevo" element={<ProductDetailPage />} />
-          <Route path="productos/:slug" element={<ProductDetailPage />} />
+          <Route path="producto" element={<ProductDetailPage />} />
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="adiciones" element={<AdditionsPage />} />
           <Route path="promociones" element={<PromotionsPage />} />
           <Route path="promociones/nueva" element={<PromotionDetailPage />} />
           <Route path="promociones/:slug" element={<PromotionDetailPage />} />
-          <Route path="grupos-opciones" element={<OptionGroupsPage />} />
         </Route>
       </Route>
       <Route element={<AppLayout />}>

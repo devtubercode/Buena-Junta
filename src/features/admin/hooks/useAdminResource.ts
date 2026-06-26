@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 
+type UseAdminResourceOptions = {
+  enabled?: boolean;
+};
+
 export function useAdminResource<TData>(
   fetcher: () => Promise<TData>,
   initialData: TData,
+  options: UseAdminResourceOptions = {},
 ) {
+  const { enabled = true } = options;
+
   const [data, setData] = useState<TData>(initialData);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
 
   const reload = useCallback(async () => {
@@ -22,6 +29,11 @@ export function useAdminResource<TData>(
   }, [fetcher]);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
     Promise.resolve()
@@ -52,7 +64,7 @@ export function useAdminResource<TData>(
     return () => {
       isMounted = false;
     };
-  }, [fetcher]);
+  }, [fetcher, enabled]);
 
   return {
     data,

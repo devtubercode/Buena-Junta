@@ -30,21 +30,26 @@ export type MenuCategory = {
   sort_order: number;
 };
 
+// NEW: Product-specific option values
 export type MenuOptionValue = {
+  id: string;
   name: string;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 };
 
+// NEW: Product-specific option groups
 export type MenuOptionGroup = {
+  id: string;
   name: string;
   is_required: boolean;
   is_active: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
-  option_values: MenuOptionValue[];
+  product_option_values: MenuOptionValue[];
 };
 
 export type MenuProductVariantRow = {
@@ -68,9 +73,8 @@ export type MenuProductRow = {
   tags: string[] | null;
   categories: MenuCategory | null;
   product_variants: MenuProductVariantRow[];
-  product_option_groups: {
-    option_groups: MenuOptionGroup;
-  }[];
+  // NEW: Product-specific option groups (flat array, no nested relation table)
+  product_option_groups: MenuOptionGroup[];
 };
 
 export type MenuProduct = MenuProductRow & {

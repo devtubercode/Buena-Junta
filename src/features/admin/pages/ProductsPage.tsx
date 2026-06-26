@@ -11,17 +11,16 @@ import { SUPABASE_BUCKETS } from "@/lib/supabase/constants";
 import { getStorageImageUrl } from "@/shared/services/storage.service";
 import type { AdminProductListRow } from "@/features/admin/types/admin.types";
 
-function getProductDetailPath(product: AdminProductListRow) {
-  return `${appRoutes.adminProducts}/${product.slug}?id=${product.id}`;
+function getProductDetailPath(productId: string) {
+  return `${appRoutes.adminProduct}?id=${productId}`;
+}
+
+function getNewProductPath() {
+  return `${appRoutes.adminProduct}?id=new`;
 }
 
 export function ProductsPage() {
-  const {
-    data: products,
-    isLoading,
-    error,
-    reload,
-  } = useProductsData();
+  const { data: products, isLoading, error, reload } = useProductsData();
 
   const handleDelete = async (product: AdminProductListRow) => {
     if (!window.confirm(`Eliminar ${product.name}?`)) {
@@ -58,7 +57,7 @@ export function ProductsPage() {
       description="Consulta productos del menú y entra a cada producto para editar su información, imagen y variantes."
       actions={
         <Link
-          to={`${appRoutes.adminProducts}/nuevo`}
+          to={getNewProductPath()}
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground"
         >
           <Plus className="size-4" />
@@ -72,11 +71,12 @@ export function ProductsPage() {
             (firstVariant, secondVariant) =>
               firstVariant.sort_order - secondVariant.sort_order,
           );
-          const productGroups = (
-            product.product_option_groups ?? []
-          ).map((entry) => entry.option_groups);
+          const productGroups = product.product_option_groups ?? [];
           const imageUrl = product.image_path
-            ? getStorageImageUrl(product.image_path, SUPABASE_BUCKETS.PRODUCT_IMAGES)
+            ? getStorageImageUrl(
+                product.image_path,
+                SUPABASE_BUCKETS.PRODUCT_IMAGES,
+              )
             : null;
 
           return (
@@ -85,7 +85,7 @@ export function ProductsPage() {
               className="grid grid-cols-[72px_minmax(0,1fr)] gap-3 rounded-lg border border-border bg-surface p-2.5 shadow-elevated sm:grid-cols-[84px_minmax(0,1fr)_auto] sm:p-3"
             >
               <Link
-                to={getProductDetailPath(product)}
+                to={getProductDetailPath(product.id)}
                 className="flex aspect-square items-center justify-center overflow-hidden rounded-md border border-border bg-surface-muted text-muted-foreground"
               >
                 {imageUrl ? (
@@ -101,14 +101,13 @@ export function ProductsPage() {
 
               <div className="min-w-0 self-center">
                 <Link
-                  to={getProductDetailPath(product)}
+                  to={getProductDetailPath(product.id)}
                   className="block text-base font-black leading-tight text-foreground transition hover:text-primary sm:text-lg"
                 >
                   {product.name}
                 </Link>
                 <p className="mt-1 text-xs font-bold leading-5 text-muted-foreground">
-                  {product.categories?.name ?? "Sin categoría"}{" "}
-                  · {product.slug}
+                  {product.categories?.name ?? "Sin categoría"} · {product.slug}
                 </p>
                 {productVariants.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-1">
@@ -145,7 +144,7 @@ export function ProductsPage() {
                 </span>
                 <div className="flex items-center gap-2">
                   <Link
-                    to={getProductDetailPath(product)}
+                    to={getProductDetailPath(product.id)}
                     className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface-muted text-foreground transition hover:border-primary"
                     aria-label={`Editar ${product.name}`}
                   >

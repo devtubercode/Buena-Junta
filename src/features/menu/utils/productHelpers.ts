@@ -30,11 +30,11 @@ export function getRequiredGroups(product: MenuProduct): MenuOptionGroup[] {
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((group) => ({
       ...group,
-      option_values: [...(group.option_values ?? [])]
+      product_option_values: [...(group.product_option_values ?? [])]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.created_at.localeCompare(b.created_at)),
+        .sort((a, b) => a.sort_order - b.sort_order),
     }))
-    .filter((group) => group.option_values.length > 0);
+    .filter((group) => group.product_option_values.length > 0);
 }
 
 export function getActiveOptionGroups(product: MenuProduct): MenuOptionGroup[] {
@@ -43,11 +43,11 @@ export function getActiveOptionGroups(product: MenuProduct): MenuOptionGroup[] {
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((group) => ({
       ...group,
-      option_values: [...(group.option_values ?? [])]
+      product_option_values: [...(group.product_option_values ?? [])]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.created_at.localeCompare(b.created_at)),
+        .sort((a, b) => a.sort_order - b.sort_order),
     }))
-    .filter((group) => group.option_values.length > 0);
+    .filter((group) => group.product_option_values.length > 0);
 }
 
 export function getProductButtonLabel(

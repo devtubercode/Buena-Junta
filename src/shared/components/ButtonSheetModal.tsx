@@ -8,6 +8,7 @@ type ButtonSheetModalProps = {
   description?: string;
   icon?: ReactNode;
   contentClassName?: string;
+  scrollable?: boolean;
   onClose: () => void;
   children?: ReactNode;
 };
@@ -18,6 +19,7 @@ export function ButtonSheetModal({
   description,
   icon,
   contentClassName,
+  scrollable = true,
   onClose,
   children,
 }: ButtonSheetModalProps) {
@@ -125,7 +127,13 @@ export function ButtonSheetModal({
         </div>
 
         {children ? (
-          <div className="max-h-[70dvh] overflow-y-auto px-0 pb-0 pt-4 sm:max-h-none sm:overflow-visible sm:px-0 sm:pt-0">
+          <div
+            className={cn(
+              "px-0 pb-0 pt-4 sm:px-0 sm:pt-0",
+              scrollable &&
+                "max-h-[70dvh] overflow-y-auto sm:max-h-[80dvh] sm:overflow-y-auto",
+            )}
+          >
             {children}
           </div>
         ) : null}

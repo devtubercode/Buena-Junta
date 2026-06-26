@@ -53,7 +53,7 @@ function getInitialOptions(
     (acc, group) => {
       const existingValue = initialConfig?.selectedOptions?.[group.name];
       const validValue = existingValue
-        ? group.option_values.find((option) => option.name === existingValue)?.name
+        ? group.product_option_values.find((option) => option.name === existingValue)?.name
         : undefined;
 
       if (validValue) {
