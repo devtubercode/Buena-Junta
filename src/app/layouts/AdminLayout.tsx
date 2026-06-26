@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Outlet } from "react-router";
-import { AdminDesktopNavigation } from "@/features/admin/components/AdminDesktopNavigation";
-import { AdminMobileNavigation } from "@/features/admin/components/AdminMobileNavigation";
+import { AdminDesktopNavigation } from "@/features/admin/shared/navigation/AdminDesktopNavigation";
+import { AdminMobileNavigation } from "@/features/admin/shared/navigation/AdminMobileNavigation";
+import { AdminErrorBoundary } from "@/features/admin/shared/components/AdminErrorBoundary";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export function AdminLayout() {
@@ -23,7 +24,9 @@ export function AdminLayout() {
         />
 
         <main className="min-w-0 max-w-full overflow-x-hidden px-4 py-5 sm:px-6 lg:px-6 lg:py-4">
-          <Outlet />
+          <AdminErrorBoundary>
+            <Outlet />
+          </AdminErrorBoundary>
         </main>
       </div>
     </div>
