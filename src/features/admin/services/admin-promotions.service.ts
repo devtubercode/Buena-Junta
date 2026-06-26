@@ -31,7 +31,6 @@ export async function fetchAdminPromotionsList(): Promise<
 
 export async function fetchAdminPromotionDetail(
   promotionId: string | null,
-  slug: string | undefined,
 ): Promise<AdminPromotionDetailData> {
   const [categories, products, promotionResult] = await Promise.all([
     fetchAdminCategories(),
@@ -42,13 +41,7 @@ export async function fetchAdminPromotionDetail(
           .select("*")
           .eq("id", promotionId)
           .maybeSingle()
-      : slug
-        ? supabase
-            .from(SUPABASE_TABLES.PROMOTIONS)
-            .select("*")
-            .eq("slug", slug)
-            .maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
+      : Promise.resolve({ data: null, error: null }),
   ]);
 
   throwIfError(products.error);

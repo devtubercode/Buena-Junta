@@ -1,27 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ArrowLeft,
-  ImagePlus,
-  Save,
-  Trash2,
-} from "lucide-react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { Save } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { appRoutes } from "@/app/routes";
 import { AdminDataState } from "@/features/admin/components/AdminDataState";
 import { AdminField, adminInputClass } from "@/features/admin/components/AdminField";
-import { AdminSection } from "@/features/admin/components/AdminSection";
+import { AdminDetailShell } from "@/features/admin/components/AdminDetailShell";
+import { AdminImageField } from "@/features/admin/components/AdminImageField";
+import { AdminNotFoundState } from "@/features/admin/components/AdminNotFoundState";
+import { useAdminImageUpload } from "@/features/admin/hooks/useAdminImageUpload";
+import { useAdminSaveHandler } from "@/features/admin/hooks/useAdminSaveHandler";
+import { useAutoSlug } from "@/features/admin/hooks/useAutoSlug";
 import { usePromotionDetailData } from "@/features/admin/hooks/usePromotionDetailData";
 import {
   fromDatetimeLocal,
+  normalizeAdminNullableString,
+  normalizeAdminString,
   normalizeSlug,
   toDatetimeLocal,
 } from "@/features/admin/utils/adminForms";
-import { notify } from "@/shared/notifications/notify";
 import { savePromotion } from "@/features/admin/services/admin-promotions.service";
 import {
-  getStorageImageUrl,
   removeStorageImage,
   uploadStorageImage,
 } from "@/shared/services/storage.service";
@@ -96,7 +96,7 @@ export function PromotionDetailPage() {
     isLoading,
     error,
     reload,
-  } = usePromotionDetailData(promotionId, slug, isNewPromotion);
+  } = usePromotionDetailData(promotionId, isNewPromotion);
   const { categories, products, promotion: selected } = promotionDetail;
 
   const form = useForm<PromotionFormData>({
@@ -108,12 +108,9 @@ export function PromotionDetailPage() {
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
     getValues,
   } = form;
-
-  const titleValue = watch("title");
 
   useEffect(() => {
     if (selected) {
@@ -126,44 +123,30 @@ export function PromotionDetailPage() {
     }
   }, [selected, isNewPromotion, reset]);
 
-  useEffect(() => {
-    if (selected) {
-      return;
-    }
+  useAutoSlug({
+    form,
+    source: "title",
+    target: "slug",
+    isNew: isNewPromotion,
+  });
 
-    const slugValue = getValues("slug");
+  const {
+    imageFile,
+    imagePreviewUrl,
+    shouldRemoveImage,
+    setSelectedImageFile,
+    removeImage,
+    resetImageState,
+  } = useAdminImageUpload();
 
-    if (titleValue && !slugValue) {
-      setValue("slug", normalizeSlug(titleValue), { shouldValidate: true });
-    }
-  }, [titleValue, selected, getValues, setValue]);
-
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(
-    () => () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
-      }
+  const { isSaving, execute: executeSave } = useAdminSaveHandler<PromotionRow>({
+    successMessage: "Promoción guardada.",
+    onSuccess: async (savedPromotion) => {
+      resetImageState();
+      await reload();
+      navigate(getPromotionDetailPath(savedPromotion), { replace: true });
     },
-    [imagePreviewUrl],
-  );
-
-  const setSelectedImageFile = (file: File | null) => {
-    setImagePreviewUrl((currentUrl) => {
-      if (currentUrl) {
-        URL.revokeObjectURL(currentUrl);
-      }
-
-      return file ? URL.createObjectURL(file) : null;
-    });
-    setImageFile(file);
-  };
-
-  const displayImagePath = selected?.image_path ?? null;
+  });
 
   const toggleWeekday = (weekday: number) => {
     const currentWeekdays = getValues("active_weekdays");
@@ -175,10 +158,8 @@ export function PromotionDetailPage() {
   };
 
   const onSubmit = async (data: PromotionFormData) => {
-    setIsSaving(true);
-
-    try {
-      let image_path: string | null = displayImagePath;
+    await executeSave(async () => {
+      let image_path: string | null = selected?.image_path ?? null;
 
       if (imageFile) {
         image_path = await uploadStorageImage(
@@ -193,15 +174,15 @@ export function PromotionDetailPage() {
           category_id: data.category_id,
           product_id: data.product_id,
           slug: normalizeSlug(data.slug),
-          title: data.title.trim(),
-          description: data.description?.trim() || null,
+          title: normalizeAdminString(data.title),
+          description: normalizeAdminNullableString(data.description),
           is_active: data.is_active,
-          active_weekdays: [...data.active_weekdays].sort((a, b) => a - b),
+          active_weekdays: data.active_weekdays,
           starts_at: data.starts_at,
           ends_at: data.ends_at,
-          image_path: shouldRemoveImage ? null : image_path?.trim() || null,
-          terms: data.terms?.trim() || null,
-          sort_order: Number(data.sort_order) || 0,
+          image_path: shouldRemoveImage ? null : image_path,
+          terms: normalizeAdminNullableString(data.terms),
+          sort_order: data.sort_order,
         } satisfies PromotionInput,
         selected?.id,
       );
@@ -213,18 +194,8 @@ export function PromotionDetailPage() {
         );
       }
 
-      notify.success("Promoción guardada.");
-      setSelectedImageFile(null);
-      setShouldRemoveImage(false);
-      await reload();
-      navigate(getPromotionDetailPath(savedPromotion), { replace: true });
-    } catch (submitError) {
-      notify.error(
-        submitError instanceof Error ? submitError.message : String(submitError),
-      );
-    } finally {
-      setIsSaving(false);
-    }
+      return savedPromotion;
+    });
   };
 
   const state = <AdminDataState isLoading={isLoading} error={error} />;
@@ -235,38 +206,19 @@ export function PromotionDetailPage() {
 
   if (!isNewPromotion && !selected) {
     return (
-      <AdminSection
+      <AdminNotFoundState
         title="Promoción no encontrada"
-        actions={
-          <Link
-            to={appRoutes.adminPromotions}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface-muted px-4 text-sm font-black text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Volver
-          </Link>
-        }
-      >
-        <p className="m-0 rounded-lg border border-border bg-surface p-4 text-sm font-bold text-muted-foreground">
-          No se encontró una promoción con ese identificador.
-        </p>
-      </AdminSection>
+        description="No se encontró una promoción con ese identificador."
+        backTo={appRoutes.adminPromotions}
+      />
     );
   }
 
   return (
-    <AdminSection
+    <AdminDetailShell
       title={selected ? selected.title : "Nueva promoción"}
       description="Gestiona la información, imagen, vigencia y relaciones de esta promoción."
-      actions={
-        <Link
-          to={appRoutes.adminPromotions}
-          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border bg-surface-muted px-3 text-sm font-black text-foreground sm:min-h-11 sm:px-4"
-        >
-          <ArrowLeft className="size-4" />
-          Volver
-        </Link>
-      }
+      backTo={appRoutes.adminPromotions}
     >
       <form
         className="grid min-w-0 max-w-full gap-4 rounded-lg border border-border bg-surface p-3 shadow-elevated sm:p-4 xl:grid-cols-[minmax(0,1fr)_420px] xl:gap-5"
@@ -341,34 +293,34 @@ export function PromotionDetailPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <InputField
-              name="starts_at"
-              control={form.control}
-              label="Inicio"
-              type="datetime-local"
-              defaultValue={toDatetimeLocal(watch("starts_at"))}
-              onChange={(event) => {
-                setValue(
-                  "starts_at",
-                  fromDatetimeLocal(event.target.value),
-                  { shouldValidate: true },
-                );
-              }}
-            />
-            <InputField
-              name="ends_at"
-              control={form.control}
-              label="Fin"
-              type="datetime-local"
-              defaultValue={toDatetimeLocal(watch("ends_at"))}
-              onChange={(event) => {
-                setValue(
-                  "ends_at",
-                  fromDatetimeLocal(event.target.value),
-                  { shouldValidate: true },
-                );
-              }}
-            />
+            <AdminField label="Inicio">
+              <input
+                className={adminInputClass}
+                type="datetime-local"
+                value={toDatetimeLocal(watch("starts_at"))}
+                onChange={(event) => {
+                  setValue(
+                    "starts_at",
+                    fromDatetimeLocal(event.target.value),
+                    { shouldValidate: true },
+                  );
+                }}
+              />
+            </AdminField>
+            <AdminField label="Fin">
+              <input
+                className={adminInputClass}
+                type="datetime-local"
+                value={toDatetimeLocal(watch("ends_at"))}
+                onChange={(event) => {
+                  setValue(
+                    "ends_at",
+                    fromDatetimeLocal(event.target.value),
+                    { shouldValidate: true },
+                  );
+                }}
+              />
+            </AdminField>
           </div>
 
           <AdminField label="Días activos">
@@ -404,50 +356,15 @@ export function PromotionDetailPage() {
           <h2 className="m-0 font-heading text-2xl font-black text-foreground">
             Imagen y estado
           </h2>
-          <AdminField label="Imagen">
-            <input
-              className={adminInputClass}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(event) => {
-                setSelectedImageFile(event.target.files?.[0] ?? null);
-                setShouldRemoveImage(false);
-              }}
-            />
-          </AdminField>
-          {(imagePreviewUrl || displayImagePath) && !shouldRemoveImage ? (
-            <div className="grid gap-2 rounded-lg border border-border bg-surface-muted p-3">
-              <img
-                src={
-                  imagePreviewUrl ??
-                  (displayImagePath
-                    ? getStorageImageUrl(
-                        displayImagePath,
-                        SUPABASE_BUCKETS.PROMOTION_IMAGES,
-                      )
-                    : "")
-                }
-                alt={watch("title") || "Promoción"}
-                className="aspect-video rounded-md object-cover"
-              />
-              <button
-                type="button"
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-error-border bg-error-soft px-4 text-xs font-black text-error"
-                onClick={() => {
-                  setShouldRemoveImage(true);
-                  setSelectedImageFile(null);
-                }}
-              >
-                <Trash2 className="size-4" />
-                Quitar imagen
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-muted p-3 text-xs font-bold text-muted-foreground">
-              <ImagePlus className="size-4" />
-              Sin imagen seleccionada
-            </div>
-          )}
+          <AdminImageField
+            imagePreviewUrl={imagePreviewUrl}
+            currentImagePath={selected?.image_path ?? null}
+            shouldRemoveImage={shouldRemoveImage}
+            onFileChange={setSelectedImageFile}
+            onRemove={removeImage}
+            alt={form.watch("title") || "Promoción"}
+            bucket={SUPABASE_BUCKETS.PROMOTION_IMAGES}
+          />
 
           <InputField
             name="sort_order"
@@ -478,6 +395,6 @@ export function PromotionDetailPage() {
           </button>
         </div>
       </form>
-    </AdminSection>
+    </AdminDetailShell>
   );
 }

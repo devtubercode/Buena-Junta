@@ -10,7 +10,7 @@ export const additionSchema = z.object({
     .max(500, "La descripción no puede superar los 500 caracteres")
     .nullable()
     .transform((value) => (value?.trim() ? value.trim() : null)),
-  price: z
+  price: z.coerce
     .number({ message: "El precio debe ser un número" })
     .int("El precio debe ser un número entero")
     .min(0, "El precio debe ser mayor o igual a 0"),

@@ -2,26 +2,32 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  ArrowLeft,
-  ImagePlus,
   Pencil,
   Plus,
   Save,
   Trash2,
   X,
 } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { appRoutes } from "@/app/routes";
 import { AdminDataState } from "@/features/admin/components/AdminDataState";
 import {
   AdminField,
   adminInputClass,
 } from "@/features/admin/components/AdminField";
-import { AdminSection } from "@/features/admin/components/AdminSection";
+import { AdminDetailShell } from "@/features/admin/components/AdminDetailShell";
+import { AdminImageField } from "@/features/admin/components/AdminImageField";
+import { AdminNotFoundState } from "@/features/admin/components/AdminNotFoundState";
+import { useAdminImageUpload } from "@/features/admin/hooks/useAdminImageUpload";
+import { useAdminSaveHandler } from "@/features/admin/hooks/useAdminSaveHandler";
+import { useAutoSlug } from "@/features/admin/hooks/useAutoSlug";
 import { useProductDetailData } from "@/features/admin/hooks/useProductDetailData";
 import { useCategoriesData } from "@/features/admin/hooks/useCategoriesData";
 import {
   inputValueToPrice,
+  normalizeAdminNullableString,
+  normalizeAdminPrice,
+  normalizeAdminString,
   normalizeSlug,
   priceToInputValue,
   tagsToText,
@@ -38,7 +44,6 @@ import {
   saveProductVariant,
 } from "@/features/admin/services/admin-products.service";
 import {
-  getStorageImageUrl,
   removeStorageImage,
   uploadStorageImage,
 } from "@/shared/services/storage.service";
@@ -164,10 +169,7 @@ export function ProductDetailPage() {
     reset: resetProduct,
     watch: watchProduct,
     setValue: setProductValue,
-    getValues: getProductValues,
   } = productForm;
-
-  const nameValue = watchProduct("name");
 
   useEffect(() => {
     if (selected) {
@@ -183,19 +185,12 @@ export function ProductDetailPage() {
     }
   }, [selected, isNewProduct, categories, resetProduct]);
 
-  useEffect(() => {
-    if (selected) {
-      return;
-    }
-
-    const slugValue = getProductValues("slug");
-
-    if (nameValue && !slugValue) {
-      setProductValue("slug", normalizeSlug(nameValue), {
-        shouldValidate: true,
-      });
-    }
-  }, [nameValue, selected, getProductValues, setProductValue]);
+  useAutoSlug({
+    form: productForm,
+    source: "name",
+    target: "slug",
+    isNew: isNewProduct,
+  });
 
   const variantForm = useForm<ProductVariantFormData>({
     resolver: zodResolver(productVariantSchema),
@@ -227,33 +222,24 @@ export function ProductDetailPage() {
   const [isAdditionModalOpen, setIsAdditionModalOpen] = useState(false);
   const [isSavingAddition, setIsSavingAddition] = useState(false);
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSavingVariant, setIsSavingVariant] = useState(false);
-
-  useEffect(
-    () => () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
-      }
-    },
-    [imagePreviewUrl],
-  );
-
-  const setSelectedImageFile = (file: File | null) => {
-    setImagePreviewUrl((currentUrl) => {
-      if (currentUrl) {
-        URL.revokeObjectURL(currentUrl);
-      }
-
-      return file ? URL.createObjectURL(file) : null;
+  const {
+    imageFile,
+    imagePreviewUrl,
+    shouldRemoveImage,
+    setSelectedImageFile,
+    removeImage,
+    resetImageState,
+  } = useAdminImageUpload();
+  const { isSaving, execute: executeProductSave } =
+    useAdminSaveHandler<ProductRow>({
+      successMessage: "Producto guardado.",
+      onSuccess: async (savedProduct) => {
+        resetImageState();
+        await reloadProductDetail();
+        navigate(getProductDetailPath(savedProduct), { replace: true });
+      },
     });
-    setImageFile(file);
-  };
-
-  const currentImagePath = selected?.image_path ?? null;
+  const [isSavingVariant, setIsSavingVariant] = useState(false);
 
   const selectVariant = (variant: ProductVariantRow) => {
     setSelectedVariant(variant);
@@ -298,10 +284,8 @@ export function ProductDetailPage() {
   };
 
   const onSubmitProduct = async (data: ProductFormData) => {
-    setIsSaving(true);
-
-    try {
-      let image_path: string | null = currentImagePath;
+    await executeProductSave(async () => {
+      let image_path: string | null = selected?.image_path ?? null;
 
       if (imageFile) {
         image_path = await uploadStorageImage(
@@ -315,12 +299,12 @@ export function ProductDetailPage() {
         {
           category_id: data.category_id,
           slug: normalizeSlug(data.slug),
-          name: data.name.trim(),
-          description: data.description.trim(),
+          name: normalizeAdminString(data.name),
+          description: normalizeAdminString(data.description),
           price: inputValueToPrice(data.price),
           image_path: shouldRemoveImage ? null : image_path,
           is_available: data.is_available,
-          sort_order: Number(data.sort_order) || 0,
+          sort_order: data.sort_order,
           tags: textToTags(data.tags),
         } satisfies ProductInput,
         selected?.id,
@@ -333,20 +317,8 @@ export function ProductDetailPage() {
         );
       }
 
-      notify.success("Producto guardado.");
-      setSelectedImageFile(null);
-      setShouldRemoveImage(false);
-      await reloadProductDetail();
-      navigate(getProductDetailPath(savedProduct), { replace: true });
-    } catch (submitError) {
-      notify.error(
-        submitError instanceof Error
-          ? submitError.message
-          : String(submitError),
-      );
-    } finally {
-      setIsSaving(false);
-    }
+      return savedProduct;
+    });
   };
 
   const onSubmitVariant = async (data: ProductVariantFormData) => {
@@ -361,11 +333,11 @@ export function ProductDetailPage() {
       await saveProductVariant(
         {
           product_id: selected.id,
-          name: data.name.trim(),
-          price: Math.max(0, Number(data.price) || 0),
+          name: normalizeAdminString(data.name),
+          price: normalizeAdminPrice(data.price),
           is_default: data.is_default,
           is_active: data.is_active,
-          sort_order: Number(data.sort_order) || 0,
+          sort_order: data.sort_order,
         } satisfies ProductVariantInput,
         selectedVariant?.id,
       );
@@ -395,9 +367,9 @@ export function ProductDetailPage() {
     try {
       await saveAddition(
         {
-          name: data.name.trim(),
-          description: data.description?.trim() || null,
-          price: Math.max(0, Number(data.price) || 0),
+          name: normalizeAdminString(data.name),
+          description: normalizeAdminNullableString(data.description),
+          price: data.price,
           product_id: selected.id,
         },
         selectedAddition?.id,
@@ -471,38 +443,19 @@ export function ProductDetailPage() {
 
   if (!isNewProduct && !selected) {
     return (
-      <AdminSection
+      <AdminNotFoundState
         title="Producto no encontrado"
-        actions={
-          <Link
-            to={appRoutes.adminProducts}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface-muted px-4 text-sm font-black text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Volver
-          </Link>
-        }
-      >
-        <p className="m-0 rounded-lg border border-border bg-surface p-4 text-sm font-bold text-muted-foreground">
-          No se encontró un producto con ese identificador.
-        </p>
-      </AdminSection>
+        description="No se encontró un producto con ese identificador."
+        backTo={appRoutes.adminProducts}
+      />
     );
   }
 
   return (
-    <AdminSection
+    <AdminDetailShell
       title={selected ? selected.name : "Nuevo producto"}
       description="Gestiona la información, imagen, acompañantes y variantes de este producto."
-      actions={
-        <Link
-          to={appRoutes.adminProducts}
-          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border bg-surface-muted px-3 text-sm font-black text-foreground sm:min-h-11 sm:px-4"
-        >
-          <ArrowLeft className="size-4" />
-          Volver
-        </Link>
-      }
+      backTo={appRoutes.adminProducts}
     >
       <div className="grid min-w-0 max-w-full gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.44fr)]">
         <form
@@ -555,50 +508,15 @@ export function ProductDetailPage() {
             placeholder="Describe el producto"
           />
 
-          <AdminField label="Imagen">
-            <input
-              className={adminInputClass}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(event) => {
-                setSelectedImageFile(event.target.files?.[0] ?? null);
-                setShouldRemoveImage(false);
-              }}
-            />
-          </AdminField>
-          {(imagePreviewUrl || currentImagePath) && !shouldRemoveImage ? (
-            <div className="grid gap-2 rounded-lg border border-border bg-surface-muted p-3">
-              <img
-                src={
-                  imagePreviewUrl ??
-                  (currentImagePath
-                    ? getStorageImageUrl(
-                        currentImagePath,
-                        SUPABASE_BUCKETS.PRODUCT_IMAGES,
-                      )
-                    : "")
-                }
-                alt={watchProduct("name") || "Producto"}
-                className="aspect-video rounded-md object-cover"
-              />
-              <button
-                type="button"
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-error-border bg-error-soft px-4 text-xs font-black text-error"
-                onClick={() => {
-                  setShouldRemoveImage(true);
-                  setSelectedImageFile(null);
-                }}
-              >
-                <Trash2 className="size-4" />
-                Quitar imagen
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-muted p-3 text-xs font-bold text-muted-foreground">
-              <ImagePlus className="size-4" />
-              Sin imagen seleccionada
-            </div>
-          )}
+          <AdminImageField
+            imagePreviewUrl={imagePreviewUrl}
+            currentImagePath={selected?.image_path ?? null}
+            shouldRemoveImage={shouldRemoveImage}
+            onFileChange={setSelectedImageFile}
+            onRemove={removeImage}
+            alt={watchProduct("name") || "Producto"}
+            bucket={SUPABASE_BUCKETS.PRODUCT_IMAGES}
+          />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <InputField
@@ -967,6 +885,6 @@ export function ProductDetailPage() {
           </div>
         </form>
       </ButtonSheetModal>
-    </AdminSection>
+    </AdminDetailShell>
   );
 }

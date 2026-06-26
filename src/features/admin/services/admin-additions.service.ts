@@ -21,20 +21,6 @@ export async function fetchAdminAdditions(): Promise<AdminAdditionsData> {
   };
 }
 
-export async function fetchProductAdditions(
-  productId: string,
-): Promise<AdditionRow[]> {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.ADDITIONS)
-    .select("*")
-    .eq("product_id", productId)
-    .order("created_at");
-
-  throwIfError(error);
-
-  return (data ?? []) as AdditionRow[];
-}
-
 export async function saveAddition(input: AdditionInput, id?: string) {
   const result = id
     ? await supabase

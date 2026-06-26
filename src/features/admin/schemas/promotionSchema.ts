@@ -33,7 +33,7 @@ export const promotionSchema = z.object({
     .max(1000, "Los términos no pueden superar los 1000 caracteres")
     .nullable()
     .transform((value) => (value?.trim() ? value.trim() : null)),
-  sort_order: z
+  sort_order: z.coerce
     .number({ message: "El orden debe ser un número" })
     .int("El orden debe ser un número entero")
     .min(0, "El orden debe ser mayor o igual a 0"),

@@ -11,16 +11,11 @@ const emptyPromotionDetail: AdminPromotionDetailData = {
 
 export function usePromotionDetailData(
   promotionId: string | null,
-  slug: string | undefined,
   isNewPromotion: boolean,
 ) {
   const fetchPromotionDetail = useCallback(
-    () =>
-      fetchAdminPromotionDetail(
-        isNewPromotion ? null : promotionId,
-        isNewPromotion ? undefined : slug,
-      ),
-    [isNewPromotion, promotionId, slug],
+    () => fetchAdminPromotionDetail(isNewPromotion ? null : promotionId),
+    [isNewPromotion, promotionId],
   );
 
   return useAdminResource(fetchPromotionDetail, emptyPromotionDetail);

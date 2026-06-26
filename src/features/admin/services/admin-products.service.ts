@@ -187,15 +187,23 @@ export async function deleteProduct(id: string) {
 export async function saveProductVariant(
   input: ProductVariantInput,
   id?: string,
-) {
+): Promise<ProductVariantRow> {
   const result = id
     ? await supabase
         .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
         .update(input)
         .eq("id", id)
-    : await supabase.from(SUPABASE_TABLES.PRODUCT_VARIANTS).insert(input);
+        .select()
+        .single()
+    : await supabase
+        .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
+        .insert(input)
+        .select()
+        .single();
 
   throwIfError(result.error);
+
+  return result.data as unknown as ProductVariantRow;
 }
 
 export async function deleteProductVariant(id: string) {
