@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
@@ -111,6 +111,17 @@ export function PromotionDetailPage() {
     setValue,
     getValues,
   } = form;
+
+  const watchedTitle = useWatch({ control: form.control, name: "title" });
+  const watchedStartsAt = useWatch({
+    control: form.control,
+    name: "starts_at",
+  });
+  const watchedEndsAt = useWatch({ control: form.control, name: "ends_at" });
+  const watchedIsActive = useWatch({
+    control: form.control,
+    name: "is_active",
+  });
 
   useEffect(() => {
     if (selected) {
@@ -297,7 +308,7 @@ export function PromotionDetailPage() {
               <input
                 className={adminInputClass}
                 type="datetime-local"
-                value={toDatetimeLocal(watch("starts_at"))}
+                value={toDatetimeLocal(watchedStartsAt)}
                 onChange={(event) => {
                   setValue(
                     "starts_at",
@@ -311,7 +322,7 @@ export function PromotionDetailPage() {
               <input
                 className={adminInputClass}
                 type="datetime-local"
-                value={toDatetimeLocal(watch("ends_at"))}
+                value={toDatetimeLocal(watchedEndsAt)}
                 onChange={(event) => {
                   setValue(
                     "ends_at",
@@ -362,7 +373,7 @@ export function PromotionDetailPage() {
             shouldRemoveImage={shouldRemoveImage}
             onFileChange={setSelectedImageFile}
             onRemove={removeImage}
-            alt={form.watch("title") || "Promoción"}
+            alt={watchedTitle || "Promoción"}
             bucket={SUPABASE_BUCKETS.PROMOTION_IMAGES}
           />
 
@@ -377,7 +388,7 @@ export function PromotionDetailPage() {
 
           <Checkbox
             label="Activa"
-            checked={watch("is_active")}
+            checked={watchedIsActive}
             onCheckedChange={(checked) => {
               setValue("is_active", checked, {
                 shouldValidate: true,

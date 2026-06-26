@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Pencil,
@@ -167,9 +167,17 @@ export function ProductDetailPage() {
     register: registerProduct,
     handleSubmit: handleSubmitProduct,
     reset: resetProduct,
-    watch: watchProduct,
     setValue: setProductValue,
   } = productForm;
+
+  const watchedProductName = useWatch({
+    control: productForm.control,
+    name: "name",
+  });
+  const watchedProductIsAvailable = useWatch({
+    control: productForm.control,
+    name: "is_available",
+  });
 
   useEffect(() => {
     if (selected) {
@@ -201,8 +209,16 @@ export function ProductDetailPage() {
     reset: resetVariant,
     handleSubmit: handleSubmitVariant,
     setValue: setVariantValue,
-    watch: watchVariant,
   } = variantForm;
+
+  const watchedVariantIsDefault = useWatch({
+    control: variantForm.control,
+    name: "is_default",
+  });
+  const watchedVariantIsActive = useWatch({
+    control: variantForm.control,
+    name: "is_active",
+  });
 
   const additionForm = useForm<AdditionFormData>({
     resolver: zodResolver(additionSchema),
@@ -514,7 +530,7 @@ export function ProductDetailPage() {
             shouldRemoveImage={shouldRemoveImage}
             onFileChange={setSelectedImageFile}
             onRemove={removeImage}
-            alt={watchProduct("name") || "Producto"}
+            alt={watchedProductName || "Producto"}
             bucket={SUPABASE_BUCKETS.PRODUCT_IMAGES}
           />
 
@@ -547,7 +563,7 @@ export function ProductDetailPage() {
 
           <Checkbox
             label="Disponible en el menú público"
-            checked={watchProduct("is_available")}
+            checked={watchedProductIsAvailable}
             onCheckedChange={(checked) => {
               setProductValue("is_available", checked, {
                 shouldValidate: true,
@@ -786,7 +802,7 @@ export function ProductDetailPage() {
           <div className="grid gap-2">
             <Checkbox
               label="Default"
-              checked={watchVariant("is_default")}
+              checked={watchedVariantIsDefault}
               onCheckedChange={(checked) => {
                 setVariantValue("is_default", checked, {
                   shouldValidate: true,
@@ -795,7 +811,7 @@ export function ProductDetailPage() {
             />
             <Checkbox
               label="Activa"
-              checked={watchVariant("is_active")}
+              checked={watchedVariantIsActive}
               onCheckedChange={(checked) => {
                 setVariantValue("is_active", checked, {
                   shouldValidate: true,

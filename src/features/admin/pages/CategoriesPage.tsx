@@ -1,6 +1,6 @@
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AdminDataState } from "@/features/admin/components/AdminDataState";
 import { AdminSection } from "@/features/admin/components/AdminSection";
@@ -39,9 +39,9 @@ export function CategoriesPage() {
     defaultValues,
   });
 
-  const { reset, handleSubmit, setValue, getValues, watch } = form;
+  const { reset, handleSubmit, setValue, getValues } = form;
 
-  const nameValue = watch("name");
+  const nameValue = useWatch({ control: form.control, name: "name" });
 
   useEffect(() => {
     if (selected) {
