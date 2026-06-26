@@ -20,7 +20,7 @@ export const productSchema = z.object({
     .max(1000, "La descripción no puede superar los 1000 caracteres"),
   price: z.string().regex(/^\d*$/, "El precio debe ser un número válido"),
   is_available: z.boolean(),
-  sort_order: z.coerce
+  sort_order: z
     .number({ message: "El orden debe ser un número" })
     .int("El orden debe ser un número entero")
     .min(0, "El orden debe ser mayor o igual a 0"),
