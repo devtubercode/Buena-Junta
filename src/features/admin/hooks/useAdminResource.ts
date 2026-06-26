@@ -30,36 +30,34 @@ export function useAdminResource<TData>(
 
   useEffect(() => {
     if (!enabled) {
-      setIsLoading(false);
       return;
     }
 
     let isMounted = true;
 
-    Promise.resolve()
-      .then(async () => {
-        if (isMounted) {
-          setIsLoading(true);
-          setError(null);
-        }
+    const load = async () => {
+      if (isMounted) {
+        setIsLoading(true);
+        setError(null);
+      }
 
-        return fetcher();
-      })
-      .then((remoteData) => {
+      try {
+        const remoteData = await fetcher();
         if (isMounted) {
           setData(remoteData);
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         if (isMounted) {
           setError(error instanceof Error ? error : new Error(String(error)));
         }
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) {
           setIsLoading(false);
         }
-      });
+      }
+    };
+
+    void load();
 
     return () => {
       isMounted = false;

@@ -16,5 +16,3 @@ export function AdminField({ label, children }: AdminFieldProps) {
 
 export const adminInputClass =
   "min-h-11 w-full min-w-0 rounded-lg border border-border bg-surface px-3 text-sm text-foreground outline-none transition placeholder:text-placeholder focus:border-primary focus:ring-2 focus:ring-primary/25";
-
-export const adminTextareaClass = `${adminInputClass} min-h-24 py-2`;
