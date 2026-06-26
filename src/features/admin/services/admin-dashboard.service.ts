@@ -34,6 +34,5 @@ export async function fetchAdminDashboard(): Promise<AdminDashboardData> {
     productsCount,
     categoriesCount,
     promotionsCount,
-    optionGroupsCount: 0, // Legacy field, no longer used
   };
 }

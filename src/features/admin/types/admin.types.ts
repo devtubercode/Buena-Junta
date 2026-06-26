@@ -62,28 +62,6 @@ export type ProductOptionValueRow = {
   updated_at: string;
 };
 
-// DEPRECATED: Global option groups (to be removed)
-export type LegacyOptionGroupRow = {
-  id: string;
-  name: string;
-  is_required: boolean;
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-  option_values: LegacyOptionValueRow[];
-};
-
-// DEPRECATED: Global option values (to be removed)
-export type LegacyOptionValueRow = {
-  id: string;
-  option_group_id: string;
-  name: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
 export type PromotionRow = {
   id: string;
   category_id: string | null;
@@ -120,16 +98,6 @@ export type ProductOptionValueInput = Omit<
   "id" | "product_option_group_id" | "created_at" | "updated_at"
 >;
 
-// DEPRECATED: Legacy input types (to be removed)
-export type LegacyOptionGroupInput = Omit<
-  LegacyOptionGroupRow,
-  "id" | "created_at" | "updated_at" | "option_values"
->;
-export type LegacyOptionValueInput = Omit<
-  LegacyOptionValueRow,
-  "id" | "created_at" | "updated_at"
->;
-
 export type PromotionInput = Omit<PromotionRow, "id">;
 
 export type AdminProductListRow = ProductRow & {
@@ -159,25 +127,12 @@ export type AdminPromotionDetailData = {
   promotion: PromotionRow | null;
 };
 
-// DEPRECATED: Legacy option groups data (to be removed)
-export type AdminOptionGroupsData = {
-  option_groups: LegacyOptionGroupRow[];
-};
-
 export type AdminAdditionsData = {
   additions: AdditionRow[];
-};
-
-// DEPRECATED: Legacy options data (to be removed)
-export type AdminOptionsData = {
-  products: ProductRow[];
-  option_groups: LegacyOptionGroupRow[];
-  option_values: LegacyOptionValueRow[];
 };
 
 export type AdminDashboardData = {
   productsCount: number;
   categoriesCount: number;
   promotionsCount: number;
-  optionGroupsCount: number;
 };

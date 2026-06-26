@@ -7,7 +7,6 @@ const emptyDashboard: AdminDashboardData = {
   productsCount: 0,
   categoriesCount: 0,
   promotionsCount: 0,
-  optionGroupsCount: 0,
 };
 
 export function useDashboardData() {
