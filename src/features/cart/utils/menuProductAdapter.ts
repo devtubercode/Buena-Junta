@@ -23,7 +23,6 @@ function buildProductVariantRows(
       price: option.unitPrice,
       is_default: false,
       is_active: true,
-      sort_order: 0,
     })) ?? []
   );
 }
@@ -56,7 +55,6 @@ export function cartItemToMenuProduct({
     price: item.variantOptions?.length ? null : item.unitPrice,
     image_path: item.image?.src ?? null,
     is_available: true,
-    sort_order: 0,
     tags: null,
     categories: null,
     product_variants: buildProductVariantRows(item.variantOptions),

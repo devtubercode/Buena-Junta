@@ -13,7 +13,7 @@ export const fetchPromotions = async (): Promise<MenuPromotionRow[]> => {
         product:products(id, slug, name)
       `,
     )
-    .order("sort_order");
+    .order("created_at");
 
   throwIfSupabaseError(error);
 

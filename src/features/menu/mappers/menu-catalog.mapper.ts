@@ -6,7 +6,7 @@ import type {
 import type { ProductAvailableAdditionRow } from "@/shared/services/product.service";
 
 function sortOptionGroups(optionGroups: MenuOptionGroup[]) {
-  return [...optionGroups].sort((a, b) => a.sort_order - b.sort_order);
+  return [...optionGroups].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function getProductVariants(optionGroups: MenuOptionGroup[]) {
@@ -16,7 +16,7 @@ function getProductVariants(optionGroups: MenuOptionGroup[]) {
       name: group.name,
       values: [...group.product_option_values]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.sort_order - b.sort_order)
+        .sort((a, b) => a.name.localeCompare(b.name))
         .map((option) => option.name),
     }))
     .filter((variant) => variant.values.length > 0);
@@ -25,7 +25,7 @@ function getProductVariants(optionGroups: MenuOptionGroup[]) {
 function getProductPriceOptions(product: MenuProductRow) {
   return [...(product.product_variants ?? [])]
     .filter((variant) => variant.is_active)
-    .sort((a, b) => a.sort_order - b.sort_order)
+    .sort((a, b) => a.name.localeCompare(b.name))
     .map((variant) => {
       return {
         label: variant.name,
@@ -75,7 +75,7 @@ export function mapCatalogProduct(
       ...group,
       product_option_values: [...group.product_option_values]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.sort_order - b.sort_order),
+        .sort((a, b) => a.name.localeCompare(b.name)),
     })),
     urlImage: product.image_path
       ? {

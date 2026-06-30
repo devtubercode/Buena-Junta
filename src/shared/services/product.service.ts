@@ -24,7 +24,7 @@ export async function fetchProducts(): Promise<MenuProductRow[]> {
         product_variants(*)
       `,
     )
-    .order("sort_order");
+    .order("name");
 
   throwIfSupabaseError(productsError);
 
@@ -41,7 +41,7 @@ export async function fetchProducts(): Promise<MenuProductRow[]> {
       product_option_values(*)
     `)
     .in("product_id", productIds)
-    .order("sort_order");
+    .order("name");
 
   throwIfSupabaseError(optionGroupsError);
 

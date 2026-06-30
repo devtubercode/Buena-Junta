@@ -27,7 +27,6 @@ export type MenuCategory = {
   slug: string;
   name: string;
   description: string | null;
-  sort_order: number;
 };
 
 // NEW: Product-specific option values
@@ -35,7 +34,6 @@ export type MenuOptionValue = {
   id: string;
   name: string;
   is_active: boolean;
-  sort_order: number;
   created_at: string;
   updated_at: string;
 };
@@ -46,7 +44,6 @@ export type MenuOptionGroup = {
   name: string;
   is_required: boolean;
   is_active: boolean;
-  sort_order: number;
   created_at: string;
   updated_at: string;
   product_option_values: MenuOptionValue[];
@@ -58,7 +55,6 @@ export type MenuProductVariantRow = {
   price: number;
   is_default: boolean;
   is_active: boolean;
-  sort_order: number;
 };
 
 export type MenuProductRow = {
@@ -69,7 +65,6 @@ export type MenuProductRow = {
   price: number | null;
   image_path: string | null;
   is_available: boolean;
-  sort_order: number;
   tags: string[] | null;
   categories: MenuCategory | null;
   product_variants: MenuProductVariantRow[];

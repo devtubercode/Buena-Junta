@@ -7,7 +7,7 @@ export async function fetchCategories(): Promise<MenuCategory[]> {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.CATEGORIES)
     .select("*")
-    .order("sort_order");
+    .order("name");
 
   throwIfSupabaseError(error);
 

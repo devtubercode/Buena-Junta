@@ -31,12 +31,12 @@ export function isSimpleProduct(product: MenuProduct): boolean {
 export function getRequiredGroups(product: MenuProduct): MenuOptionGroup[] {
   return [...(product.option_groups ?? [])]
     .filter((group) => group.is_active && group.is_required)
-    .sort((a, b) => a.sort_order - b.sort_order)
+    .sort((a, b) => a.name.localeCompare(b.name))
     .map((group) => ({
       ...group,
       product_option_values: [...(group.product_option_values ?? [])]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.sort_order - b.sort_order),
+        .sort((a, b) => a.name.localeCompare(b.name)),
     }))
     .filter((group) => group.product_option_values.length > 0);
 }
@@ -44,12 +44,12 @@ export function getRequiredGroups(product: MenuProduct): MenuOptionGroup[] {
 export function getActiveOptionGroups(product: MenuProduct): MenuOptionGroup[] {
   return [...(product.option_groups ?? [])]
     .filter((group) => group.is_active)
-    .sort((a, b) => a.sort_order - b.sort_order)
+    .sort((a, b) => a.name.localeCompare(b.name))
     .map((group) => ({
       ...group,
       product_option_values: [...(group.product_option_values ?? [])]
         .filter((option) => option.is_active)
-        .sort((a, b) => a.sort_order - b.sort_order),
+        .sort((a, b) => a.name.localeCompare(b.name)),
     }))
     .filter((group) => group.product_option_values.length > 0);
 }

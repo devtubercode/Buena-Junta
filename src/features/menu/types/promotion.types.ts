@@ -12,7 +12,6 @@ export type MenuPromotionRow = {
   starts_at: string | null;
   ends_at: string | null;
   image_path: string | null;
-  sort_order: number;
 };
 
 export type MenuPromotion = MenuPromotionRow & {
