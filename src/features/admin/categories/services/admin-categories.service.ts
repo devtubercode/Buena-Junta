@@ -1,13 +1,16 @@
 import { supabase } from "@/lib/supabase/client";
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { throwIfSupabaseError as throwIfError } from "@/shared/errors/handle-supabase-error";
-import type { CategoryInput, CategoryRow } from "@/features/admin/types/categories.types";
+import type {
+  CategoryInput,
+  CategoryRow,
+} from "@/features/admin/types/categories.types";
 
 export async function fetchAdminCategories(): Promise<CategoryRow[]> {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.CATEGORIES)
     .select("*")
-    .order("sort_order");
+    .order("name");
 
   throwIfError(error);
 
@@ -36,7 +39,7 @@ export async function saveCategory(
   return result.data as CategoryRow;
 }
 
-export async function deleteCategory(id: string) {
+export async function deleteCategory(id: string): Promise<void> {
   const { error } = await supabase
     .from(SUPABASE_TABLES.CATEGORIES)
     .delete()
