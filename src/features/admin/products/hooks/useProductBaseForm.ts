@@ -91,15 +91,18 @@ export function useProductBaseForm({
   useEffect(() => {
     if (selected) {
       resetProduct(toProductForm(selected));
+    }
+  }, [selected, resetProduct]);
+
+  useEffect(() => {
+    if (selected || !isNewProduct) {
       return;
     }
 
-    if (isNewProduct) {
-      resetProduct({
-        ...defaultProductValues,
-        category_id: categories[0]?.id ?? "",
-      });
-    }
+    resetProduct({
+      ...defaultProductValues,
+      category_id: categories[0]?.id ?? "",
+    });
   }, [selected, isNewProduct, categories, resetProduct]);
 
   useAutoSlug({
