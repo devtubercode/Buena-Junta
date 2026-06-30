@@ -11,14 +11,17 @@ export async function fetchAdminAdditions(): Promise<AdditionRow[]> {
     .from(SUPABASE_TABLES.ADDITIONS)
     .select("*")
     .is("product_id", null)
-    .order("created_at");
+    .order("name");
 
   throwIfError(error);
 
   return (data ?? []) as AdditionRow[];
 }
 
-export async function saveAddition(input: AdditionInput, id?: string) {
+export async function saveAddition(
+  input: AdditionInput,
+  id?: string,
+): Promise<AdditionRow> {
   const result = id
     ? await supabase
         .from(SUPABASE_TABLES.ADDITIONS)
@@ -34,10 +37,10 @@ export async function saveAddition(input: AdditionInput, id?: string) {
 
   throwIfError(result.error);
 
-  return result.data as unknown as AdditionRow;
+  return result.data as AdditionRow;
 }
 
-export async function deleteAddition(id: string) {
+export async function deleteAddition(id: string): Promise<void> {
   const { error } = await supabase
     .from(SUPABASE_TABLES.ADDITIONS)
     .delete()
