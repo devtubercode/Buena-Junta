@@ -17,7 +17,11 @@ export function hasAdditions(product: MenuProduct): boolean {
 }
 
 export function requiresCustomization(product: MenuProduct): boolean {
-  return hasPriceVariants(product) || hasRequiredOptions(product) || hasAdditions(product);
+  return (
+    hasPriceVariants(product) ||
+    hasRequiredOptions(product) ||
+    hasAdditions(product)
+  );
 }
 
 export function isSimpleProduct(product: MenuProduct): boolean {
@@ -58,7 +62,11 @@ export function getProductButtonLabel(
     return "Agregar";
   }
 
-  if (hasPriceVariants(product) && !hasRequiredOptions(product) && !hasAdditions(product)) {
+  if (
+    hasPriceVariants(product) &&
+    !hasRequiredOptions(product) &&
+    !hasAdditions(product)
+  ) {
     return isMobile ? "Presentaciones" : "Elegir presentación";
   }
 

@@ -3,21 +3,21 @@ import type {
   AddCartItemInput,
   CartItem,
 } from "@/features/cart/types/cart.types";
-import { useCartStore } from "@/features/cart/store/useCartStore";
+import { useCartStore } from "@/store/cart/useCartStore";
 import { ProductCustomizationModal } from "@/features/menu/components/ProductCustomizationModal";
 import { useMenuData } from "@/features/menu/hooks/useMenuData";
-import { useMenuFilterStore } from "@/features/menu/store/useMenuFilterStore";
+import { useMenuFilterStore } from "@/store/menu-filter/useMenuFilterStore";
 import { type MenuProduct } from "@/features/menu/types/menu.types";
 import { searchMenuProducts } from "@/features/menu/utils/searchMenuProducts";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { SearchInput } from "@/shared/components/SearchInput";
 import { CategoryChips } from "@/shared/components/menu/CategoryChips";
-import { ProductGrid } from "@/shared/components/menu/ProductGrid";
 import { CategoryChipsSkeleton } from "@/shared/components/menu/skeletons/CategoryChipsSkeleton";
 import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductGridSkeleton";
 import { notify } from "@/shared/notifications/notify";
 import { ProductCustomizationForm } from "./components/ProductCustomizationForm";
 import { ButtonSheetModal } from "../../shared/components/ButtonSheetModal";
+import { ProductCard } from "@/shared/components/menu/ProductCard";
 
 export function MenuPage() {
   const addItem = useCartStore((state) => state.addItem);
@@ -126,7 +126,7 @@ export function MenuPage() {
         />
       </section>
 
-      <div className="sticky top-22 z-10 -mx-4 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-18 z-10 -mx-4 my-5 bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         {isLoading ? (
           <CategoryChipsSkeleton />
         ) : (
@@ -138,22 +138,25 @@ export function MenuPage() {
         )}
       </div>
 
-      <section className="mt-5" aria-label="Productos del menú">
+      <section aria-label="Productos del menú">
         {isLoading ? (
           <ProductGridSkeleton count={5} />
-        ) : error ? (
+        ) : filteredProducts.length > 0 && !error ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                quantityInCart={getQuantityInCart?.(product.id)}
+                onQuickAdd={() => handleQuickAdd(product)}
+                onOpenCustomization={() => handleOpenCustomization(product)}
+              />
+            ))}
+          </div>
+        ) : (
           <EmptyState
             title="No pudimos cargar el menú"
             description="Revisa la conexión e intenta nuevamente."
-          />
-        ) : (
-          <ProductGrid
-            products={filteredProducts}
-            getQuantityInCart={getQuantityInCart}
-            onQuickAdd={handleQuickAdd}
-            onOpenCustomization={handleOpenCustomization}
-            emptyTitle="No encontramos productos"
-            emptyDescription="Prueba otra búsqueda o revisa una categoría diferente."
           />
         )}
       </section>
