@@ -10,7 +10,6 @@ export type ProductRow = {
   price: number | null;
   image_path: string | null;
   is_available: boolean;
-  sort_order: number;
   tags: string[] | null;
 };
 
@@ -21,7 +20,6 @@ export type ProductVariantRow = {
   price: number;
   is_default: boolean;
   is_active: boolean;
-  sort_order: number;
 };
 
 export type ProductOptionGroupRow = {
@@ -30,7 +28,6 @@ export type ProductOptionGroupRow = {
   name: string;
   is_required: boolean;
   is_active: boolean;
-  sort_order: number;
   created_at: string;
   updated_at: string;
 };
@@ -40,7 +37,6 @@ export type ProductOptionValueRow = {
   product_option_group_id: string;
   name: string;
   is_active: boolean;
-  sort_order: number;
   created_at: string;
   updated_at: string;
 };

@@ -14,7 +14,6 @@ export type PromotionRow = {
   ends_at: string | null;
   image_path: string | null;
   terms: string | null;
-  sort_order: number;
 };
 
 export type PromotionInput = Omit<PromotionRow, "id">;

@@ -18,10 +18,6 @@ export const categorySchema = z.object({
     .max(500, "La descripción no puede superar los 500 caracteres")
     .nullable()
     .transform((value) => (value?.trim() ? value.trim() : null)),
-  sort_order: z
-    .number({ message: "El orden debe ser un número" })
-    .int("El orden debe ser un número entero")
-    .min(0, "El orden debe ser mayor o igual a 0"),
 });
 
 export type CategoryFormData = z.infer<typeof categorySchema>;
