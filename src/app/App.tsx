@@ -4,7 +4,7 @@ import { appRoutes } from "@/app/routes";
 import { AdminLayout } from "@/app/layouts/AdminLayout";
 import { DashboardPage } from "@/features/admin/dashboard/DashboardPage";
 import { AdditionsPage } from "@/features/admin/additions/AdditionsPage";
-import { LoginPage } from "@/features/admin/pages/LoginPage";
+import { LoginPage } from "@/features/auth/components/LoginPage";
 import { CategoriesPage } from "@/features/admin/categories/CategoriesPage";
 import { ProductDetailPage } from "@/features/admin/products/ProductDetailPage";
 import { ProductsPage } from "@/features/admin/products/ProductsPage";
