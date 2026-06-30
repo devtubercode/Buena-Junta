@@ -22,7 +22,7 @@ export async function fetchAdminPromotionsList(): Promise<
         products(id, name)
       `,
     )
-    .order("sort_order");
+    .order("title");
 
   throwIfError(error);
 
@@ -33,11 +33,8 @@ export async function fetchAdminPromotionDetail(
   promotionId: string,
 ): Promise<AdminPromotionDetailData> {
   const [categories, products, promotionResult] = await Promise.all([
-    supabase
-      .from(SUPABASE_TABLES.CATEGORIES)
-      .select("*")
-      .order("sort_order"),
-    supabase.from(SUPABASE_TABLES.PRODUCTS).select("*").order("sort_order"),
+    supabase.from(SUPABASE_TABLES.CATEGORIES).select("*").order("name"),
+    supabase.from(SUPABASE_TABLES.PRODUCTS).select("*").order("name"),
     supabase
       .from(SUPABASE_TABLES.PROMOTIONS)
       .select("*")
@@ -56,7 +53,10 @@ export async function fetchAdminPromotionDetail(
   };
 }
 
-export async function savePromotion(input: PromotionInput, id?: string) {
+export async function savePromotion(
+  input: PromotionInput,
+  id?: string,
+): Promise<PromotionRow> {
   const result = id
     ? await supabase
         .from(SUPABASE_TABLES.PROMOTIONS)
@@ -75,7 +75,7 @@ export async function savePromotion(input: PromotionInput, id?: string) {
   return result.data as unknown as PromotionRow;
 }
 
-export async function deletePromotion(id: string) {
+export async function deletePromotion(id: string): Promise<void> {
   const { error } = await supabase
     .from(SUPABASE_TABLES.PROMOTIONS)
     .delete()
