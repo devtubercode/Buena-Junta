@@ -1,8 +1,8 @@
-import { Link, NavLink } from "react-router";
-import { ChevronsLeft, ChevronsRight, LogOut } from "lucide-react";
-import { appRoutes } from "@/app/routes";
-import logoImage from "@/assets/buenajunta-logo.webp";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { adminNavItems } from "@/features/admin/shared/navigation/adminNavigationItems";
+import { AdminNavBrand } from "@/features/admin/shared/navigation/components/AdminNavBrand";
+import { AdminNavItem } from "@/features/admin/shared/navigation/components/AdminNavItem";
+import { AdminSignOutButton } from "@/features/admin/shared/navigation/components/AdminSignOutButton";
 import { cn } from "@/shared/utils/cn";
 
 type AdminDesktopNavigationProps = {
@@ -21,37 +21,30 @@ export function AdminDesktopNavigation({
   return (
     <aside
       className={cn(
-        "sticky top-0 z-30 hidden h-svh border-r border-border bg-surface/95 py-4 backdrop-blur transition-[width] duration-200 lg:grid lg:grid-rows-[auto_1fr_auto]",
-        isCollapsed ? "w-20 px-3" : "w-64 px-5",
+        "sticky top-0 z-30 hidden h-svh border-r border-border bg-surface/95 py-5 backdrop-blur transition-[width] duration-200 lg:grid lg:grid-rows-[auto_1fr_auto]",
+        isCollapsed ? "w-20 px-3" : "w-64 px-4",
       )}
     >
-      <div>
-        <div className="flex justify-center flex-col-reverse gap-2">
-          <Link
-            to={appRoutes.admin}
-            className={cn(
-              "inline-flex items-center justify-center justify-self-center rounded-lg p-2 text-foreground",
-              isCollapsed ? "bg-surface-muted" : "bg-transparent",
-            )}
-            title="BuenaJunta Admin"
-          >
-            <img
-              src={logoImage}
-              alt=""
-              className={cn(
-                "shrink-0 object-contain",
-                isCollapsed ? "size-10" : "size-14",
-              )}
-              aria-hidden="true"
-            />
-          </Link>
+      <div className="grid gap-4">
+        <div
+          className={cn(
+            "flex items-center",
+            isCollapsed ? "flex-col gap-2" : "justify-between gap-2",
+          )}
+        >
+          <AdminNavBrand
+            collapsed={isCollapsed}
+            size={isCollapsed ? "sm" : "md"}
+            showLabel={!isCollapsed}
+          />
           <button
             type="button"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center justify-self-end rounded-lg border border-border bg-surface-muted text-foreground transition hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             onClick={onToggleCollapsed}
             aria-label={
               isCollapsed ? "Expandir navegación" : "Reducir navegación"
             }
+            title={isCollapsed ? "Expandir navegación" : "Reducir navegación"}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-muted text-muted-foreground transition hover:border-primary hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {isCollapsed ? (
               <ChevronsRight className="size-4" />
@@ -60,52 +53,43 @@ export function AdminDesktopNavigation({
             )}
           </button>
         </div>
-        {!isCollapsed ? (
-          <p className="mt-1 truncate text-center text-xs font-bold text-muted-foreground">
+
+        {!isCollapsed && userEmail ? (
+          <p className="truncate rounded-lg bg-surface-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
             {userEmail}
           </p>
         ) : null}
       </div>
 
-      <nav className="mt-7 grid content-start gap-1">
-        {adminNavItems.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={"end" in item ? item.end : false}
-              title={item.label}
-              className={({ isActive }) =>
-                cn(
-                  "inline-flex min-h-11 items-center rounded-lg border text-sm font-black transition focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary",
-                  isCollapsed ? "justify-center px-0" : "gap-2 px-3",
-                  isActive
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-surface-muted hover:text-foreground",
-                )
-              }
-            >
-              <Icon className="size-4" />
-              {!isCollapsed ? item.label : null}
-            </NavLink>
-          );
-        })}
+      <nav
+        className="mt-6 grid content-start gap-1"
+        aria-label="Navegación de administración"
+      >
+        {adminNavItems.map((item) => (
+          <AdminNavItem
+            key={item.to}
+            to={item.to}
+            label={item.label}
+            icon={item.icon}
+            end={"end" in item ? item.end : false}
+            layout="desktop"
+            collapsed={isCollapsed}
+          />
+        ))}
       </nav>
 
-      <button
-        type="button"
-        className={cn(
-          "inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border bg-surface-muted text-sm font-black text-foreground transition hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-          isCollapsed ? "px-0" : "gap-2 px-4",
-        )}
-        onClick={onSignOut}
-        title="Cerrar sesión"
-      >
-        <LogOut className="size-4" />
-        {!isCollapsed ? "Cerrar sesión" : null}
-      </button>
+      <div className="grid gap-3">
+        {!isCollapsed ? (
+          <p className="text-center text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            BuenaJunta Admin
+          </p>
+        ) : null}
+        <AdminSignOutButton
+          onSignOut={onSignOut}
+          layout="desktop"
+          collapsed={isCollapsed}
+        />
+      </div>
     </aside>
   );
 }
