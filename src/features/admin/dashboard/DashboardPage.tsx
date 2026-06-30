@@ -1,9 +1,5 @@
 import { Link } from "react-router";
-import {
-  Gift,
-  Package,
-  Tags,
-} from "lucide-react";
+import { Gift, Package, Tags } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { AdminDataState } from "@/features/admin/shared/state/AdminDataState";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
@@ -11,11 +7,7 @@ import { AdminDashboardSkeleton } from "@/features/admin/shared/state/AdminSkele
 import { useDashboardData } from "@/features/admin/dashboard/useDashboardData";
 
 export function DashboardPage() {
-  const {
-    data: dashboard,
-    isLoading,
-    error,
-  } = useDashboardData();
+  const { data: dashboard, isLoading, error } = useDashboardData();
 
   if (error) {
     return <AdminDataState isLoading={false} error={error} />;
