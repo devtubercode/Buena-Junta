@@ -15,13 +15,14 @@ export function useAdminDeleteConfirm() {
   const [isDeleting, setIsDeleting] = useState(false);
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
 
-  async function confirmDelete<T extends { name: string }>(
+  async function confirmDelete<T extends { name?: string; title?: string }>(
     item: T,
     deleteFn: (id: string) => Promise<void>,
     id: string,
     itemLabel: string,
   ): Promise<boolean> {
-    setConfig({ id, name: item.name, itemLabel, deleteFn });
+    const name = item.name ?? item.title ?? "";
+    setConfig({ id, name, itemLabel, deleteFn });
     setIsOpen(true);
 
     return new Promise((resolve) => {
