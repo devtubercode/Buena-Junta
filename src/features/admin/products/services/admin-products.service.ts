@@ -1,15 +1,13 @@
 import { supabase } from "@/lib/supabase/client";
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { throwIfSupabaseError as throwIfError } from "@/shared/errors/handle-supabase-error";
+import { fetchProductVariants } from "@/features/admin/products/variants/services/admin-product-variants.service";
+import { fetchProductOptionGroups } from "@/features/admin/products/option-groups/services/admin-product-option-groups.service";
 import type {
   AdminProductDetailData,
   AdminProductListRow,
   ProductInput,
-  ProductOptionGroupRow,
-  ProductOptionValueRow,
   ProductRow,
-  ProductVariantInput,
-  ProductVariantRow,
 } from "@/features/admin/types/products.types";
 
 // ==========================================
@@ -23,10 +21,11 @@ export async function fetchAdminProductsList(): Promise<AdminProductListRow[]> {
       `
         *,
         categories(id, name),
-        product_variants(*)
+        product_variants(*),
+        product_option_groups(*)
       `,
     )
-    .order("sort_order");
+    .order("name");
 
   throwIfError(error);
 
@@ -44,7 +43,7 @@ export async function fetchAdminProductDetail(
     fetchProductById(productId),
     fetchProductVariants(productId),
     fetchProductAdditions(productId),
-    fetchProductOptionGroupsWithValues(productId),
+    fetchProductOptionGroups(productId),
   ]);
 
   return {
@@ -59,9 +58,7 @@ export async function fetchAdminProductDetail(
 // Data Fetchers
 // ==========================================
 
-async function fetchProductById(
-  productId: string,
-): Promise<ProductRow | null> {
+async function fetchProductById(productId: string): Promise<ProductRow | null> {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PRODUCTS)
     .select("*")
@@ -71,20 +68,6 @@ async function fetchProductById(
   throwIfError(error);
 
   return data as unknown as ProductRow | null;
-}
-
-async function fetchProductVariants(
-  productId: string,
-): Promise<ProductVariantRow[]> {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
-    .select("*")
-    .eq("product_id", productId)
-    .order("sort_order");
-
-  throwIfError(error);
-
-  return (data ?? []) as unknown as ProductVariantRow[];
 }
 
 async function fetchProductAdditions(productId: string) {
@@ -97,29 +80,6 @@ async function fetchProductAdditions(productId: string) {
   throwIfError(error);
 
   return (data ?? []) as unknown as AdminProductDetailData["product_additions"];
-}
-
-async function fetchProductOptionGroupsWithValues(
-  productId: string,
-): Promise<
-  (ProductOptionGroupRow & { product_option_values: ProductOptionValueRow[] })[]
-> {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
-    .select(
-      `
-      *,
-      product_option_values(*)
-    `,
-    )
-    .eq("product_id", productId)
-    .order("sort_order");
-
-  throwIfError(error);
-
-  return (data ?? []) as unknown as (ProductOptionGroupRow & {
-    product_option_values: ProductOptionValueRow[];
-  })[];
 }
 
 // ==========================================
@@ -148,37 +108,6 @@ export async function saveProduct(input: ProductInput, id?: string) {
 export async function deleteProduct(id: string) {
   const { error } = await supabase
     .from(SUPABASE_TABLES.PRODUCTS)
-    .delete()
-    .eq("id", id);
-
-  throwIfError(error);
-}
-
-export async function saveProductVariant(
-  input: ProductVariantInput,
-  id?: string,
-): Promise<ProductVariantRow> {
-  const result = id
-    ? await supabase
-        .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
-        .update(input)
-        .eq("id", id)
-        .select()
-        .single()
-    : await supabase
-        .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
-        .insert(input)
-        .select()
-        .single();
-
-  throwIfError(result.error);
-
-  return result.data as unknown as ProductVariantRow;
-}
-
-export async function deleteProductVariant(id: string) {
-  const { error } = await supabase
-    .from(SUPABASE_TABLES.PRODUCT_VARIANTS)
     .delete()
     .eq("id", id);
 

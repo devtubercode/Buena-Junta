@@ -6,93 +6,86 @@ import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { InputField } from "@/shared/components/InputField";
 import { Checkbox } from "@/shared/components/Checkbox";
 import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
+import { normalizeAdminString } from "@/features/admin/shared/utils/adminForms";
+import { saveProductOptionGroup } from "@/features/admin/products/option-groups/services/admin-product-option-groups.service";
 import {
-  normalizeAdminString,
-  parsePrice,
-} from "@/features/admin/shared/utils/adminForms";
-import { saveProductVariant } from "@/features/admin/products/variants/services/admin-product-variants.service";
-import {
-  productVariantSchema,
-  type ProductVariantFormData,
-} from "@/features/admin/schemas/productVariantSchema";
+  optionGroupSchema,
+  type OptionGroupFormData,
+} from "@/features/admin/schemas/optionGroupSchema";
 import type {
-  ProductVariantInput,
-  ProductVariantRow,
+  ProductOptionGroupInput,
+  ProductOptionGroupRow,
 } from "@/features/admin/types/products.types";
 
-interface VariantModalProps {
+interface ProductOptionGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
   productId: string;
-  variant: ProductVariantRow | null;
+  group: ProductOptionGroupRow | null;
   onSaved: () => void;
 }
 
-const defaultValues: ProductVariantFormData = {
+const defaultValues: OptionGroupFormData = {
   name: "",
-  price: "",
-  is_default: false,
+  is_required: true,
   is_active: true,
 };
 
-export function VariantModal({
+export function ProductOptionGroupModal({
   isOpen,
   onClose,
   productId,
-  variant,
+  group,
   onSaved,
-}: VariantModalProps) {
-  const form = useForm<ProductVariantFormData>({
-    resolver: zodResolver(productVariantSchema),
+}: ProductOptionGroupModalProps) {
+  const form = useForm<OptionGroupFormData>({
+    resolver: zodResolver(optionGroupSchema),
     defaultValues,
   });
 
-  const { reset, handleSubmit, setValue } = form;
+  const { reset, handleSubmit, setValue, control } = form;
+  const isNew = useMemo(() => group === null, [group]);
 
-  const watchedIsDefault = useWatch({
-    control: form.control,
-    name: "is_default",
+  const watchedIsRequired = useWatch({
+    control,
+    name: "is_required",
   });
   const watchedIsActive = useWatch({
-    control: form.control,
+    control,
     name: "is_active",
   });
 
-  const isNew = useMemo(() => variant === null, [variant]);
-
   useEffect(() => {
-    if (variant) {
+    if (group) {
       reset({
-        name: variant.name,
-        price: String(variant.price),
-        is_default: variant.is_default,
-        is_active: variant.is_active,
+        name: group.name,
+        is_required: group.is_required,
+        is_active: group.is_active,
       });
     } else {
       reset(defaultValues);
     }
-  }, [variant, reset, isOpen]);
+  }, [group, reset, isOpen]);
 
   const { isSaving, execute: executeSave } =
-    useAdminSaveHandler<ProductVariantRow>({
-      successMessage: "Variante guardada.",
+    useAdminSaveHandler<ProductOptionGroupRow>({
+      successMessage: "Grupo guardado.",
       onSuccess: () => {
         onClose();
         onSaved();
       },
     });
 
-  const onSubmit = async (data: ProductVariantFormData) => {
+  const onSubmit = async (data: OptionGroupFormData) => {
     await executeSave(() =>
-      saveProductVariant(
+      saveProductOptionGroup(
         {
-          product_id: productId,
           name: normalizeAdminString(data.name),
-          price: parsePrice(data.price) ?? 0,
-          is_default: data.is_default,
+          is_required: data.is_required,
           is_active: data.is_active,
-        } satisfies ProductVariantInput,
-        variant?.id,
+        } satisfies ProductOptionGroupInput,
+        productId,
+        group?.id,
       ),
     );
   };
@@ -100,11 +93,11 @@ export function VariantModal({
   return (
     <ButtonSheetModal
       isOpen={isOpen}
-      title={isNew ? "Nueva variante" : "Editar variante"}
+      title={isNew ? "Nuevo grupo" : "Editar grupo"}
       description={
         isNew
-          ? "Completa los datos para crear una nueva variante."
-          : "Actualiza los datos de la variante seleccionada."
+          ? "Completa los datos para crear un nuevo grupo de opciones."
+          : "Actualiza los datos del grupo de opciones."
       }
       contentClassName="max-w-lg"
       onClose={onClose}
@@ -112,34 +105,25 @@ export function VariantModal({
       <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <InputField
           name="name"
-          control={form.control}
+          control={control}
           label="Nombre"
-          placeholder="Ej: Personal"
+          placeholder="Ej: Salsas"
           autoComplete="off"
-        />
-
-        <InputField
-          name="price"
-          control={form.control}
-          label="Precio en pesos"
-          type="number"
-          min={0}
-          step={1}
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <Checkbox
-            label="Default"
-            description="Se selecciona por defecto"
-            checked={watchedIsDefault}
+            label="Requerido"
+            description="El cliente debe elegir una opción"
+            checked={watchedIsRequired}
             onCheckedChange={(checked) => {
-              setValue("is_default", checked, {
+              setValue("is_required", checked, {
                 shouldValidate: true,
               });
             }}
           />
           <Checkbox
-            label="Activa"
+            label="Activo"
             description="Visible para los clientes"
             checked={watchedIsActive}
             onCheckedChange={(checked) => {

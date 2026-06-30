@@ -12,15 +12,19 @@ import type {
 
 export async function fetchProductOptionGroups(
   productId: string,
-): Promise<(ProductOptionGroupRow & { product_option_values: ProductOptionValueRow[] })[]> {
+): Promise<
+  (ProductOptionGroupRow & { product_option_values: ProductOptionValueRow[] })[]
+> {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
-    .select(`
+    .select(
+      `
       *,
       product_option_values(*)
-    `)
+    `,
+    )
     .eq("product_id", productId)
-    .order("sort_order");
+    .order("name");
 
   throwIfError(error);
 
@@ -35,7 +39,7 @@ export async function saveProductOptionGroup(
   id?: string,
 ) {
   const dataWithProductId = { ...input, product_id: productId };
-  
+
   const result = id
     ? await supabase
         .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
@@ -69,7 +73,7 @@ export async function saveProductOptionValue(
   id?: string,
 ) {
   const dataWithGroupId = { ...input, product_option_group_id: groupId };
-  
+
   const result = id
     ? await supabase
         .from(SUPABASE_TABLES.PRODUCT_OPTION_VALUES as "product_option_values")
