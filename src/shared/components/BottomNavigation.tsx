@@ -1,7 +1,7 @@
 import { NavLink } from "react-router";
 import { ClipboardList, Home, ShoppingCart } from "lucide-react";
 import { appRoutes } from "@/app/routes";
-import { useCartStore } from "@/features/cart/store/useCartStore";
+import { useCartStore } from "@/store/cart/useCartStore";
 import { cn } from "@/shared/utils/cn";
 
 const navItems = [
