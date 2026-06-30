@@ -7,13 +7,11 @@ import { AdminProductsSkeleton } from "@/features/admin/shared/state/AdminSkelet
 import { SearchInput } from "@/shared/components/SearchInput";
 import { useProductsData } from "@/features/admin/products/useProductsData";
 import { useCategoriesData } from "@/features/admin/categories/hooks/useCategoriesData";
-import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
 import { useAdminProductsFilters } from "@/features/admin/products/hooks/useAdminProductsFilters";
+import { useAdminProductDelete } from "@/features/admin/products/hooks/useAdminProductDelete";
 import { AdminProductCategoryFilter } from "@/features/admin/products/components/AdminProductCategoryFilter";
 import { AdminProductList } from "@/features/admin/products/components/AdminProductList";
 import { AdminProductEmptyState } from "@/features/admin/products/components/AdminProductEmptyState";
-import { deleteProduct } from "@/features/admin/products/services/admin-products.service";
-import type { AdminProductListRow } from "@/features/admin/types/products.types";
 
 function getNewProductPath() {
   return `${appRoutes.adminProduct}?id=new`;
@@ -33,8 +31,6 @@ export function ProductsPage() {
     error: categoriesError,
   } = useCategoriesData();
 
-  const { confirmDelete } = useAdminDeleteConfirm();
-
   const {
     searchQuery,
     setSearchQuery,
@@ -44,18 +40,8 @@ export function ProductsPage() {
     activeFiltersCount,
   } = useAdminProductsFilters(products);
 
-  const handleDelete = async (product: AdminProductListRow) => {
-    const deleted = await confirmDelete(
-      product,
-      deleteProduct,
-      product.id,
-      "Producto",
-    );
-
-    if (deleted) {
-      await reload();
-    }
-  };
+  const { handleDelete, ConfirmDialog: ProductDeleteDialog } =
+    useAdminProductDelete(reload);
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -137,6 +123,8 @@ export function ProductsPage() {
       ) : (
         <AdminProductList products={filteredProducts} onDelete={handleDelete} />
       )}
+
+      <ProductDeleteDialog />
     </AdminSection>
   );
 }
