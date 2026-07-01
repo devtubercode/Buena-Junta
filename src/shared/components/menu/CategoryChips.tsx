@@ -65,7 +65,7 @@ export function CategoryChips({
 }: CategoryChipsProps) {
   return (
     <nav aria-label="Categorías del menú" className="relative -mx-4 sm:mx-0">
-      <div className="flex gap-2 overflow-x-auto px-4 pb-3 pt-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden snap-x snap-mandatory scroll-smooth">
+      <div className="flex gap-2 overflow-x-auto pl-4 pr-12 pb-3 pt-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden snap-x snap-mandatory scroll-smooth">
         <CategoryChip
           active={activeCategorySlug === null}
           onClick={() => onChange(null)}
