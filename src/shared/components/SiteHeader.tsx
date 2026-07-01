@@ -6,7 +6,7 @@ import { publicLocation } from "@/features/menu/content/menuContent";
 import { CustomModal } from "@/shared/components/CustomModal";
 import logoImage from "@/assets/buenajunta-logo.webp";
 import { CartButton } from "@/shared/components/CartButton";
-import { ThemeSwitch } from "@/shared/components/ThemeSwitch";
+// import { ThemeSwitch } from "@/shared/components/ThemeSwitch";
 import { cn } from "@/shared/utils/cn";
 
 const primaryNavItems = [
@@ -70,7 +70,7 @@ export function SiteHeader() {
               className="hidden min-h-10 items-center gap-2 rounded-full border border-border bg-surface px-3 text-sm font-bold text-foreground shadow-sm transition hover:border-primary hover:bg-surface-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:inline-flex"
             >
               <MapPin className="size-4 text-primary" />
-              <span className="max-w-[120px] truncate">
+              <span className="max-w-30 truncate">
                 {publicLocation.shortLabel}
               </span>
             </button>
@@ -90,7 +90,7 @@ export function SiteHeader() {
               aria-hidden="true"
             />
 
-            <ThemeSwitch />
+            {/* <ThemeSwitch /> */}
             <CartButton
               className="size-10 border border-border bg-surface shadow-sm hover:border-primary hover:bg-surface-muted"
               iconClassName="size-5"

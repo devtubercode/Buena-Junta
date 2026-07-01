@@ -101,7 +101,7 @@ export function ProductCard({
           {product.name}
         </h3>
 
-        <p className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-muted-foreground sm:mt-1 sm:line-clamp-4 sm:text-sm">
+        <p className="mt-0.5  text-xs leading-relaxed text-muted-foreground sm:mt-1 sm:text-sm">
           {product.description}
         </p>
 
