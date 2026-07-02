@@ -1,7 +1,7 @@
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudModal";
-import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
 import { useAutoSlug } from "@/features/admin/shared/hooks/useAutoSlug";
 import { normalizeSlug } from "@/features/admin/shared/utils/adminForms";
 import {
@@ -41,7 +41,7 @@ export function useAdminCategoryForm(
 
   const { reset, handleSubmit } = form;
 
-  const { isSaving, execute: executeSave } = useAdminSaveHandler<CategoryRow>({
+  const { isSaving, execute: executeSave } = useSaveHandler<CategoryRow>({
     successMessage: "Categoría guardada.",
     onSuccess: async () => {
       close();

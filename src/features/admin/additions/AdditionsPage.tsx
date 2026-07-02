@@ -92,7 +92,7 @@ export function AdditionsPage() {
 
           <TextAreaField
             name="description"
-            form={form}
+            control={form.control}
             label="Descripción"
             placeholder="Descripción opcional de la adición"
           />

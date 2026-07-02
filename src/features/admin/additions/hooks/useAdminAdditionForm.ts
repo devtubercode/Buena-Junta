@@ -1,7 +1,7 @@
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudModal";
-import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
 import {
   additionSchema,
   type AdditionFormData,
@@ -39,7 +39,7 @@ export function useAdminAdditionForm(
 
   const { reset, handleSubmit } = form;
 
-  const { isSaving, execute: executeSave } = useAdminSaveHandler<AdditionRow>({
+  const { isSaving, execute: executeSave } = useSaveHandler<AdditionRow>({
     successMessage: "Adición guardada.",
     onSuccess: async () => {
       close();

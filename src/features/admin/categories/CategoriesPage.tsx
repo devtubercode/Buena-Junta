@@ -126,7 +126,7 @@ export function CategoriesPage() {
 
           <TextAreaField
             name="description"
-            form={form}
+            control={form.control}
             label="Descripción"
             placeholder="Descripción opcional de la categoría"
           />

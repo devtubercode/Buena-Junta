@@ -5,12 +5,10 @@ import {
 } from "@/features/admin/shared/components/AdminField";
 import { AdminImageField } from "@/features/admin/shared/components/AdminImageField";
 import { InputField } from "@/shared/components/InputField";
+import { SelectField } from "@/shared/components/SelectField";
 import { TextAreaField } from "@/shared/components/TextAreaField";
 import { Checkbox } from "@/shared/components/Checkbox";
-import {
-  fromDatetimeLocal,
-  toDatetimeLocal,
-} from "@/features/admin/shared/utils/adminForms";
+import { toDatetimeLocal } from "@/features/admin/shared/utils/adminForms";
 import { weekdays } from "@/features/admin/promotions/utils/promotionForms";
 import { cn } from "@/shared/utils/cn";
 import { SUPABASE_BUCKETS } from "@/lib/supabase/constants";
@@ -19,6 +17,7 @@ import type { CategoryRow } from "@/features/admin/types/categories.types";
 import type { ProductRow } from "@/features/admin/types/products.types";
 import type { PromotionRow } from "@/features/admin/types/promotions.types";
 import type { UseFormReturn } from "react-hook-form";
+import type { ImageUploadAction } from "@/features/admin/shared/hooks/useImageUpload";
 
 type PromotionDetailFormProps = {
   categories: CategoryRow[];
@@ -27,7 +26,7 @@ type PromotionDetailFormProps = {
   form: UseFormReturn<PromotionFormData>;
   isSaving: boolean;
   imagePreviewUrl: string | null;
-  shouldRemoveImage: boolean;
+  imageAction: ImageUploadAction;
   onImageFileChange: (file: File | null) => void;
   onRemoveImage: () => void;
   toggleWeekday: (weekday: number) => void;
@@ -41,15 +40,14 @@ export function PromotionDetailForm({
   form,
   isSaving,
   imagePreviewUrl,
-  shouldRemoveImage,
+  imageAction,
   onImageFileChange,
   onRemoveImage,
   toggleWeekday,
   onSubmit,
 }: PromotionDetailFormProps) {
-  const { register, setValue, watch, handleSubmit } = form;
+  const { setValue, watch, handleSubmit } = form;
 
-  const watchedTitle = watch("title");
   const watchedIsActive = watch("is_active");
   const watchedStartsAt = watch("starts_at");
   const watchedEndsAt = watch("ends_at");
@@ -90,7 +88,7 @@ export function PromotionDetailForm({
 
           <TextAreaField
             name="description"
-            form={form}
+            control={form.control}
             label="Descripción"
             placeholder="Descripción opcional de la promoción"
           />
@@ -113,7 +111,7 @@ export function PromotionDetailForm({
                 type="datetime-local"
                 value={toDatetimeLocal(watchedStartsAt)}
                 onChange={(event) => {
-                  setValue("starts_at", fromDatetimeLocal(event.target.value), {
+                  setValue("starts_at", event.target.value, {
                     shouldValidate: true,
                   });
                 }}
@@ -125,7 +123,7 @@ export function PromotionDetailForm({
                 type="datetime-local"
                 value={toDatetimeLocal(watchedEndsAt)}
                 onChange={(event) => {
-                  setValue("ends_at", fromDatetimeLocal(event.target.value), {
+                  setValue("ends_at", event.target.value, {
                     shouldValidate: true,
                   });
                 }}
@@ -170,42 +168,28 @@ export function PromotionDetailForm({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <AdminField label="Categoría relacionada">
-              <select
-                className={adminInputClass}
-                {...register("category_id")}
-                onChange={(event) => {
-                  setValue("category_id", event.target.value || null, {
-                    shouldValidate: true,
-                  });
-                }}
-              >
-                <option value="">Sin categoría</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </AdminField>
-            <AdminField label="Producto relacionado">
-              <select
-                className={adminInputClass}
-                {...register("product_id")}
-                onChange={(event) => {
-                  setValue("product_id", event.target.value || null, {
-                    shouldValidate: true,
-                  });
-                }}
-              >
-                <option value="">Sin producto</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name}
-                  </option>
-                ))}
-              </select>
-            </AdminField>
+            <SelectField
+              name="category_id"
+              control={form.control}
+              label="Categoría relacionada"
+              placeholder="Sin categoría"
+              nullable
+              options={categories.map((category) => ({
+                value: category.id,
+                label: category.name,
+              }))}
+            />
+            <SelectField
+              name="product_id"
+              control={form.control}
+              label="Producto relacionado"
+              placeholder="Sin producto"
+              nullable
+              options={products.map((product) => ({
+                value: product.id,
+                label: product.name,
+              }))}
+            />
           </div>
         </section>
 
@@ -221,7 +205,7 @@ export function PromotionDetailForm({
 
           <TextAreaField
             name="terms"
-            form={form}
+            control={form.control}
             label="Términos y condiciones"
             placeholder="Términos y condiciones de la promoción"
           />
@@ -242,10 +226,9 @@ export function PromotionDetailForm({
           <AdminImageField
             imagePreviewUrl={imagePreviewUrl}
             currentImagePath={selected?.image_path ?? null}
-            shouldRemoveImage={shouldRemoveImage}
+            imageAction={imageAction}
             onFileChange={onImageFileChange}
             onRemove={onRemoveImage}
-            alt={watchedTitle || "Promoción"}
             bucket={SUPABASE_BUCKETS.PROMOTION_IMAGES}
             label="Imagen de la promoción"
           />

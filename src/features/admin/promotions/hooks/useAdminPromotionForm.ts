@@ -1,14 +1,13 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAdminImageUpload } from "@/features/admin/shared/hooks/useAdminImageUpload";
-import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
-import { useAutoSlug } from "@/features/admin/shared/hooks/useAutoSlug";
 import {
-  normalizeAdminNullableString,
-  normalizeAdminString,
-  normalizeSlug,
-} from "@/features/admin/shared/utils/adminForms";
+  useImageUpload,
+  type ImageUploadAction,
+} from "@/features/admin/shared/hooks/useImageUpload";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
+import { useAutoSlug } from "@/features/admin/shared/hooks/useAutoSlug";
+import { normalizeSlug } from "@/features/admin/shared/utils/adminForms";
 import { savePromotion } from "@/features/admin/promotions/services/admin-promotions.service";
 import {
   removeStorageImage,
@@ -41,7 +40,7 @@ type UseAdminPromotionFormResult = {
   form: ReturnType<typeof useForm<PromotionFormData>>;
   isSaving: boolean;
   imagePreviewUrl: string | null;
-  shouldRemoveImage: boolean;
+  imageAction: ImageUploadAction;
   setSelectedImageFile: (file: File | null) => void;
   removeImage: () => void;
   resetImageState: () => void;
@@ -82,13 +81,13 @@ export function useAdminPromotionForm({
   const {
     imageFile,
     imagePreviewUrl,
-    shouldRemoveImage,
+    imageAction,
     setSelectedImageFile,
     removeImage,
     resetImageState,
-  } = useAdminImageUpload();
+  } = useImageUpload();
 
-  const { isSaving, execute: executeSave } = useAdminSaveHandler<PromotionRow>({
+  const { isSaving, execute: executeSave } = useSaveHandler<PromotionRow>({
     successMessage: "Promoción guardada.",
     onSuccess: async (savedPromotion) => {
       resetImageState();
@@ -106,6 +105,7 @@ export function useAdminPromotionForm({
   };
 
   const onSubmit = async (data: PromotionFormData) => {
+    console.log("Submitting promotion form with data:", data);
     await executeSave(async () => {
       let image_path: string | null = selected?.image_path ?? null;
 
@@ -122,19 +122,22 @@ export function useAdminPromotionForm({
           category_id: data.category_id,
           product_id: data.product_id,
           slug: normalizeSlug(data.slug),
-          title: normalizeAdminString(data.title),
-          description: normalizeAdminNullableString(data.description),
+          title: data.title.trim(),
+          description: data.description?.trim() || "",
           is_active: data.is_active,
           active_weekdays: data.active_weekdays,
           starts_at: data.starts_at,
           ends_at: data.ends_at,
-          image_path: shouldRemoveImage ? null : image_path,
-          terms: normalizeAdminNullableString(data.terms),
+          image_path: imageAction === "remove" ? null : image_path,
+          terms: data.terms?.trim() || "",
         } satisfies PromotionInput,
         selected?.id,
       );
 
-      if ((imageFile || shouldRemoveImage) && selected?.image_path) {
+      if (
+        (imageAction === "replace" || imageAction === "remove") &&
+        selected?.image_path
+      ) {
         await removeStorageImage(
           selected.image_path,
           SUPABASE_BUCKETS.PROMOTION_IMAGES,
@@ -149,7 +152,7 @@ export function useAdminPromotionForm({
     form,
     isSaving,
     imagePreviewUrl,
-    shouldRemoveImage,
+    imageAction,
     setSelectedImageFile,
     removeImage,
     resetImageState,

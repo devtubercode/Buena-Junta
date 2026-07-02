@@ -33,7 +33,7 @@ export function PromotionDetailPage() {
     form,
     isSaving,
     imagePreviewUrl,
-    shouldRemoveImage,
+    imageAction,
     setSelectedImageFile,
     removeImage,
     toggleWeekday,
@@ -86,7 +86,7 @@ export function PromotionDetailPage() {
         form={form}
         isSaving={isSaving}
         imagePreviewUrl={imagePreviewUrl}
-        shouldRemoveImage={shouldRemoveImage}
+        imageAction={imageAction}
         onImageFileChange={setSelectedImageFile}
         onRemoveImage={removeImage}
         toggleWeekday={toggleWeekday}
