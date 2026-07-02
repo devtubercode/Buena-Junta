@@ -1,21 +1,14 @@
 import { Save } from "lucide-react";
-import {
-  AdminField,
-  adminInputClass,
-} from "@/features/admin/shared/components/AdminField";
 import { AdminImageField } from "@/features/admin/shared/components/AdminImageField";
 import { InputField } from "@/shared/components/InputField";
+import { SelectField } from "@/shared/components/SelectField";
+import { TextAreaField } from "@/shared/components/TextAreaField";
 import { Checkbox } from "@/shared/components/Checkbox";
 import { cn } from "@/shared/utils/cn";
 import type { CategoryRow } from "@/features/admin/types/categories.types";
 import type { ProductRow } from "@/features/admin/types/products.types";
-import type { ProductFormData } from "@/features/admin/schemas/productSchema";
-import type {
-  Control,
-  UseFormHandleSubmit,
-  UseFormRegister,
-  UseFormSetValue,
-} from "react-hook-form";
+
+import useProductForm from "../hooks/useProductForm";
 
 function AvailabilityBadge({ isAvailable }: { isAvailable: boolean }) {
   return (
@@ -39,39 +32,30 @@ function AvailabilityBadge({ isAvailable }: { isAvailable: boolean }) {
   );
 }
 
-type ProductBaseFormProps = {
+type ProductFormProps = {
   categories: CategoryRow[];
-  selected: ProductRow | null;
-  control: Control<ProductFormData>;
-  register: UseFormRegister<ProductFormData>;
-  handleSubmit: UseFormHandleSubmit<ProductFormData>;
-  setValue: UseFormSetValue<ProductFormData>;
-  watchedName: string;
-  watchedIsAvailable: boolean;
-  isSaving: boolean;
-  imagePreviewUrl: string | null;
-  shouldRemoveImage: boolean;
-  onImageFileChange: (file: File | null) => void;
-  onRemoveImage: () => void;
-  onSubmit: (data: ProductFormData) => void;
+  selectedProduct: ProductRow | null;
 };
 
-export function ProductBaseForm({
+export const ProductForm = ({
   categories,
-  selected,
-  control,
-  register,
-  handleSubmit,
-  setValue,
-  watchedName,
-  watchedIsAvailable,
-  isSaving,
-  imagePreviewUrl,
-  shouldRemoveImage,
-  onImageFileChange,
-  onRemoveImage,
-  onSubmit,
-}: ProductBaseFormProps) {
+  selectedProduct,
+}: ProductFormProps) => {
+  const {
+    form,
+    isSaving,
+    imageAction,
+    watchedProductIsAvailable,
+    imagePreviewUrl,
+    onSubmitProduct,
+    removeImage,
+    setSelectedImageFile,
+  } = useProductForm({
+    selectedProduct: selectedProduct,
+  });
+
+  console.log("form errors:", form.formState.errors);
+
   return (
     <section className="grid min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-3">
@@ -83,36 +67,28 @@ export function ProductBaseForm({
             Datos principales que se muestran en el menú público.
           </p>
         </div>
-        <AvailabilityBadge isAvailable={watchedIsAvailable} />
+        <AvailabilityBadge isAvailable={watchedProductIsAvailable} />
       </div>
 
       <form
         className="grid min-w-0 gap-4"
-        onSubmit={handleSubmit(onSubmit)}
-        noValidate
+        onSubmit={form.handleSubmit(onSubmitProduct)}
       >
-        <AdminField label="Categoría">
-          <select
-            className={adminInputClass}
-            {...register("category_id")}
-            onChange={(event) => {
-              setValue("category_id", event.target.value, {
-                shouldValidate: true,
-              });
-            }}
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </AdminField>
+        <SelectField
+          name="category_id"
+          control={form.control}
+          label="Categoría"
+          placeholder="Selecciona una categoría"
+          options={categories.map((category) => ({
+            value: category.id,
+            label: category.name,
+          }))}
+        />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 items-start">
           <InputField
             name="name"
-            control={control}
+            control={form.control}
             label="Nombre"
             placeholder="Ej: Hamburguesa clásica"
             autoComplete="off"
@@ -120,33 +96,33 @@ export function ProductBaseForm({
 
           <InputField
             name="slug"
-            control={control}
+            control={form.control}
             label="Slug"
             placeholder="Ej: hamburguesa-clasica"
             autoComplete="off"
+            description="El slug es la parte de la URL que identifica al producto. Debe ser único y no contener espacios ni caracteres especiales."
           />
         </div>
 
-        <AdminField label="Descripción">
-          <textarea
-            {...register("description")}
-            placeholder="Describe el producto"
-            className="min-h-28 w-full min-w-0 resize-none rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-foreground outline-none transition placeholder:text-placeholder focus:border-primary focus:ring-2 focus:ring-primary/25"
-          />
-        </AdminField>
+        <TextAreaField
+          name="description"
+          control={form.control}
+          label="Descripción"
+          placeholder="Describe el producto"
+          className="min-h-28"
+        />
 
         <AdminImageField
           imagePreviewUrl={imagePreviewUrl}
-          currentImagePath={selected?.image_path ?? null}
-          shouldRemoveImage={shouldRemoveImage}
-          onFileChange={onImageFileChange}
-          onRemove={onRemoveImage}
-          alt={watchedName || "Producto"}
+          currentImagePath={selectedProduct?.image_path ?? null}
+          imageAction={imageAction}
+          onFileChange={(file) => setSelectedImageFile(file)}
+          onRemove={removeImage}
         />
 
         <InputField
           name="price"
-          control={control}
+          control={form.control}
           label="Precio en pesos"
           type="number"
           min={0}
@@ -155,7 +131,7 @@ export function ProductBaseForm({
 
         <InputField
           name="tags"
-          control={control}
+          control={form.control}
           label="Etiquetas separadas por coma"
           placeholder="Ej: picante, recomendado"
           autoComplete="off"
@@ -164,9 +140,9 @@ export function ProductBaseForm({
         <Checkbox
           label="Disponible en el menú público"
           description="El producto aparecerá visible en el menú para los clientes."
-          checked={watchedIsAvailable}
+          checked={watchedProductIsAvailable}
           onCheckedChange={(checked) => {
-            setValue("is_available", checked, {
+            form.setValue("is_available", checked, {
               shouldValidate: true,
             });
           }}
@@ -185,4 +161,4 @@ export function ProductBaseForm({
       </form>
     </section>
   );
-}
+};
