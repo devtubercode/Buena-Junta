@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Eye, EyeOff, type LucideIcon } from "lucide-react";
+import { useFormState } from "react-hook-form";
 import type { Control, FieldValues, Path } from "react-hook-form";
 
 import { cn } from "@/shared/utils/cn";
 
-interface InputFieldProps<T extends FieldValues> extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputFieldProps<
+  T extends FieldValues,
+> extends React.InputHTMLAttributes<HTMLInputElement> {
   name: Path<T>;
   control: Control<T>;
   label?: string;
@@ -36,7 +39,8 @@ export function InputField<T extends FieldValues>({
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
   const PasswordIcon = showPassword ? EyeOff : Eye;
 
-  const error = control._formState.errors[name];
+  const { errors } = useFormState({ control });
+  const error = errors[name];
 
   return (
     <div className={cn("grid w-full gap-1.5", classNameContainer)}>
@@ -59,7 +63,7 @@ export function InputField<T extends FieldValues>({
             LeftIcon && "pl-10",
             (RightIcon || isPassword) && "pr-10",
             error && "border-error focus:border-error focus:ring-error/25",
-            className
+            className,
           )}
           {...control.register(name)}
         />
@@ -69,7 +73,9 @@ export function InputField<T extends FieldValues>({
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
-            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            aria-label={
+              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+            }
           >
             <PasswordIcon className="h-4 w-4" />
           </button>
@@ -80,9 +86,15 @@ export function InputField<T extends FieldValues>({
         )}
       </div>
       {description && !error && (
-        <p className="text-xs font-medium text-muted-foreground">{description}</p>
+        <p className="text-xs font-medium text-muted-foreground">
+          {description}
+        </p>
       )}
-      {error && <p className="text-xs font-bold text-error">{error.message as string}</p>}
+      {error && (
+        <p className="text-xs font-bold text-error">
+          {error.message as string}
+        </p>
+      )}
     </div>
   );
 }

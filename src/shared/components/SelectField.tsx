@@ -3,27 +3,34 @@ import { Controller } from "react-hook-form";
 
 import { cn } from "@/shared/utils/cn";
 
-interface TextAreaFieldProps<
+interface SelectFieldProps<
   T extends FieldValues,
-> extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+> extends React.SelectHTMLAttributes<HTMLSelectElement> {
   name: Path<T>;
   control: Control<T>;
   label?: string;
+  options: Array<{ value: string; label: string }>;
+  placeholder?: string;
+  description?: string;
   classNameContainer?: string;
+  nullable?: boolean;
 }
 
-const baseTextareaClass =
-  "min-h-24 w-full min-w-0 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-placeholder focus:border-primary focus:ring-2 focus:ring-primary/25";
+const baseInputClass =
+  "min-h-11 w-full min-w-0 rounded-lg border border-border bg-surface px-3 text-sm text-foreground outline-none transition placeholder:text-placeholder focus:border-primary focus:ring-2 focus:ring-primary/25";
 
-export function TextAreaField<T extends FieldValues>({
+export function SelectField<T extends FieldValues>({
   name,
   control,
   label,
+  options,
   placeholder,
-  className,
+  description,
   classNameContainer,
-  ...textareaProps
-}: TextAreaFieldProps<T>) {
+  className,
+  nullable = false,
+  ...selectProps
+}: SelectFieldProps<T>) {
   return (
     <Controller
       name={name}
@@ -41,21 +48,35 @@ export function TextAreaField<T extends FieldValues>({
                 {label}
               </label>
             )}
-            <textarea
-              {...textareaProps}
+            <select
+              {...selectProps}
               id={name}
               name={field.name}
-              placeholder={placeholder}
               className={cn(
-                baseTextareaClass,
+                baseInputClass,
                 error && "border-error focus:border-error focus:ring-error/25",
                 className,
               )}
               value={field.value ?? ""}
-              onChange={field.onChange}
+              onChange={(event) => {
+                const value = event.target.value;
+                field.onChange(nullable ? value || null : value);
+              }}
               onBlur={field.onBlur}
               ref={field.ref}
-            />
+            >
+              {placeholder && <option value="">{placeholder}</option>}
+              {options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {description && !error && (
+              <p className="text-xs font-medium text-muted-foreground">
+                {description}
+              </p>
+            )}
             {error && (
               <p className="text-xs font-bold text-error">
                 {error.message as string}
