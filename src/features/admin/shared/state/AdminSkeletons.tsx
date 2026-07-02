@@ -268,3 +268,147 @@ export function AdminAdditionsSkeleton() {
     </div>
   );
 }
+
+export function AdminProductDetailSkeleton() {
+  return (
+    <div
+      className="grid min-w-0 max-w-full gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(500px,0.46fr)]"
+      aria-hidden="true"
+    >
+      {/* Formulario — columna izquierda */}
+      <section className="grid min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-3">
+          <div className="grid gap-2">
+            <SkeletonBlock className="h-6 w-48 max-w-full rounded-md" />
+            <SkeletonBlock className="h-3 w-64 max-w-full rounded-md" />
+          </div>
+          <SkeletonBlock className="h-7 w-24 rounded-full" />
+        </div>
+
+        <SkeletonBlock className="h-11 w-full rounded-lg" />
+
+        <div className="grid gap-4 sm:grid-cols-2 items-start">
+          <SkeletonBlock className="h-11 w-full rounded-lg" />
+          <SkeletonBlock className="h-11 w-full rounded-lg" />
+        </div>
+
+        <SkeletonBlock className="h-28 w-full rounded-lg" />
+        <SkeletonBlock className="aspect-video w-full rounded-lg" />
+        <SkeletonBlock className="h-11 w-full rounded-lg" />
+        <SkeletonBlock className="h-11 w-full rounded-lg" />
+        <SkeletonBlock className="h-6 w-56 max-w-full rounded-md" />
+        <SkeletonBlock className="h-12 w-full rounded-full sm:w-40" />
+      </section>
+
+      {/* Columna derecha + secciones debajo */}
+      <div className="flex flex-col gap-2">
+        {/* Variantes */}
+        <section className="grid h-fit min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="grid gap-2">
+              <SkeletonBlock className="h-6 w-32 max-w-full rounded-md" />
+              <SkeletonBlock className="h-3 w-16 max-w-full rounded-md" />
+            </div>
+            <SkeletonBlock className="h-11 w-24 rounded-full" />
+          </div>
+
+          <div className="grid gap-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted p-3 sm:p-4"
+              >
+                <div className="grid min-w-0 flex-1 gap-2">
+                  <SkeletonBlock className="h-5 w-36 max-w-full rounded-md" />
+                  <SkeletonBlock className="h-3 w-24 max-w-full rounded-md" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <SkeletonBlock className="size-9 rounded-full" />
+                  <SkeletonBlock className="size-9 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Grupos de opciones */}
+        <section className="grid h-fit min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="grid gap-2">
+              <SkeletonBlock className="h-6 w-44 max-w-full rounded-md" />
+              <SkeletonBlock className="h-3 w-16 max-w-full rounded-md" />
+            </div>
+            <SkeletonBlock className="h-11 w-28 rounded-full" />
+          </div>
+
+          <div className="grid gap-4">
+            {Array.from({ length: 2 }).map((_, groupIndex) => (
+              <article
+                key={groupIndex}
+                className="grid gap-4 rounded-xl border border-border bg-surface-muted p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="grid gap-2">
+                    <SkeletonBlock className="h-5 w-32 max-w-full rounded-md" />
+                    <div className="flex flex-wrap gap-2">
+                      <SkeletonBlock className="h-5 w-16 rounded-full" />
+                      <SkeletonBlock className="h-5 w-14 rounded-full" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <SkeletonBlock className="size-9 rounded-full" />
+                    <SkeletonBlock className="size-9 rounded-full" />
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  {Array.from({ length: 3 }).map((_, valueIndex) => (
+                    <div
+                      key={valueIndex}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface p-2.5"
+                    >
+                      <SkeletonBlock className="h-4 w-28 max-w-full rounded-md" />
+                      <div className="flex items-center gap-1">
+                        <SkeletonBlock className="size-8 rounded-full" />
+                        <SkeletonBlock className="size-8 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Adiciones */}
+        <section className="grid h-fit min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="grid gap-2">
+              <SkeletonBlock className="h-6 w-28 max-w-full rounded-md" />
+              <SkeletonBlock className="h-3 w-16 max-w-full rounded-md" />
+            </div>
+            <SkeletonBlock className="h-11 w-24 rounded-full" />
+          </div>
+
+          <div className="grid gap-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted p-3 sm:p-4"
+              >
+                <div className="grid min-w-0 flex-1 gap-2">
+                  <SkeletonBlock className="h-5 w-36 max-w-full rounded-md" />
+                  <SkeletonBlock className="h-3 w-24 max-w-full rounded-md" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <SkeletonBlock className="size-9 rounded-full" />
+                  <SkeletonBlock className="size-9 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
