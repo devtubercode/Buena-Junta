@@ -34,6 +34,9 @@ export async function removeStorageImage(
   throwIfSupabaseError(error);
 }
 
-export function getStorageImageUrl(storagePath: StoragePath, bucket: string) {
+export function getStorageImageUrl(
+  storagePath: StoragePath,
+  bucket: string,
+): string {
   return supabase.storage.from(bucket).getPublicUrl(storagePath).data.publicUrl;
 }

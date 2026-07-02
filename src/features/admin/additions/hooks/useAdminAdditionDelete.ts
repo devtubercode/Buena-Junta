@@ -14,12 +14,12 @@ export function useAdminAdditionDelete(
   const { confirmDelete, ConfirmDialog } = useAdminDeleteConfirm();
 
   const handleDelete = async (addition: AdditionRow) => {
-    const deleted = await confirmDelete(
-      addition,
-      deleteAddition,
-      addition.id,
-      "Adición",
-    );
+    const deleted = await confirmDelete({
+      item: addition,
+      deleteFn: deleteAddition,
+      id: addition.id,
+      itemLabel: "Adición",
+    });
 
     if (deleted) {
       await onDeleted();

@@ -8,13 +8,13 @@ interface UseAdminSaveHandlerOptions<T> {
 
 interface UseAdminSaveHandlerReturn<T> {
   isSaving: boolean;
-  execute: (saveFn: () => Promise<T>) => Promise<T>;
+  execute: (saveFn: () => Promise<T>) => Promise<void>;
 }
 
-export function useAdminSaveHandler<T>({
+export const useSaveHandler = <T>({
   successMessage,
   onSuccess,
-}: UseAdminSaveHandlerOptions<T> = {}): UseAdminSaveHandlerReturn<T> {
+}: UseAdminSaveHandlerOptions<T> = {}): UseAdminSaveHandlerReturn<T> => {
   const [isSaving, setIsSaving] = useState(false);
 
   const execute = async (saveFn: () => Promise<T>) => {
@@ -28,8 +28,6 @@ export function useAdminSaveHandler<T>({
       }
 
       await onSuccess?.(result);
-
-      return result;
     } catch (error) {
       notify.error(error instanceof Error ? error.message : String(error));
       throw error;
@@ -42,4 +40,4 @@ export function useAdminSaveHandler<T>({
     isSaving,
     execute,
   };
-}
+};

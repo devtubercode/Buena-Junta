@@ -14,12 +14,12 @@ export function useAdminCategoryDelete(
   const { confirmDelete, ConfirmDialog } = useAdminDeleteConfirm();
 
   const handleDelete = async (category: CategoryRow) => {
-    const deleted = await confirmDelete(
-      category,
-      deleteCategory,
-      category.id,
-      "Categoría",
-    );
+    const deleted = await confirmDelete({
+      item: category,
+      deleteFn: deleteCategory,
+      id: category.id,
+      itemLabel: "Categoría",
+    });
 
     if (deleted) {
       await onDeleted();

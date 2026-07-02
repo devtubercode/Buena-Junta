@@ -8,10 +8,6 @@ export function normalizeSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export function priceToInputValue(price: number | string | null) {
-  return price === null ? "" : String(Math.round(Number(price)));
-}
-
 export function parsePrice(value: string) {
   const normalizedValue = value.trim();
 
@@ -20,10 +16,6 @@ export function parsePrice(value: string) {
   }
 
   return Math.max(0, Math.round(Number(normalizedValue) || 0));
-}
-
-export function tagsToText(tags: string[] | null) {
-  return tags?.join(", ") ?? "";
 }
 
 export function textToTags(value: string) {
@@ -35,26 +27,8 @@ export function textToTags(value: string) {
   return tags.length > 0 ? tags : null;
 }
 
-export function toDatetimeLocal(value: string | null) {
-  if (!value) {
-    return "";
-  }
+export const toDatetimeLocal = (value: string | null) => {
+  if (!value) return "";
 
   return value.slice(0, 16);
-}
-
-export function fromDatetimeLocal(value: string) {
-  return value ? new Date(value).toISOString() : null;
-}
-
-export function normalizeAdminString(value: string) {
-  return value.trim();
-}
-
-export function normalizeAdminNullableString(value: string | null) {
-  return value?.trim() || null;
-}
-
-export function parseSortOrder(value: string | number) {
-  return Math.max(0, Number(value) || 0);
-}
+};

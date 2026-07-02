@@ -9,18 +9,25 @@ type DeleteConfig = {
   deleteFn: (id: string) => Promise<void>;
 };
 
+type confirmDeleteArguments<T> = {
+  item: T;
+  deleteFn: (id: string) => Promise<void>;
+  id: string;
+  itemLabel: string;
+};
+
 export function useAdminDeleteConfirm() {
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<DeleteConfig | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
 
-  async function confirmDelete<T extends { name?: string; title?: string }>(
-    item: T,
-    deleteFn: (id: string) => Promise<void>,
-    id: string,
-    itemLabel: string,
-  ): Promise<boolean> {
+  const confirmDelete = <T extends { name?: string; title?: string }>({
+    item,
+    deleteFn,
+    id,
+    itemLabel,
+  }: confirmDeleteArguments<T>): Promise<boolean> => {
     const name = item.name ?? item.title ?? "";
     setConfig({ id, name, itemLabel, deleteFn });
     setIsOpen(true);
@@ -28,7 +35,7 @@ export function useAdminDeleteConfirm() {
     return new Promise((resolve) => {
       resolveRef.current = resolve;
     });
-  }
+  };
 
   const handleClose = useCallback((confirmed: boolean) => {
     setIsOpen(false);

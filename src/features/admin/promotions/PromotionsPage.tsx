@@ -25,12 +25,12 @@ export function PromotionsPage() {
   } = useAdminPromotionFilters(promotions);
 
   const handleDelete = async (promotion: AdminPromotionListRow) => {
-    const deleted = await confirmDelete(
-      promotion,
-      deletePromotion,
-      promotion.id,
-      "Promoción",
-    );
+    const deleted = await confirmDelete({
+      item: promotion,
+      deleteFn: deletePromotion,
+      id: promotion.id,
+      itemLabel: "Promoción",
+    });
 
     if (deleted) {
       await reload();

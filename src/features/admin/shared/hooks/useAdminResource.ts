@@ -20,7 +20,8 @@ export function useAdminResource<TData>(
     setError(null);
 
     try {
-      setData(await fetcher());
+      const resultData = await fetcher();
+      setData(resultData);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
@@ -66,6 +67,7 @@ export function useAdminResource<TData>(
 
   return {
     data,
+    setData,
     isLoading,
     error,
     reload,

@@ -50,8 +50,10 @@ export function useMenuData() {
       if (productsResult.status === "fulfilled") {
         setProducts(
           productsResult.value.map((product) =>
-            mapCatalogProduct(product, (storagePath) =>
-              getStorageImageUrl(storagePath, SUPABASE_BUCKETS.MENU_IMAGES),
+            mapCatalogProduct(
+              product,
+              (storagePath) =>
+                getStorageImageUrl(storagePath, SUPABASE_BUCKETS.MENU_IMAGES),
               availableAdditions,
             ),
           ),
@@ -73,7 +75,9 @@ export function useMenuData() {
       }
 
       if (failedParts.length === 3) {
-        setError(new Error("No pudimos cargar categorías, productos ni adiciones."));
+        setError(
+          new Error("No pudimos cargar categorías, productos ni adiciones."),
+        );
       } else {
         setError(null);
       }
