@@ -1,16 +1,20 @@
 import { useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Edit3, Plus, Trash2 } from "lucide-react";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
 import { VariantModal } from "@/features/admin/products/variants/VariantModal";
 import { deleteProductVariant } from "@/features/admin/products/variants/services/admin-product-variants.service";
 import { cn } from "@/shared/utils/cn";
-import type { ProductVariantRow } from "@/features/admin/types/products.types";
+import type {
+  ProductVariantRow,
+  AdminProductDetailData,
+} from "@/features/admin/types/products.types";
 
 interface ProductVariantsSectionProps {
   productId: string;
   variants: ProductVariantRow[];
-  onVariantsChange: () => void;
+  setProductDetail: Dispatch<SetStateAction<AdminProductDetailData>>;
 }
 
 function formatPrice(price: number): string {
@@ -35,7 +39,7 @@ function VariantStatusBadge({ isDefault }: { isDefault: boolean }) {
 export function ProductVariantsSection({
   productId,
   variants,
-  onVariantsChange,
+  setProductDetail,
 }: ProductVariantsSectionProps) {
   const { confirmDelete } = useAdminDeleteConfirm();
   const [selectedVariant, setSelectedVariant] =
@@ -63,18 +67,23 @@ export function ProductVariantsSection({
   };
 
   const handleDelete = async (variant: ProductVariantRow) => {
-    const deleted = await confirmDelete(
-      variant,
-      deleteProductVariant,
-      variant.id,
-      "Variante",
-    );
+    const deleted = await confirmDelete({
+      item: variant,
+      deleteFn: deleteProductVariant,
+      id: variant.id,
+      itemLabel: "Variante",
+    });
 
     if (deleted) {
       if (selectedVariant?.id === variant.id) {
         setSelectedVariant(null);
       }
-      onVariantsChange();
+      setProductDetail((prev) => ({
+        ...prev,
+        product_variants: prev.product_variants.filter(
+          (v) => v.id !== variant.id,
+        ),
+      }));
     }
   };
 
@@ -176,7 +185,6 @@ export function ProductVariantsSection({
         onClose={closeModal}
         productId={productId}
         variant={selectedVariant}
-        onSaved={onVariantsChange}
       />
     </section>
   );

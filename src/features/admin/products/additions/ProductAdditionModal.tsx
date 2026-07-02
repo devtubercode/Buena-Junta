@@ -5,27 +5,21 @@ import { Save, X } from "lucide-react";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { InputField } from "@/shared/components/InputField";
 import { TextAreaField } from "@/shared/components/TextAreaField";
-import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
-import {
-  normalizeAdminNullableString,
-  normalizeAdminString,
-} from "@/features/admin/shared/utils/adminForms";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
+
 import { saveAddition } from "@/features/admin/additions/services/admin-additions.service";
 import {
   additionSchema,
   type AdditionFormData,
 } from "@/features/admin/schemas/additionSchema";
-import type {
-  AdditionInput,
-  AdditionRow,
-} from "@/features/admin/types/additions.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 
 interface ProductAdditionModalProps {
   isOpen: boolean;
   onClose: () => void;
   productId: string;
   addition: AdditionRow | null;
-  onSaved: () => void;
+  onSaved?: () => void;
 }
 
 const defaultValues: AdditionFormData = {
@@ -39,7 +33,7 @@ export function ProductAdditionModal({
   onClose,
   productId,
   addition,
-  onSaved,
+  onSaved = () => {},
 }: ProductAdditionModalProps) {
   const form = useForm<AdditionFormData>({
     resolver: zodResolver(additionSchema),
@@ -61,7 +55,7 @@ export function ProductAdditionModal({
     }
   }, [addition, reset, isOpen]);
 
-  const { isSaving, execute: executeSave } = useAdminSaveHandler<AdditionRow>({
+  const { isSaving, execute: executeSave } = useSaveHandler<AdditionRow>({
     successMessage: "Adición guardada.",
     onSuccess: () => {
       onClose();
@@ -73,11 +67,11 @@ export function ProductAdditionModal({
     await executeSave(() =>
       saveAddition(
         {
-          name: normalizeAdminString(data.name),
-          description: normalizeAdminNullableString(data.description),
+          name: data.name.trim(),
+          description: data.description?.trim() || "",
           price: Math.max(0, Number(data.price) || 0),
           product_id: productId,
-        } satisfies AdditionInput,
+        },
         addition?.id,
       ),
     );
@@ -117,7 +111,7 @@ export function ProductAdditionModal({
 
         <TextAreaField
           name="description"
-          form={form}
+          control={form.control}
           label="Descripción"
           placeholder="Descripción opcional de la adición"
         />

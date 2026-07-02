@@ -19,7 +19,7 @@ export function AdminProductEmptyState({
         description="Crea el primer producto para empezar a configurar tu menú."
         action={
           <Link
-            to={`${appRoutes.adminProduct}?id=new`}
+            to={`${appRoutes.adminProducts}/new`}
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground transition hover:opacity-90"
           >
             <Plus className="size-4" />

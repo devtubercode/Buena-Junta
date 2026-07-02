@@ -5,25 +5,28 @@ import { AdminDataState } from "@/features/admin/shared/state/AdminDataState";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
 import { AdminProductsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { SearchInput } from "@/shared/components/SearchInput";
-import { useProductsData } from "@/features/admin/products/useProductsData";
+
 import { useCategoriesData } from "@/features/admin/categories/hooks/useCategoriesData";
 import { useAdminProductsFilters } from "@/features/admin/products/hooks/useAdminProductsFilters";
-import { useAdminProductDelete } from "@/features/admin/products/hooks/useAdminProductDelete";
 import { AdminProductCategoryFilter } from "@/features/admin/products/components/AdminProductCategoryFilter";
 import { AdminProductList } from "@/features/admin/products/components/AdminProductList";
 import { AdminProductEmptyState } from "@/features/admin/products/components/AdminProductEmptyState";
+import { useAdminResource } from "../shared/hooks/useAdminResource";
 
-function getNewProductPath() {
-  return `${appRoutes.adminProduct}?id=new`;
-}
+import {
+  deleteProduct,
+  fetchAdminProductsList,
+} from "./services/admin-products.service";
+import type { AdminProductListRow } from "../types/products.types";
+import { useAdminDeleteConfirm } from "../shared/hooks/useAdminDeleteConfirm";
 
-export function ProductsPage() {
+export const ProductsPage = () => {
   const {
     data: products,
+    setData: setProducts,
     isLoading: isLoadingProducts,
     error: productsError,
-    reload,
-  } = useProductsData();
+  } = useAdminResource<AdminProductListRow[]>(fetchAdminProductsList, []);
 
   const {
     data: categories,
@@ -40,8 +43,21 @@ export function ProductsPage() {
     activeFiltersCount,
   } = useAdminProductsFilters(products);
 
-  const { handleDelete, ConfirmDialog: ProductDeleteDialog } =
-    useAdminProductDelete(reload);
+  const { confirmDelete, ConfirmDialog: ConfirmProductDeleteDialog } =
+    useAdminDeleteConfirm();
+
+  const onDeleteProduct = async (product: AdminProductListRow) => {
+    const deleted = await confirmDelete<AdminProductListRow>({
+      item: product,
+      deleteFn: deleteProduct,
+      id: product.id,
+      itemLabel: "Producto",
+    });
+
+    if (deleted) {
+      setProducts((prev) => prev.filter((p) => p.id !== product.id));
+    }
+  };
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -75,7 +91,7 @@ export function ProductsPage() {
       description="Consulta productos del menú y entra a cada producto para editar su información, imagen y variantes."
       actions={
         <Link
-          to={getNewProductPath()}
+          to={`${appRoutes.adminProducts}/new`}
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
         >
           <Plus className="size-4" />
@@ -121,10 +137,13 @@ export function ProductsPage() {
           onClearFilters={clearFilters}
         />
       ) : (
-        <AdminProductList products={filteredProducts} onDelete={handleDelete} />
+        <AdminProductList
+          products={filteredProducts}
+          onDelete={onDeleteProduct}
+        />
       )}
 
-      <ProductDeleteDialog />
+      <ConfirmProductDeleteDialog />
     </AdminSection>
   );
-}
+};

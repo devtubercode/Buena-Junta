@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Edit3, Plus, Trash2 } from "lucide-react";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudModal";
@@ -6,11 +7,12 @@ import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDel
 import { deleteAddition } from "@/features/admin/additions/services/admin-additions.service";
 import { ProductAdditionModal } from "./ProductAdditionModal";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
+import type { AdminProductDetailData } from "@/features/admin/types/products.types";
 
 interface ProductAdditionsSectionProps {
   additions: AdditionRow[];
   productId: string;
-  onAdditionsChange: () => void;
+  setProductDetail: Dispatch<SetStateAction<AdminProductDetailData>>;
 }
 
 function formatPrice(price: number): string {
@@ -20,7 +22,7 @@ function formatPrice(price: number): string {
 export function ProductAdditionsSection({
   additions,
   productId,
-  onAdditionsChange,
+  setProductDetail,
 }: ProductAdditionsSectionProps) {
   const { confirmDelete } = useAdminDeleteConfirm();
   const { selected, isOpen, openNew, openEdit, close } =
@@ -32,15 +34,20 @@ export function ProductAdditionsSection({
   );
 
   const handleDelete = async (addition: AdditionRow) => {
-    const deleted = await confirmDelete(
-      addition,
-      deleteAddition,
-      addition.id,
-      "Adición",
-    );
+    const deleted = await confirmDelete({
+      item: addition,
+      deleteFn: deleteAddition,
+      id: addition.id,
+      itemLabel: "Adición",
+    });
 
     if (deleted) {
-      onAdditionsChange();
+      setProductDetail((prev) => ({
+        ...prev,
+        product_additions: prev.product_additions.filter(
+          (a) => a.id !== addition.id,
+        ),
+      }));
     }
   };
 
@@ -134,7 +141,6 @@ export function ProductAdditionsSection({
         onClose={close}
         productId={productId}
         addition={selected}
-        onSaved={onAdditionsChange}
       />
     </section>
   );

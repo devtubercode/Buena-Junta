@@ -5,11 +5,8 @@ import { Save, X } from "lucide-react";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { InputField } from "@/shared/components/InputField";
 import { Checkbox } from "@/shared/components/Checkbox";
-import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
-import {
-  normalizeAdminString,
-  parsePrice,
-} from "@/features/admin/shared/utils/adminForms";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
+import { parsePrice } from "@/features/admin/shared/utils/adminForms";
 import { saveProductVariant } from "@/features/admin/products/variants/services/admin-product-variants.service";
 import {
   productVariantSchema,
@@ -25,7 +22,7 @@ interface VariantModalProps {
   onClose: () => void;
   productId: string;
   variant: ProductVariantRow | null;
-  onSaved: () => void;
+  onSaved?: () => void;
 }
 
 const defaultValues: ProductVariantFormData = {
@@ -40,7 +37,7 @@ export function VariantModal({
   onClose,
   productId,
   variant,
-  onSaved,
+  onSaved = () => {},
 }: VariantModalProps) {
   const form = useForm<ProductVariantFormData>({
     resolver: zodResolver(productVariantSchema),
@@ -73,21 +70,20 @@ export function VariantModal({
     }
   }, [variant, reset, isOpen]);
 
-  const { isSaving, execute: executeSave } =
-    useAdminSaveHandler<ProductVariantRow>({
-      successMessage: "Variante guardada.",
-      onSuccess: () => {
-        onClose();
-        onSaved();
-      },
-    });
+  const { isSaving, execute: executeSave } = useSaveHandler<ProductVariantRow>({
+    successMessage: "Variante guardada.",
+    onSuccess: () => {
+      onClose();
+      onSaved();
+    },
+  });
 
   const onSubmit = async (data: ProductVariantFormData) => {
     await executeSave(() =>
       saveProductVariant(
         {
           product_id: productId,
-          name: normalizeAdminString(data.name),
+          name: data.name.trim(),
           price: parsePrice(data.price) ?? 0,
           is_default: data.is_default,
           is_active: data.is_active,

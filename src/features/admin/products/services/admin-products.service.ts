@@ -37,13 +37,23 @@ export async function fetchAdminProductsList(): Promise<AdminProductListRow[]> {
 // ==========================================
 
 export async function fetchAdminProductDetail(
-  productId: string,
+  slug: string,
 ): Promise<AdminProductDetailData> {
-  const [product, variants, additions, optionGroups] = await Promise.all([
-    fetchProductById(productId),
-    fetchProductVariants(productId),
-    fetchProductAdditions(productId),
-    fetchProductOptionGroups(productId),
+  const product = await fetchProductBySlug(slug);
+
+  if (!product) {
+    return {
+      product: null,
+      product_variants: [],
+      product_additions: [],
+      product_option_groups: [],
+    };
+  }
+
+  const [variants, additions, optionGroups] = await Promise.all([
+    fetchProductVariants(product.id),
+    fetchProductAdditions(product.id),
+    fetchProductOptionGroups(product.id),
   ]);
 
   return {
@@ -58,11 +68,11 @@ export async function fetchAdminProductDetail(
 // Data Fetchers
 // ==========================================
 
-async function fetchProductById(productId: string): Promise<ProductRow | null> {
+async function fetchProductBySlug(slug: string): Promise<ProductRow | null> {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PRODUCTS)
     .select("*")
-    .eq("id", productId)
+    .eq("slug", slug)
     .maybeSingle();
 
   throwIfError(error);

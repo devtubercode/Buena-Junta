@@ -5,8 +5,8 @@ import { Save, X } from "lucide-react";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { InputField } from "@/shared/components/InputField";
 import { Checkbox } from "@/shared/components/Checkbox";
-import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
-import { normalizeAdminString } from "@/features/admin/shared/utils/adminForms";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
+
 import { saveProductOptionGroup } from "@/features/admin/products/option-groups/services/admin-product-option-groups.service";
 import {
   optionGroupSchema,
@@ -22,7 +22,7 @@ interface ProductOptionGroupModalProps {
   onClose: () => void;
   productId: string;
   group: ProductOptionGroupRow | null;
-  onSaved: () => void;
+  onSaved?: () => void;
 }
 
 const defaultValues: OptionGroupFormData = {
@@ -36,7 +36,7 @@ export function ProductOptionGroupModal({
   onClose,
   productId,
   group,
-  onSaved,
+  onSaved = () => {},
 }: ProductOptionGroupModalProps) {
   const form = useForm<OptionGroupFormData>({
     resolver: zodResolver(optionGroupSchema),
@@ -68,7 +68,7 @@ export function ProductOptionGroupModal({
   }, [group, reset, isOpen]);
 
   const { isSaving, execute: executeSave } =
-    useAdminSaveHandler<ProductOptionGroupRow>({
+    useSaveHandler<ProductOptionGroupRow>({
       successMessage: "Grupo guardado.",
       onSuccess: () => {
         onClose();
@@ -80,7 +80,7 @@ export function ProductOptionGroupModal({
     await executeSave(() =>
       saveProductOptionGroup(
         {
-          name: normalizeAdminString(data.name),
+          name: data.name.trim(),
           is_required: data.is_required,
           is_active: data.is_active,
         } satisfies ProductOptionGroupInput,

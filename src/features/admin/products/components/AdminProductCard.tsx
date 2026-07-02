@@ -11,19 +11,17 @@ type AdminProductCardProps = {
   onDelete: (product: AdminProductListRow) => void;
 };
 
-function getProductDetailPath(productId: string) {
-  return `${appRoutes.adminProduct}?id=${productId}`;
-}
+type StatusBadgeProps = {
+  isAvailable: boolean;
+};
 
-function formatPrice(price: number | null): string | null {
-  if (price === null || Number.isNaN(price)) {
-    return null;
-  }
+type InfoBadgeProps = {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+  variant?: "default" | "primary";
+};
 
-  return `$${price.toLocaleString("es-CO")}`;
-}
-
-function StatusBadge({ isAvailable }: { isAvailable: boolean }) {
+const StatusBadge = ({ isAvailable }: StatusBadgeProps) => {
   return (
     <span
       className={cn(
@@ -36,17 +34,13 @@ function StatusBadge({ isAvailable }: { isAvailable: boolean }) {
       {isAvailable ? "Activo" : "Oculto"}
     </span>
   );
-}
+};
 
-function InfoBadge({
+const InfoBadge = ({
   icon: Icon,
   children,
   variant = "default",
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-  variant?: "default" | "primary";
-}) {
+}: InfoBadgeProps) => {
   return (
     <span
       className={cn(
@@ -60,29 +54,33 @@ function InfoBadge({
       {children}
     </span>
   );
-}
+};
 
-export function AdminProductCard({ product, onDelete }: AdminProductCardProps) {
+export const AdminProductCard = ({
+  product,
+  onDelete,
+}: AdminProductCardProps) => {
+  const productDetailPath = `${appRoutes.adminProducts}/${product.slug}`;
+
   const imageUrl = product.image_path
     ? getStorageImageUrl(product.image_path, SUPABASE_BUCKETS.PRODUCT_IMAGES)
     : null;
 
-  const variants = [...(product.product_variants ?? [])].sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-  const optionGroups = product.product_option_groups ?? [];
-  const categoryName = product.categories?.name ?? "Sin categoría";
-  const priceLabel = formatPrice(product.price);
+  const quantityGroups = product.product_option_groups?.length ?? 0;
+  const quantityVariants = product.product_variants?.length ?? 0;
+  const hasVariants = quantityVariants > 0;
+  const hasOptionGroups = quantityGroups > 0;
 
   return (
     <article className="group flex min-w-0 flex-row gap-3 rounded-xl border border-border bg-surface p-3 shadow-elevated transition hover:border-primary/30 hover:shadow-lg sm:flex-col">
-      <Link to={getProductDetailPath(product.id)} className="shrink-0 sm:block">
+      <Link to={productDetailPath} className="shrink-0 sm:block">
         <div className="flex size-18 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-muted text-muted-foreground transition group-hover:border-primary/30 sm:aspect-video sm:h-auto sm:w-full">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.name}
               className="size-full object-cover"
+              loading="lazy"
             />
           ) : (
             <ImageIcon className="size-7" />
@@ -94,40 +92,36 @@ export function AdminProductCard({ product, onDelete }: AdminProductCardProps) {
         <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="min-w-0">
             <Link
-              to={getProductDetailPath(product.id)}
-              className="block truncate font-heading text-base font-black leading-tight text-foreground transition hover:text-primary sm:text-lg"
+              to={productDetailPath}
+              className="block font-heading text-base font-black leading-tight text-foreground transition hover:text-primary sm:text-lg"
             >
               {product.name}
             </Link>
-            <p className="mt-0.5 text-xs font-bold text-muted-foreground">
-              {categoryName}
-            </p>
           </div>
           <StatusBadge isAvailable={product.is_available} />
         </div>
 
-        {priceLabel ? (
-          <p className="mt-1.5 text-sm font-black text-primary">{priceLabel}</p>
-        ) : null}
+        {product.price && (
+          <p className="mt-1.5 text-sm font-black text-primary">{`$${product.price.toLocaleString("es-CO")}`}</p>
+        )}
 
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {variants.length > 0 ? (
+        <div className="my-2 flex flex-wrap gap-1.5">
+          {hasVariants ? (
             <InfoBadge icon={Layers}>
-              {variants.length}{" "}
-              {variants.length === 1 ? "variante" : "variantes"}
+              {quantityVariants}{" "}
+              {quantityVariants === 1 ? "variante" : "variantes"}
             </InfoBadge>
           ) : null}
-          {optionGroups.length > 0 ? (
+          {hasOptionGroups ? (
             <InfoBadge icon={List} variant="primary">
-              {optionGroups.length}{" "}
-              {optionGroups.length === 1 ? "opción" : "opciones"}
+              {quantityGroups} {quantityGroups === 1 ? "opción" : "opciones"}
             </InfoBadge>
           ) : null}
         </div>
 
         <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-2.5 sm:pt-3">
           <Link
-            to={getProductDetailPath(product.id)}
+            to={productDetailPath}
             className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-surface-muted text-foreground transition hover:border-primary hover:text-primary"
             aria-label={`Editar ${product.name}`}
           >
@@ -145,4 +139,4 @@ export function AdminProductCard({ product, onDelete }: AdminProductCardProps) {
       </div>
     </article>
   );
-}
+};

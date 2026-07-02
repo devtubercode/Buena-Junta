@@ -5,24 +5,21 @@ import { Save, X } from "lucide-react";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { InputField } from "@/shared/components/InputField";
 import { Checkbox } from "@/shared/components/Checkbox";
-import { useAdminSaveHandler } from "@/features/admin/shared/hooks/useAdminSaveHandler";
-import { normalizeAdminString } from "@/features/admin/shared/utils/adminForms";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
+
 import { saveProductOptionValue } from "@/features/admin/products/option-groups/services/admin-product-option-groups.service";
 import {
   optionValueSchema,
   type OptionValueFormData,
 } from "@/features/admin/schemas/optionValueSchema";
-import type {
-  ProductOptionValueInput,
-  ProductOptionValueRow,
-} from "@/features/admin/types/products.types";
+import type { ProductOptionValueRow } from "@/features/admin/types/products.types";
 
 interface ProductOptionValueModalProps {
   isOpen: boolean;
   onClose: () => void;
   groupId: string | null;
   value: ProductOptionValueRow | null;
-  onSaved: () => void;
+  onSaved?: () => void;
 }
 
 const defaultValues: OptionValueFormData = {
@@ -35,7 +32,7 @@ export function ProductOptionValueModal({
   onClose,
   groupId,
   value,
-  onSaved,
+  onSaved = () => {},
 }: ProductOptionValueModalProps) {
   const form = useForm<OptionValueFormData>({
     resolver: zodResolver(optionValueSchema),
@@ -62,7 +59,7 @@ export function ProductOptionValueModal({
   }, [value, reset, isOpen]);
 
   const { isSaving, execute: executeSave } =
-    useAdminSaveHandler<ProductOptionValueRow>({
+    useSaveHandler<ProductOptionValueRow>({
       successMessage: "Opción guardada.",
       onSuccess: () => {
         onClose();
@@ -78,9 +75,9 @@ export function ProductOptionValueModal({
     await executeSave(() =>
       saveProductOptionValue(
         {
-          name: normalizeAdminString(data.name),
+          name: data.name.trim(),
           is_active: data.is_active,
-        } satisfies ProductOptionValueInput,
+        },
         groupId,
         value?.id,
       ),
