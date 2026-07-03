@@ -1,47 +1,70 @@
-import { Plus, Save, X } from "lucide-react";
-import { AdminDataState } from "@/features/admin/shared/state/AdminDataState";
+import { Plus } from "lucide-react";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
-import { AdminAdditionsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
-import { useAdditionsData } from "@/features/admin/additions/hooks/useAdditionsData";
-import { useAdminAdditionDelete } from "@/features/admin/additions/hooks/useAdminAdditionDelete";
-import { useAdminAdditionForm } from "@/features/admin/additions/hooks/useAdminAdditionForm";
-import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
-import { InputField } from "@/shared/components/InputField";
-import { TextAreaField } from "@/shared/components/TextAreaField";
-import { AdditionList } from "@/features/admin/additions/components/AdditionList";
+import { AdditionsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
+import { useAdminResource } from "@/features/admin/shared/hooks/useAdminResource";
+import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
+import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudModal";
+import { AdditionCard } from "@/features/admin/additions/components/AdditionCard";
 import { AdditionEmptyState } from "@/features/admin/additions/components/AdditionEmptyState";
+import { AdditionForm } from "@/features/admin/additions/components/AdditionForm";
+import { EmptyState } from "@/shared/components/EmptyState";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
+import {
+  deleteAddition,
+  fetchAdminAdditions,
+} from "@/features/admin/additions/services/admin-additions.service";
 
-export function AdditionsPage() {
-  const { data: additions, isLoading, error, reload } = useAdditionsData();
-
-  const { handleDelete, ConfirmDialog: AdditionDeleteDialog } =
-    useAdminAdditionDelete(reload);
-
+export const AdditionsPage = () => {
   const {
-    form,
-    isSaving,
-    selected,
-    isOpen,
-    openNew,
-    openEdit,
-    close,
-    onSubmit,
-  } = useAdminAdditionForm(reload);
+    data: additions,
+    setData: setAdditions,
+    isLoading,
+    error,
+  } = useAdminResource<AdditionRow[]>(fetchAdminAdditions, []);
+
+  const additionModal = useAdminCrudModal<AdditionRow>();
+
+  const { confirmDelete, ConfirmDialog: AdditionDeleteDialog } =
+    useAdminDeleteConfirm();
+
+  const handleDelete = async (addition: AdditionRow) => {
+    const deleted = await confirmDelete({
+      item: addition,
+      deleteFn: deleteAddition,
+      id: addition.id,
+      itemLabel: "Adición",
+    });
+    if (!deleted) return;
+    setAdditions((prev) => prev.filter((a) => a.id !== addition.id));
+  };
+
+  const handleAdditionSaved = (savedAddition: AdditionRow) => {
+    if (additionModal.selected === null) {
+      setAdditions([...additions, { ...savedAddition }]);
+      additionModal.close();
+      return;
+    }
+
+    const updatedAdditions = additions.map((addition) => {
+      if (addition.id === savedAddition.id) {
+        return savedAddition;
+      }
+      return addition;
+    });
+    setAdditions(updatedAdditions);
+    additionModal.close();
+  };
 
   if (error) {
-    return <AdminDataState isLoading={false} error={error} />;
-  }
-
-  if (isLoading) {
     return (
-      <AdminSection
-        title="Adiciones"
-        description="Gestiona las adiciones globales reutilizables."
-      >
-        <AdminAdditionsSkeleton />
-      </AdminSection>
+      <EmptyState
+        title="No se pudieron cargar los datos"
+        description={error.message}
+      />
     );
   }
+
+  if (isLoading) <AdditionsSkeleton />;
 
   const hasAdditions = additions.length > 0;
 
@@ -52,7 +75,7 @@ export function AdditionsPage() {
       actions={
         <button
           type="button"
-          onClick={openNew}
+          onClick={additionModal.openNew}
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
         >
           <Plus className="size-4" />
@@ -61,73 +84,29 @@ export function AdditionsPage() {
       }
     >
       {!hasAdditions ? (
-        <AdditionEmptyState type="empty" onCreate={openNew} />
+        <AdditionEmptyState type="empty" onCreate={additionModal.openNew} />
       ) : (
-        <AdditionList
-          additions={additions}
-          onEdit={openEdit}
-          onDelete={handleDelete}
-        />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+          {additions.map((addition) => (
+            <AdditionCard
+              key={addition.id}
+              addition={addition}
+              onEdit={additionModal.openEdit}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
       )}
 
-      <ButtonSheetModal
-        isOpen={isOpen}
-        title={selected ? "Editar adición" : "Nueva adición"}
-        description={
-          selected
-            ? "Actualiza los datos de la adición seleccionada."
-            : "Completa los datos para crear una nueva adición."
-        }
-        contentClassName="max-w-lg"
-        onClose={close}
-      >
-        <form className="grid gap-4" onSubmit={onSubmit} noValidate>
-          <InputField
-            name="name"
-            control={form.control}
-            label="Nombre"
-            placeholder="Ej: Queso extra"
-            autoComplete="off"
-          />
-
-          <TextAreaField
-            name="description"
-            control={form.control}
-            label="Descripción"
-            placeholder="Descripción opcional de la adición"
-          />
-
-          <InputField
-            name="price"
-            control={form.control}
-            label="Precio"
-            type="number"
-            min={0}
-            step={1}
-          />
-
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
-            >
-              <Save className="size-4" />
-              {isSaving ? "Guardando" : "Guardar"}
-            </button>
-            <button
-              type="button"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
-              onClick={close}
-            >
-              <X className="size-4" />
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </ButtonSheetModal>
+      {additionModal.isOpen && (
+        <AdditionForm
+          addition={additionModal.selected}
+          onCloseModal={additionModal.close}
+          onSuccessSaved={handleAdditionSaved}
+        />
+      )}
 
       <AdditionDeleteDialog />
     </AdminSection>
   );
-}
+};

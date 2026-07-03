@@ -17,51 +17,47 @@ export function AdditionCard({
   onDelete,
 }: AdditionCardProps) {
   return (
-    <article className="group flex min-w-0 flex-row gap-3 rounded-xl border border-border bg-surface p-3 shadow-elevated transition hover:border-primary/30 hover:shadow-lg sm:flex-col">
-      <div className="shrink-0 sm:block">
-        <div className="flex size-18 items-center justify-center rounded-lg border border-border bg-primary-soft text-primary transition group-hover:border-primary/30 group-hover:bg-primary group-hover:text-primary-foreground sm:aspect-video sm:h-auto sm:w-full">
-          <Cookie className="size-7" aria-hidden="true" />
+    <article className="group flex min-w-0 items-center gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated transition hover:border-primary/30 hover:shadow-lg">
+      <button
+        type="button"
+        onClick={() => onEdit(addition)}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left cursor-pointer"
+      >
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+          <Cookie className="size-6" aria-hidden="true" />
         </div>
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <button
-          type="button"
-          onClick={() => onEdit(addition)}
-          className="text-left"
-        >
-          <span className="block break-words font-heading text-base font-black leading-tight text-foreground transition group-hover:text-primary sm:text-lg">
+        <div className="min-w-0">
+          <span className="block truncate font-heading text-base font-black text-foreground sm:text-lg">
             {addition.name}
           </span>
           <p className="mt-0.5 text-sm font-black text-primary">
             ${formatPrice(addition.price)}
           </p>
-        </button>
-
-        {addition.description?.trim() ? (
-          <p className="mt-1.5 line-clamp-2 text-xs font-medium leading-relaxed text-muted-foreground sm:text-sm">
-            {addition.description.trim()}
-          </p>
-        ) : null}
-
-        <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-2.5 sm:pt-3">
-          <button
-            type="button"
-            onClick={() => onEdit(addition)}
-            className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-surface-muted text-foreground transition hover:border-primary hover:text-primary"
-            aria-label={`Editar ${addition.name}`}
-          >
-            <Pencil className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(addition)}
-            className="inline-flex size-11 items-center justify-center rounded-full border border-error-border bg-error-soft text-error transition hover:bg-error hover:text-error-foreground"
-            aria-label={`Eliminar ${addition.name}`}
-          >
-            <Trash2 className="size-5" />
-          </button>
+          {addition.description?.trim() ? (
+            <p className="mt-0.5 truncate text-xs font-medium text-muted-foreground">
+              {addition.description.trim()}
+            </p>
+          ) : null}
         </div>
+      </button>
+
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onEdit(addition)}
+          className="inline-flex size-11 items-center cursor-pointer justify-center rounded-full border border-border bg-surface-muted text-foreground transition hover:border-primary hover:text-primary"
+          aria-label={`Editar ${addition.name}`}
+        >
+          <Pencil className="size-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(addition)}
+          className="inline-flex size-11 items-center cursor-pointer justify-center rounded-full border border-error-border bg-error-soft text-error transition hover:bg-error hover:text-error-foreground"
+          aria-label={`Eliminar ${addition.name}`}
+        >
+          <Trash2 className="size-5" />
+        </button>
       </div>
     </article>
   );

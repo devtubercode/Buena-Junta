@@ -20,13 +20,13 @@ export async function fetchAdminAdditions(): Promise<AdditionRow[]> {
 
 export async function saveAddition(
   input: AdditionInput,
-  id?: string,
+  additionId?: string,
 ): Promise<AdditionRow> {
-  const result = id
+  const result = additionId
     ? await supabase
         .from(SUPABASE_TABLES.ADDITIONS)
         .update(input)
-        .eq("id", id)
+        .eq("id", additionId)
         .select()
         .single()
     : await supabase
