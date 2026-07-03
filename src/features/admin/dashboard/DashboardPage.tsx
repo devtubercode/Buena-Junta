@@ -1,27 +1,25 @@
 import { Link } from "react-router";
 import { Gift, Package, Tags } from "lucide-react";
 import { appRoutes } from "@/app/routes";
-import { AdminDataState } from "@/features/admin/shared/state/AdminDataState";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
-import { AdminDashboardSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
+import { DashboardSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { useDashboardData } from "@/features/admin/dashboard/useDashboardData";
+import { EmptyState } from "@/shared/components/EmptyState";
 
 export function DashboardPage() {
   const { data: dashboard, isLoading, error } = useDashboardData();
 
   if (error) {
-    return <AdminDataState isLoading={false} error={error} />;
+    return (
+      <EmptyState
+        title="No se pudieron cargar los datos"
+        description={error.message}
+      />
+    );
   }
 
   if (isLoading) {
-    return (
-      <AdminSection
-        title="Resumen"
-        description="Atajos de gestión para catálogo, promociones y adiciones."
-      >
-        <AdminDashboardSkeleton />
-      </AdminSection>
-    );
+    return <DashboardSkeleton />;
   }
 
   const stats = [
