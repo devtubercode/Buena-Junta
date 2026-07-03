@@ -12,8 +12,6 @@ export function CategoryCard({
   onEdit,
   onDelete,
 }: CategoryCardProps) {
-  const subtitle = category.description?.trim() || category.slug;
-
   return (
     <article className="group flex min-w-0 items-center gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated transition hover:border-primary/30 hover:shadow-lg">
       <button
@@ -28,9 +26,6 @@ export function CategoryCard({
           <span className="block truncate font-heading text-base font-black text-foreground sm:text-lg">
             {category.name}
           </span>
-          <p className="truncate text-xs font-bold text-muted-foreground">
-            {subtitle}
-          </p>
         </div>
       </button>
 

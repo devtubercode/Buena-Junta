@@ -3,18 +3,17 @@ import { SearchInput } from "@/shared/components/SearchInput";
 type CategoriesToolbarProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  activeFiltersCount: number;
   onClearFilters: () => void;
   resultCount?: number;
 };
 
-export function CategoriesToolbar({
+export const CategoriesToolbar = ({
   searchQuery,
   onSearchChange,
-  activeFiltersCount,
   onClearFilters,
   resultCount,
-}: CategoriesToolbarProps) {
+}: CategoriesToolbarProps) => {
+  const activeFiltersCount = searchQuery.trim() ? 1 : 0;
   return (
     <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
@@ -37,9 +36,12 @@ export function CategoriesToolbar({
 
       {resultCount !== undefined ? (
         <div className="sr-only" aria-live="polite" aria-atomic="true">
-          {resultCount} {resultCount === 1 ? "categoría encontrada" : "categorías encontradas"}
+          {resultCount}{" "}
+          {resultCount === 1
+            ? "categoría encontrada"
+            : "categorías encontradas"}
         </div>
       ) : null}
     </div>
   );
-}
+};

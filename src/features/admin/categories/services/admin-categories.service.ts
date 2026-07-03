@@ -6,7 +6,7 @@ import type {
   CategoryRow,
 } from "@/features/admin/types/categories.types";
 
-export async function fetchAdminCategories(): Promise<CategoryRow[]> {
+export const fetchAdminCategories = async (): Promise<CategoryRow[]> => {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.CATEGORIES)
     .select("*")
@@ -15,17 +15,17 @@ export async function fetchAdminCategories(): Promise<CategoryRow[]> {
   throwIfError(error);
 
   return (data ?? []) as CategoryRow[];
-}
+};
 
-export async function saveCategory(
+export const saveCategory = async (
   input: CategoryInput,
-  id?: string,
-): Promise<CategoryRow> {
-  const result = id
+  categoryId?: string,
+): Promise<CategoryRow> => {
+  const result = categoryId
     ? await supabase
         .from(SUPABASE_TABLES.CATEGORIES)
         .update(input)
-        .eq("id", id)
+        .eq("id", categoryId)
         .select()
         .single()
     : await supabase
@@ -37,7 +37,7 @@ export async function saveCategory(
   throwIfError(result.error);
 
   return result.data as CategoryRow;
-}
+};
 
 export async function deleteCategory(id: string): Promise<void> {
   const { error } = await supabase
