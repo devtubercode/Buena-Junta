@@ -10,6 +10,18 @@ import type {
 
 // SRP: Single Responsibility - This service only handles product-specific option groups
 
+type saveProductOptionGroupArguments = {
+  input: ProductOptionGroupInput;
+  productId: string;
+  groupId?: string;
+};
+
+type saveProductOptionValueArguments = {
+  input: ProductOptionValueInput;
+  groupId: string;
+  optionValueId?: string;
+};
+
 export async function fetchProductOptionGroups(
   productId: string,
 ): Promise<
@@ -33,18 +45,18 @@ export async function fetchProductOptionGroups(
   })[];
 }
 
-export async function saveProductOptionGroup(
-  input: ProductOptionGroupInput,
-  productId: string,
-  id?: string,
-) {
+export const saveProductOptionGroup = async ({
+  input,
+  productId,
+  groupId,
+}: saveProductOptionGroupArguments) => {
   const dataWithProductId = { ...input, product_id: productId };
 
-  const result = id
+  const result = groupId
     ? await supabase
         .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
         .update(dataWithProductId)
-        .eq("id", id)
+        .eq("id", groupId)
         .select()
         .single()
     : await supabase
@@ -56,29 +68,29 @@ export async function saveProductOptionGroup(
   throwIfError(result.error);
 
   return result.data as unknown as ProductOptionGroupRow;
-}
+};
 
-export async function deleteProductOptionGroup(id: string) {
+export const deleteProductOptionGroup = async (id: string) => {
   const { error } = await supabase
     .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
     .delete()
     .eq("id", id);
 
   throwIfError(error);
-}
+};
 
-export async function saveProductOptionValue(
-  input: ProductOptionValueInput,
-  groupId: string,
-  id?: string,
-) {
+export const saveProductOptionValue = async ({
+  input,
+  groupId,
+  optionValueId,
+}: saveProductOptionValueArguments) => {
   const dataWithGroupId = { ...input, product_option_group_id: groupId };
 
-  const result = id
+  const result = optionValueId
     ? await supabase
         .from(SUPABASE_TABLES.PRODUCT_OPTION_VALUES as "product_option_values")
         .update(dataWithGroupId)
-        .eq("id", id)
+        .eq("id", optionValueId)
         .select()
         .single()
     : await supabase
@@ -90,7 +102,7 @@ export async function saveProductOptionValue(
   throwIfError(result.error);
 
   return result.data as unknown as ProductOptionValueRow;
-}
+};
 
 export async function deleteProductOptionValue(id: string) {
   const { error } = await supabase

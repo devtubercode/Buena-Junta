@@ -10,12 +10,12 @@ interface OptionGroupOptionsListProps {
   onDelete: (value: ProductOptionValueRow) => void;
 }
 
-export function OptionGroupOptionsList({
+export const OptionGroupOptionsList = ({
   options,
   onAdd,
   onEdit,
   onDelete,
-}: OptionGroupOptionsListProps) {
+}: OptionGroupOptionsListProps) => {
   const sortedOptions = useMemo(
     () => [...options].sort((a, b) => a.name.localeCompare(b.name)),
     [options],
@@ -24,7 +24,7 @@ export function OptionGroupOptionsList({
   return (
     <div className="grid gap-3">
       {sortedOptions.length > 0 ? (
-        <ul className="grid max-h-[280px] gap-2 overflow-y-auto pr-1">
+        <ul className="grid max-h-70 gap-2 overflow-y-auto pr-1">
           {sortedOptions.map((optionValue) => (
             <OptionItem
               key={optionValue.id}
@@ -50,4 +50,4 @@ export function OptionGroupOptionsList({
       </button>
     </div>
   );
-}
+};

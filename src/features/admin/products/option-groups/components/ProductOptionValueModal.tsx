@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { Save, X } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, X } from "lucide-react";
+
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { InputField } from "@/shared/components/InputField";
 import { Checkbox } from "@/shared/components/Checkbox";
@@ -17,9 +17,9 @@ import type { ProductOptionValueRow } from "@/features/admin/types/products.type
 interface ProductOptionValueModalProps {
   isOpen: boolean;
   onClose: () => void;
-  groupId: string | null;
-  value: ProductOptionValueRow | null;
-  onSaved?: () => void;
+  groupId: string;
+  optionValue: ProductOptionValueRow | null;
+  onSuccessSaved: (value: ProductOptionValueRow) => void;
 }
 
 const defaultValues: OptionValueFormData = {
@@ -27,79 +27,64 @@ const defaultValues: OptionValueFormData = {
   is_active: true,
 };
 
-export function ProductOptionValueModal({
+export const ProductOptionValueModal = ({
   isOpen,
   onClose,
   groupId,
-  value,
-  onSaved = () => {},
-}: ProductOptionValueModalProps) {
+  optionValue,
+  onSuccessSaved,
+}: ProductOptionValueModalProps) => {
   const form = useForm<OptionValueFormData>({
     resolver: zodResolver(optionValueSchema),
     defaultValues,
+    values: optionValue ?? defaultValues,
   });
 
-  const { reset, handleSubmit, setValue, control } = form;
-  const isNew = useMemo(() => value === null, [value]);
+  const isNew = optionValue === null;
+  const titleModal = isNew ? "Nueva opción" : "Editar opción";
+  const descriptionModal = isNew
+    ? "Completa los datos para crear una nueva opción."
+    : "Actualiza los datos de la opción seleccionada.";
 
   const watchedIsActive = useWatch({
-    control,
+    control: form.control,
     name: "is_active",
   });
 
-  useEffect(() => {
-    if (value) {
-      reset({
-        name: value.name,
-        is_active: value.is_active,
-      });
-    } else {
-      reset(defaultValues);
-    }
-  }, [value, reset, isOpen]);
-
-  const { isSaving, execute: executeSave } =
-    useSaveHandler<ProductOptionValueRow>({
-      successMessage: "Opción guardada.",
-      onSuccess: () => {
-        onClose();
-        onSaved();
-      },
-    });
+  const saveHandler = useSaveHandler<ProductOptionValueRow>({
+    successMessage: "Opción guardada correctamente.",
+    onSuccess: onSuccessSaved,
+  });
 
   const onSubmit = async (data: OptionValueFormData) => {
-    if (!groupId) {
-      return;
-    }
-
-    await executeSave(() =>
-      saveProductOptionValue(
-        {
+    await saveHandler.execute(() =>
+      saveProductOptionValue({
+        input: {
           name: data.name.trim(),
           is_active: data.is_active,
         },
         groupId,
-        value?.id,
-      ),
+        optionValueId: optionValue?.id,
+      }),
     );
   };
 
   return (
     <ButtonSheetModal
       isOpen={isOpen}
-      title={isNew ? "Nueva opción" : "Editar opción"}
-      description={
-        isNew
-          ? "Completa los datos para crear una nueva opción."
-          : "Actualiza los datos de la opción seleccionada."
-      }
+      title={titleModal}
+      description={descriptionModal}
       contentClassName="max-w-lg"
       onClose={onClose}
     >
-      <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form
+        className="grid gap-4"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+      >
         <InputField
           name="name"
-          control={control}
+          control={form.control}
           label="Nombre"
           placeholder="Ej: Picante"
           autoComplete="off"
@@ -110,7 +95,7 @@ export function ProductOptionValueModal({
           description="Visible para los clientes"
           checked={watchedIsActive}
           onCheckedChange={(checked) => {
-            setValue("is_active", checked, {
+            form.setValue("is_active", checked, {
               shouldValidate: true,
             });
           }}
@@ -119,11 +104,11 @@ export function ProductOptionValueModal({
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <button
             type="submit"
-            disabled={isSaving || !groupId}
+            disabled={saveHandler.isSaving || !groupId}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
           >
             <Save className="size-4" />
-            {isSaving ? "Guardando" : "Guardar"}
+            {saveHandler.isSaving ? "Guardando" : "Guardar"}
           </button>
           <button
             type="button"
@@ -137,4 +122,4 @@ export function ProductOptionValueModal({
       </form>
     </ButtonSheetModal>
   );
-}
+};

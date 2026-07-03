@@ -1,4 +1,3 @@
-import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save, X } from "lucide-react";
@@ -12,17 +11,13 @@ import {
   optionGroupSchema,
   type OptionGroupFormData,
 } from "@/features/admin/schemas/optionGroupSchema";
-import type {
-  ProductOptionGroupInput,
-  ProductOptionGroupRow,
-} from "@/features/admin/types/products.types";
+import type { ProductOptionGroupRow } from "@/features/admin/types/products.types";
 
 interface ProductOptionGroupModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onCloseModal: () => void;
   productId: string;
   group: ProductOptionGroupRow | null;
-  onSaved?: () => void;
+  onSuccessSaved: (group: ProductOptionGroupRow) => void;
 }
 
 const defaultValues: OptionGroupFormData = {
@@ -32,80 +27,68 @@ const defaultValues: OptionGroupFormData = {
 };
 
 export function ProductOptionGroupModal({
-  isOpen,
-  onClose,
+  onCloseModal,
   productId,
   group,
-  onSaved = () => {},
+  onSuccessSaved,
 }: ProductOptionGroupModalProps) {
   const form = useForm<OptionGroupFormData>({
     resolver: zodResolver(optionGroupSchema),
     defaultValues,
+    values: group ?? defaultValues,
   });
 
-  const { reset, handleSubmit, setValue, control } = form;
-  const isNew = useMemo(() => group === null, [group]);
+  const isNewGroup = group === null;
+
+  const titleModal = isNewGroup ? "Nuevo grupo" : "Editar grupo";
+  const descriptionModal = isNewGroup
+    ? "Completa los datos para crear un nuevo grupo de opciones."
+    : "Actualiza los datos del grupo de opciones.";
 
   const watchedIsRequired = useWatch({
-    control,
+    control: form.control,
     name: "is_required",
   });
   const watchedIsActive = useWatch({
-    control,
+    control: form.control,
     name: "is_active",
   });
 
-  useEffect(() => {
-    if (group) {
-      reset({
-        name: group.name,
-        is_required: group.is_required,
-        is_active: group.is_active,
-      });
-    } else {
-      reset(defaultValues);
-    }
-  }, [group, reset, isOpen]);
-
-  const { isSaving, execute: executeSave } =
-    useSaveHandler<ProductOptionGroupRow>({
-      successMessage: "Grupo guardado.",
-      onSuccess: () => {
-        onClose();
-        onSaved();
-      },
-    });
+  const saveHandler = useSaveHandler<ProductOptionGroupRow>({
+    successMessage: "Grupo guardado correctamente",
+    onSuccess: onSuccessSaved,
+  });
 
   const onSubmit = async (data: OptionGroupFormData) => {
-    await executeSave(() =>
-      saveProductOptionGroup(
-        {
+    await saveHandler.execute(() =>
+      saveProductOptionGroup({
+        input: {
           name: data.name.trim(),
           is_required: data.is_required,
           is_active: data.is_active,
-        } satisfies ProductOptionGroupInput,
+        },
         productId,
-        group?.id,
-      ),
+        groupId: group?.id,
+      }),
     );
   };
 
   return (
     <ButtonSheetModal
-      isOpen={isOpen}
-      title={isNew ? "Nuevo grupo" : "Editar grupo"}
-      description={
-        isNew
-          ? "Completa los datos para crear un nuevo grupo de opciones."
-          : "Actualiza los datos del grupo de opciones."
-      }
+      isOpen={true}
+      title={titleModal}
+      description={descriptionModal}
       contentClassName="max-w-lg"
-      onClose={onClose}
+      onClose={onCloseModal}
     >
-      <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form
+        className="grid gap-4"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+      >
         <InputField
           name="name"
-          control={control}
+          control={form.control}
           label="Nombre"
           placeholder="Ej: Salsas"
           autoComplete="off"
@@ -117,7 +100,7 @@ export function ProductOptionGroupModal({
             description="El cliente debe elegir una opción"
             checked={watchedIsRequired}
             onCheckedChange={(checked) => {
-              setValue("is_required", checked, {
+              form.setValue("is_required", checked, {
                 shouldValidate: true,
               });
             }}
@@ -127,7 +110,7 @@ export function ProductOptionGroupModal({
             description="Visible para los clientes"
             checked={watchedIsActive}
             onCheckedChange={(checked) => {
-              setValue("is_active", checked, {
+              form.setValue("is_active", checked, {
                 shouldValidate: true,
               });
             }}
@@ -137,16 +120,16 @@ export function ProductOptionGroupModal({
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={saveHandler.isSaving}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
           >
             <Save className="size-4" />
-            {isSaving ? "Guardando" : "Guardar"}
+            {saveHandler.isSaving ? "Guardando" : "Guardar"}
           </button>
           <button
             type="button"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
-            onClick={onClose}
+            onClick={onCloseModal}
           >
             <X className="size-4" />
             Cancelar

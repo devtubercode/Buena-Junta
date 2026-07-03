@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
 import { Plus } from "lucide-react";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudModal";
@@ -8,105 +7,172 @@ import {
   deleteProductOptionGroup,
   deleteProductOptionValue,
 } from "@/features/admin/products/option-groups/services/admin-product-option-groups.service";
-import { ProductOptionGroupModal } from "./ProductOptionGroupModal";
-import { ProductOptionValueModal } from "./ProductOptionValueModal";
+import { ProductOptionGroupModal } from "./components/ProductOptionGroupModal";
+import { ProductOptionValueModal } from "./components/ProductOptionValueModal";
 import type {
   ProductOptionGroupRow,
   ProductOptionValueRow,
-  AdminProductDetailData,
 } from "@/features/admin/types/products.types";
-import { OptionGroupItem } from "./components/OptionGroupItem";
-import { useExpandedGroups } from "./components/useExpandedGroups";
+import { useExpandedGroups } from "../hooks/useExpandedGroups";
+import { OptionGroupHeader } from "./components/OptionGroupHeader";
+import { OptionGroupOptionsList } from "./components/OptionGroupOptionsList";
+
+type OptionGroupWithValues = ProductOptionGroupRow & {
+  product_option_values: ProductOptionValueRow[];
+};
 
 interface ProductOptionGroupsSectionProps {
   productId: string;
-  optionGroups: (ProductOptionGroupRow & {
-    product_option_values: ProductOptionValueRow[];
-  })[];
-  setProductDetail: Dispatch<SetStateAction<AdminProductDetailData>>;
+  optionGroups: OptionGroupWithValues[];
 }
 
-export function ProductOptionGroupsSection({
+export const ProductOptionGroupsSection = ({
   productId,
   optionGroups,
-  setProductDetail,
-}: ProductOptionGroupsSectionProps) {
-  const { confirmDelete } = useAdminDeleteConfirm();
+}: ProductOptionGroupsSectionProps) => {
+  const { confirmDelete, ConfirmDialog: DeleteGroupConfirmDialog } =
+    useAdminDeleteConfirm();
   const groupModal = useAdminCrudModal<ProductOptionGroupRow>();
-  const valueModal = useAdminCrudModal<ProductOptionValueRow>();
+  const optionModal = useAdminCrudModal<ProductOptionValueRow>();
   const { isExpanded, toggle } = useExpandedGroups();
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const [groups, setGroups] = useState<OptionGroupWithValues[]>(optionGroups);
 
   const sortedGroups = useMemo(
-    () => [...optionGroups].sort((a, b) => a.name.localeCompare(b.name)),
-    [optionGroups],
+    () => [...groups].sort((a, b) => a.name.localeCompare(b.name)),
+    [groups],
   );
 
-  const openNewValue = (groupId: string) => {
+  const handleShowModalAddOption = (groupId: string) => {
     setActiveGroupId(groupId);
-    valueModal.openNew();
+    optionModal.openNew();
   };
 
-  const openEditValue = (
+  const handleShowModalEditOption = (
     groupId: string,
     optionValue: ProductOptionValueRow,
   ) => {
     setActiveGroupId(groupId);
-    valueModal.openEdit(optionValue);
+    optionModal.openEdit(optionValue);
   };
 
-  const closeValueModal = () => {
-    valueModal.close();
+  const handlerCloseOptionModal = () => {
+    optionModal.close();
     setActiveGroupId(null);
   };
 
-  const handleDeleteGroup = async (group: ProductOptionGroupRow) => {
+  const handleDeleteGroup = async (selectedGroup: ProductOptionGroupRow) => {
     const deleted = await confirmDelete({
-      item: group,
+      item: selectedGroup,
       deleteFn: deleteProductOptionGroup,
-      id: group.id,
+      id: selectedGroup.id,
       itemLabel: "Grupo",
     });
+    if (!deleted) return;
 
-    if (deleted) {
-      if (groupModal.selected?.id === group.id) {
-        groupModal.close();
-      }
-      setProductDetail((prev) => ({
-        ...prev,
-        product_option_groups: prev.product_option_groups.filter(
-          (g) => g.id !== group.id,
-        ),
-      }));
-    }
+    setGroups((prev) => prev.filter((group) => group.id !== selectedGroup.id));
   };
 
-  const handleDeleteValue = async (optionValue: ProductOptionValueRow) => {
+  const onDeleteOptionValueOfGroup = (item: ProductOptionValueRow) => {
+    const updatedGroups = groups.map((group) => {
+      const optionsGroup = group.product_option_values;
+      const groupIdOption = item.product_option_group_id;
+
+      if (group.id === groupIdOption) {
+        return {
+          ...group,
+          product_option_values: optionsGroup.filter(
+            (optionValue) => optionValue.id !== item.id,
+          ),
+        };
+      }
+
+      return group;
+    });
+
+    setGroups(updatedGroups);
+  };
+
+  const onUpdatedOptionValueOfGroup = (
+    optionValueUpdated: ProductOptionValueRow,
+  ) => {
+    const updatedGroups = groups.map((group) => {
+      const optionsGroup = group.product_option_values;
+      const groupIdOption = optionValueUpdated.product_option_group_id;
+
+      if (group.id === groupIdOption) {
+        return {
+          ...group,
+          product_option_values: optionsGroup.map((option) =>
+            option.id === optionValueUpdated.id ? optionValueUpdated : option,
+          ),
+        };
+      }
+      return group;
+    });
+
+    setGroups(updatedGroups);
+  };
+
+  const onAddOptionValueOfGroup = (newOptionValue: ProductOptionValueRow) => {
+    const updatedGroups = groups.map((group) => {
+      const groupIdOption = newOptionValue.product_option_group_id;
+      if (group.id === groupIdOption) {
+        return {
+          ...group,
+          product_option_values: [
+            ...group.product_option_values,
+            newOptionValue,
+          ],
+        };
+      }
+      return group;
+    });
+    setGroups(updatedGroups);
+  };
+
+  const handleDeleteOptionValue = async (
+    selectedOptionValue: ProductOptionValueRow,
+  ) => {
     const deleted = await confirmDelete({
-      item: optionValue,
+      item: selectedOptionValue,
       deleteFn: deleteProductOptionValue,
-      id: optionValue.id,
+      id: selectedOptionValue.id,
       itemLabel: "Opción",
     });
 
-    if (deleted) {
-      if (valueModal.selected?.id === optionValue.id) {
-        closeValueModal();
-      }
-      setProductDetail((prev) => ({
-        ...prev,
-        product_option_groups: prev.product_option_groups.map((g) =>
-          g.id === activeGroupId
-            ? {
-                ...g,
-                product_option_values: g.product_option_values.filter(
-                  (v) => v.id !== optionValue.id,
-                ),
-              }
-            : g,
-        ),
-      }));
+    if (deleted) onDeleteOptionValueOfGroup(selectedOptionValue);
+  };
+
+  const handleGroupSaved = (savedGroup: ProductOptionGroupRow) => {
+    if (groupModal.selected === null) {
+      setGroups([...groups, { ...savedGroup, product_option_values: [] }]);
+      groupModal.close();
+      return;
     }
+
+    const getGroupsUpdated = groups.map((group) => {
+      const isSameGroup = group.id === savedGroup.id;
+      if (!isSameGroup) return group;
+
+      return {
+        ...savedGroup,
+        product_option_values: group.product_option_values,
+      };
+    });
+    setGroups(getGroupsUpdated);
+    groupModal.close();
+  };
+
+  const handleUpdateGroupOptionValues = (
+    optionValueSaved: ProductOptionValueRow,
+  ) => {
+    if (!optionModal.selected) {
+      onAddOptionValueOfGroup(optionValueSaved);
+    } else {
+      onUpdatedOptionValueOfGroup(optionValueSaved);
+    }
+    handlerCloseOptionModal();
   };
 
   return (
@@ -117,7 +183,7 @@ export function ProductOptionGroupsSection({
             Grupos de opciones
           </h2>
           <p className="mt-1 text-xs font-bold text-muted-foreground">
-            {optionGroups.length} grupo{optionGroups.length === 1 ? "" : "s"}
+            {groups.length} grupo{groups.length === 1 ? "" : "s"}
           </p>
         </div>
         <button
@@ -134,48 +200,55 @@ export function ProductOptionGroupsSection({
         <EmptyState
           title="Sin grupos de opciones"
           description="Este producto no tiene grupos de opciones configurados."
-          action={
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground transition hover:opacity-90"
-              onClick={groupModal.openNew}
-            >
-              <Plus className="size-4" />
-              Crear grupo
-            </button>
-          }
         />
       ) : (
-        <div className="grid max-h-[520px] gap-4 overflow-y-auto">
+        <div className="grid max-h-130 gap-4 overflow-y-auto">
           {sortedGroups.map((group) => (
-            <OptionGroupItem
+            <article
               key={group.id}
-              group={group}
-              isExpanded={isExpanded(group.id)}
-              onToggle={() => toggle(group.id)}
-              onEditGroup={() => groupModal.openEdit(group)}
-              onDeleteGroup={() => void handleDeleteGroup(group)}
-              onAddValue={() => openNewValue(group.id)}
-              onEditValue={(value) => openEditValue(group.id, value)}
-              onDeleteValue={(value) => void handleDeleteValue(value)}
-            />
+              className="grid gap-4 rounded-xl border border-border bg-surface-muted p-4 transition hover:border-primary/20"
+            >
+              <OptionGroupHeader
+                group={group}
+                optionsCount={group.product_option_values.length}
+                isExpanded={isExpanded(group.id)}
+                onToggle={() => toggle(group.id)}
+                onEdit={() => groupModal.openEdit(group)}
+                onDelete={() => handleDeleteGroup(group)}
+              />
+              {isExpanded(group.id) && (
+                <OptionGroupOptionsList
+                  options={group.product_option_values}
+                  onAdd={() => handleShowModalAddOption(group.id)}
+                  onEdit={(value) => handleShowModalEditOption(group.id, value)}
+                  onDelete={(value) => handleDeleteOptionValue(value)}
+                />
+              )}
+            </article>
           ))}
         </div>
       )}
 
-      <ProductOptionGroupModal
-        isOpen={groupModal.isOpen}
-        onClose={groupModal.close}
-        productId={productId}
-        group={groupModal.selected}
-      />
+      {groupModal.isOpen && (
+        <ProductOptionGroupModal
+          onCloseModal={groupModal.close}
+          productId={productId}
+          group={groupModal.selected}
+          onSuccessSaved={handleGroupSaved}
+        />
+      )}
 
-      <ProductOptionValueModal
-        isOpen={valueModal.isOpen}
-        onClose={closeValueModal}
-        groupId={activeGroupId}
-        value={valueModal.selected}
-      />
+      {optionModal.isOpen && activeGroupId && (
+        <ProductOptionValueModal
+          isOpen={optionModal.isOpen}
+          onClose={handlerCloseOptionModal}
+          groupId={activeGroupId}
+          optionValue={optionModal.selected}
+          onSuccessSaved={handleUpdateGroupOptionValues}
+        />
+      )}
+
+      <DeleteGroupConfirmDialog />
     </section>
   );
-}
+};

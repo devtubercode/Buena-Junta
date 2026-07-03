@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-export function useExpandedGroups() {
+export const useExpandedGroups = () => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const isExpanded = useCallback(
@@ -33,4 +33,4 @@ export function useExpandedGroups() {
   }, []);
 
   return { expandedIds, isExpanded, expand, collapse, toggle };
-}
+};
