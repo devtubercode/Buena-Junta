@@ -1,20 +1,17 @@
 import { useMemo, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+
 import { Edit3, Plus, Trash2 } from "lucide-react";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
 import { VariantModal } from "@/features/admin/products/variants/VariantModal";
 import { deleteProductVariant } from "@/features/admin/products/variants/services/admin-product-variants.service";
 import { cn } from "@/shared/utils/cn";
-import type {
-  ProductVariantRow,
-  AdminProductDetailData,
-} from "@/features/admin/types/products.types";
+import type { ProductVariantRow } from "@/features/admin/types/products.types";
+import { useAdminCrudModal } from "../../shared/hooks/useAdminCrudModal";
 
 interface ProductVariantsSectionProps {
   productId: string;
-  variants: ProductVariantRow[];
-  setProductDetail: Dispatch<SetStateAction<AdminProductDetailData>>;
+  variantsData: ProductVariantRow[];
 }
 
 function formatPrice(price: number): string {
@@ -36,35 +33,20 @@ function VariantStatusBadge({ isDefault }: { isDefault: boolean }) {
   );
 }
 
-export function ProductVariantsSection({
+export const ProductVariantsSection = ({
   productId,
-  variants,
-  setProductDetail,
-}: ProductVariantsSectionProps) {
-  const { confirmDelete } = useAdminDeleteConfirm();
-  const [selectedVariant, setSelectedVariant] =
-    useState<ProductVariantRow | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  variantsData,
+}: ProductVariantsSectionProps) => {
+  const [variants, setVariants] = useState<ProductVariantRow[]>(variantsData);
+  const { confirmDelete, ConfirmDialog: DeleteConfirmDialog } =
+    useAdminDeleteConfirm();
+
+  const variantModal = useAdminCrudModal<ProductVariantRow>();
 
   const sortedVariants = useMemo(
     () => [...variants].sort((a, b) => a.name.localeCompare(b.name)),
     [variants],
   );
-
-  const startNew = () => {
-    setSelectedVariant(null);
-    setIsModalOpen(true);
-  };
-
-  const selectVariant = (variant: ProductVariantRow) => {
-    setSelectedVariant(variant);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedVariant(null);
-  };
 
   const handleDelete = async (variant: ProductVariantRow) => {
     const deleted = await confirmDelete({
@@ -75,16 +57,25 @@ export function ProductVariantsSection({
     });
 
     if (deleted) {
-      if (selectedVariant?.id === variant.id) {
-        setSelectedVariant(null);
-      }
-      setProductDetail((prev) => ({
-        ...prev,
-        product_variants: prev.product_variants.filter(
-          (v) => v.id !== variant.id,
-        ),
-      }));
+      setVariants((prev) => prev.filter((a) => a.id !== variant.id));
     }
+  };
+
+  const handleVariantSaved = (savedVariant: ProductVariantRow) => {
+    if (variantModal.selected === null) {
+      setVariants([...variants, { ...savedVariant }]);
+      variantModal.close();
+      return;
+    }
+
+    const getGroupsUpdated = variants.map((variant) => {
+      if (variant.id === savedVariant.id) {
+        return savedVariant;
+      }
+      return variant;
+    });
+    setVariants(getGroupsUpdated);
+    variantModal.close();
   };
 
   return (
@@ -101,7 +92,7 @@ export function ProductVariantsSection({
         <button
           type="button"
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
-          onClick={startNew}
+          onClick={() => variantModal.openNew()}
         >
           <Plus className="size-4" />
           Nueva
@@ -118,7 +109,7 @@ export function ProductVariantsSection({
               <button
                 type="button"
                 className="min-w-0 flex-1 text-left"
-                onClick={() => selectVariant(variant)}
+                onClick={() => variantModal.openEdit(variant)}
               >
                 <span className="block truncate font-heading text-sm font-black text-foreground">
                   {variant.name}
@@ -146,7 +137,7 @@ export function ProductVariantsSection({
                 <button
                   type="button"
                   className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary"
-                  onClick={() => selectVariant(variant)}
+                  onClick={() => variantModal.openEdit(variant)}
                   aria-label={`Editar ${variant.name}`}
                 >
                   <Edit3 className="size-4" />
@@ -167,25 +158,18 @@ export function ProductVariantsSection({
         <EmptyState
           title="Sin variantes"
           description="Este producto no tiene variantes configuradas."
-          action={
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground transition hover:opacity-90"
-              onClick={startNew}
-            >
-              <Plus className="size-4" />
-              Nueva variante
-            </button>
-          }
+        />
+      )}
+      {variantModal.isOpen && (
+        <VariantModal
+          onCloseModal={variantModal.close}
+          productId={productId}
+          variant={variantModal.selected}
+          onSuccessSaved={handleVariantSaved}
         />
       )}
 
-      <VariantModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        productId={productId}
-        variant={selectedVariant}
-      />
+      <DeleteConfirmDialog />
     </section>
   );
-}
+};

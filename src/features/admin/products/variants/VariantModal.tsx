@@ -1,28 +1,26 @@
-import { useEffect, useMemo } from "react";
+import { Save, X } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, X } from "lucide-react";
-import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
-import { InputField } from "@/shared/components/InputField";
+
 import { Checkbox } from "@/shared/components/Checkbox";
-import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
+import { InputField } from "@/shared/components/InputField";
+import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
+
 import { parsePrice } from "@/features/admin/shared/utils/adminForms";
+import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
 import { saveProductVariant } from "@/features/admin/products/variants/services/admin-product-variants.service";
+
 import {
   productVariantSchema,
   type ProductVariantFormData,
 } from "@/features/admin/schemas/productVariantSchema";
-import type {
-  ProductVariantInput,
-  ProductVariantRow,
-} from "@/features/admin/types/products.types";
+import type { ProductVariantRow } from "@/features/admin/types/products.types";
 
 interface VariantModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onCloseModal: () => void;
   productId: string;
   variant: ProductVariantRow | null;
-  onSaved?: () => void;
+  onSuccessSaved: (addition: ProductVariantRow) => void;
 }
 
 const defaultValues: ProductVariantFormData = {
@@ -32,19 +30,24 @@ const defaultValues: ProductVariantFormData = {
   is_active: true,
 };
 
-export function VariantModal({
-  isOpen,
-  onClose,
+const toVariantForm = (variant: ProductVariantRow) => ({
+  name: variant.name,
+  price: String(Math.round(Number(variant.price))),
+  is_default: variant.is_default,
+  is_active: variant.is_active,
+});
+
+export const VariantModal = ({
+  onCloseModal,
   productId,
   variant,
-  onSaved = () => {},
-}: VariantModalProps) {
+  onSuccessSaved,
+}: VariantModalProps) => {
   const form = useForm<ProductVariantFormData>({
     resolver: zodResolver(productVariantSchema),
     defaultValues,
+    values: variant ? toVariantForm(variant) : defaultValues,
   });
-
-  const { reset, handleSubmit, setValue } = form;
 
   const watchedIsDefault = useWatch({
     control: form.control,
@@ -55,39 +58,27 @@ export function VariantModal({
     name: "is_active",
   });
 
-  const isNew = useMemo(() => variant === null, [variant]);
+  const isNewVariant = variant === null;
+  const titleModal = isNewVariant ? "Nueva variante" : "Editar variante";
+  const descriptionModal = isNewVariant
+    ? "Completa los datos para crear una nueva variante."
+    : "Actualiza los datos de la variante seleccionada.";
 
-  useEffect(() => {
-    if (variant) {
-      reset({
-        name: variant.name,
-        price: String(variant.price),
-        is_default: variant.is_default,
-        is_active: variant.is_active,
-      });
-    } else {
-      reset(defaultValues);
-    }
-  }, [variant, reset, isOpen]);
-
-  const { isSaving, execute: executeSave } = useSaveHandler<ProductVariantRow>({
-    successMessage: "Variante guardada.",
-    onSuccess: () => {
-      onClose();
-      onSaved();
-    },
+  const savedHandler = useSaveHandler<ProductVariantRow>({
+    successMessage: "Variante guardada correctamente.",
+    onSuccess: onSuccessSaved,
   });
 
   const onSubmit = async (data: ProductVariantFormData) => {
-    await executeSave(() =>
+    await savedHandler.execute(() =>
       saveProductVariant(
         {
-          product_id: productId,
           name: data.name.trim(),
           price: parsePrice(data.price) ?? 0,
+          product_id: productId,
           is_default: data.is_default,
           is_active: data.is_active,
-        } satisfies ProductVariantInput,
+        },
         variant?.id,
       ),
     );
@@ -95,17 +86,17 @@ export function VariantModal({
 
   return (
     <ButtonSheetModal
-      isOpen={isOpen}
-      title={isNew ? "Nueva variante" : "Editar variante"}
-      description={
-        isNew
-          ? "Completa los datos para crear una nueva variante."
-          : "Actualiza los datos de la variante seleccionada."
-      }
+      isOpen={true}
+      title={titleModal}
+      description={descriptionModal}
       contentClassName="max-w-lg"
-      onClose={onClose}
+      onClose={onCloseModal}
     >
-      <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form
+        className="grid gap-4"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+      >
         <InputField
           name="name"
           control={form.control}
@@ -129,7 +120,7 @@ export function VariantModal({
             description="Se selecciona por defecto"
             checked={watchedIsDefault}
             onCheckedChange={(checked) => {
-              setValue("is_default", checked, {
+              form.setValue("is_default", checked, {
                 shouldValidate: true,
               });
             }}
@@ -139,7 +130,7 @@ export function VariantModal({
             description="Visible para los clientes"
             checked={watchedIsActive}
             onCheckedChange={(checked) => {
-              setValue("is_active", checked, {
+              form.setValue("is_active", checked, {
                 shouldValidate: true,
               });
             }}
@@ -149,16 +140,16 @@ export function VariantModal({
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={savedHandler.isSaving}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
           >
             <Save className="size-4" />
-            {isSaving ? "Guardando" : "Guardar"}
+            {savedHandler.isSaving ? "Guardando..." : "Guardar"}
           </button>
           <button
             type="button"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
-            onClick={onClose}
+            onClick={onCloseModal}
           >
             <X className="size-4" />
             Cancelar
@@ -167,4 +158,4 @@ export function VariantModal({
       </form>
     </ButtonSheetModal>
   );
-}
+};
