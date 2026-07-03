@@ -1,4 +1,3 @@
-import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save, X } from "lucide-react";
@@ -15,11 +14,10 @@ import {
 import type { AdditionRow } from "@/features/admin/types/additions.types";
 
 interface ProductAdditionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onCloseModal: () => void;
   productId: string;
   addition: AdditionRow | null;
-  onSaved?: () => void;
+  onSuccessSaved: (addition: AdditionRow) => void;
 }
 
 const defaultValues: AdditionFormData = {
@@ -28,43 +26,36 @@ const defaultValues: AdditionFormData = {
   price: "",
 };
 
-export function ProductAdditionModal({
-  isOpen,
-  onClose,
+const toAdditionForm = (addition: AdditionRow) => ({
+  name: addition.name,
+  description: addition.description,
+  price: String(addition.price),
+});
+
+export const ProductAdditionModal = ({
+  onCloseModal,
   productId,
   addition,
-  onSaved = () => {},
-}: ProductAdditionModalProps) {
+  onSuccessSaved,
+}: ProductAdditionModalProps) => {
   const form = useForm<AdditionFormData>({
     resolver: zodResolver(additionSchema),
-    defaultValues,
+    values: addition ? toAdditionForm(addition) : defaultValues,
   });
 
-  const { reset, handleSubmit } = form;
-  const isNew = useMemo(() => addition === null, [addition]);
+  const isNewAddition = addition === null;
+  const titleModal = isNewAddition ? "Nueva adición" : "Editar adición";
+  const descriptionModal = isNewAddition
+    ? "Completa los datos para crear una nueva adición."
+    : "Actualiza los datos de la adición seleccionada.";
 
-  useEffect(() => {
-    if (addition) {
-      reset({
-        name: addition.name,
-        description: addition.description,
-        price: String(addition.price),
-      });
-    } else {
-      reset(defaultValues);
-    }
-  }, [addition, reset, isOpen]);
-
-  const { isSaving, execute: executeSave } = useSaveHandler<AdditionRow>({
-    successMessage: "Adición guardada.",
-    onSuccess: () => {
-      onClose();
-      onSaved();
-    },
+  const saveHandler = useSaveHandler<AdditionRow>({
+    successMessage: "Adición guardada correctamente.",
+    onSuccess: onSuccessSaved,
   });
 
   const onSubmit = async (data: AdditionFormData) => {
-    await executeSave(() =>
+    await saveHandler.execute(() =>
       saveAddition(
         {
           name: data.name.trim(),
@@ -79,17 +70,17 @@ export function ProductAdditionModal({
 
   return (
     <ButtonSheetModal
-      isOpen={isOpen}
-      title={isNew ? "Nueva adición" : "Editar adición"}
-      description={
-        isNew
-          ? "Completa los datos para crear una nueva adición."
-          : "Actualiza los datos de la adición seleccionada."
-      }
+      isOpen={true}
+      title={titleModal}
+      description={descriptionModal}
       contentClassName="max-w-lg"
-      onClose={onClose}
+      onClose={onCloseModal}
     >
-      <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form
+        className="grid gap-4"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <InputField
             name="name"
@@ -119,16 +110,16 @@ export function ProductAdditionModal({
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={saveHandler.isSaving}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
           >
             <Save className="size-4" />
-            {isSaving ? "Guardando" : "Guardar"}
+            {saveHandler.isSaving ? "Guardando..." : "Guardar"}
           </button>
           <button
             type="button"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
-            onClick={onClose}
+            onClick={onCloseModal}
           >
             <X className="size-4" />
             Cancelar
@@ -137,4 +128,4 @@ export function ProductAdditionModal({
       </form>
     </ButtonSheetModal>
   );
-}
+};

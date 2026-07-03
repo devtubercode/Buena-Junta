@@ -1,32 +1,26 @@
-import { useMemo } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useState } from "react";
 import { Edit3, Plus, Trash2 } from "lucide-react";
+
 import { EmptyState } from "@/shared/components/EmptyState";
 import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudModal";
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
 import { deleteAddition } from "@/features/admin/additions/services/admin-additions.service";
 import { ProductAdditionModal } from "./ProductAdditionModal";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
-import type { AdminProductDetailData } from "@/features/admin/types/products.types";
 
 interface ProductAdditionsSectionProps {
-  additions: AdditionRow[];
+  additionsData: AdditionRow[];
   productId: string;
-  setProductDetail: Dispatch<SetStateAction<AdminProductDetailData>>;
 }
 
-function formatPrice(price: number): string {
-  return `$${price.toLocaleString("es-CO")}`;
-}
-
-export function ProductAdditionsSection({
-  additions,
+export const ProductAdditionsSection = ({
+  additionsData,
   productId,
-  setProductDetail,
-}: ProductAdditionsSectionProps) {
-  const { confirmDelete } = useAdminDeleteConfirm();
-  const { selected, isOpen, openNew, openEdit, close } =
-    useAdminCrudModal<AdditionRow>();
+}: ProductAdditionsSectionProps) => {
+  const [additions, setAdditions] = useState<AdditionRow[]>(additionsData);
+  const { confirmDelete, ConfirmDialog: DeleteConfirmDialog } =
+    useAdminDeleteConfirm();
+  const additionModal = useAdminCrudModal<AdditionRow>();
 
   const sortedAdditions = useMemo(
     () => [...additions].sort((a, b) => a.name.localeCompare(b.name)),
@@ -42,13 +36,26 @@ export function ProductAdditionsSection({
     });
 
     if (deleted) {
-      setProductDetail((prev) => ({
-        ...prev,
-        product_additions: prev.product_additions.filter(
-          (a) => a.id !== addition.id,
-        ),
-      }));
+      setAdditions((prev) => prev.filter((a) => a.id !== addition.id));
     }
+  };
+
+  const handleAdditionSaved = (savedAddition: AdditionRow) => {
+    if (additionModal.selected === null) {
+      setAdditions([...additions, { ...savedAddition }]);
+      additionModal.close();
+      return;
+    }
+
+    const getGroupsUpdated = additions.map((addition) => {
+      if (addition.id === savedAddition.id) {
+        return savedAddition;
+      }
+
+      return addition;
+    });
+    setAdditions(getGroupsUpdated);
+    additionModal.close();
   };
 
   return (
@@ -65,15 +72,15 @@ export function ProductAdditionsSection({
         <button
           type="button"
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
-          onClick={openNew}
+          onClick={additionModal.openNew}
         >
           <Plus className="size-4" />
-          Nueva
+          Nueva adicción
         </button>
       </div>
 
       {sortedAdditions.length > 0 ? (
-        <div className="grid max-h-[400px] gap-3 overflow-y-auto pr-1">
+        <div className="grid max-h-100 gap-3 overflow-y-auto pr-1">
           {sortedAdditions.map((addition) => (
             <article
               key={addition.id}
@@ -82,17 +89,17 @@ export function ProductAdditionsSection({
               <button
                 type="button"
                 className="min-w-0 flex-1 text-left"
-                onClick={() => openEdit(addition)}
+                onClick={() => additionModal.openEdit(addition)}
               >
                 <span className="block truncate font-heading text-sm font-black text-foreground">
                   {addition.name}
                 </span>
                 <span className="mt-1 block text-xs font-bold text-muted-foreground">
                   <span className="text-primary">
-                    {formatPrice(addition.price)}
+                    {`$${addition.price.toLocaleString("es-CO")}`}
                   </span>
                   {addition.description ? (
-                    <span className="ml-1.5 break-words">
+                    <span className="ml-1.5 wrap-break-word">
                       · {addition.description}
                     </span>
                   ) : null}
@@ -102,7 +109,7 @@ export function ProductAdditionsSection({
                 <button
                   type="button"
                   className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary"
-                  onClick={() => openEdit(addition)}
+                  onClick={() => additionModal.openEdit(addition)}
                   aria-label={`Editar ${addition.name}`}
                 >
                   <Edit3 className="size-4" />
@@ -123,25 +130,18 @@ export function ProductAdditionsSection({
         <EmptyState
           title="Sin adiciones"
           description="Este producto no tiene adiciones configuradas."
-          action={
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground transition hover:opacity-90"
-              onClick={openNew}
-            >
-              <Plus className="size-4" />
-              Nueva adición
-            </button>
-          }
         />
       )}
 
-      <ProductAdditionModal
-        isOpen={isOpen}
-        onClose={close}
-        productId={productId}
-        addition={selected}
-      />
+      {additionModal.isOpen && (
+        <ProductAdditionModal
+          onCloseModal={additionModal.close}
+          productId={productId}
+          addition={additionModal.selected}
+          onSuccessSaved={handleAdditionSaved}
+        />
+      )}
+      <DeleteConfirmDialog />
     </section>
   );
-}
+};
