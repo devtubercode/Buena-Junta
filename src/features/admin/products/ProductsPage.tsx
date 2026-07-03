@@ -1,15 +1,12 @@
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
 import { appRoutes } from "@/app/routes";
-import { AdminDataState } from "@/features/admin/shared/state/AdminDataState";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
-import { AdminProductsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
+import { ProductsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { SearchInput } from "@/shared/components/SearchInput";
 
-import { useCategoriesData } from "@/features/admin/categories/hooks/useCategoriesData";
 import { useAdminProductsFilters } from "@/features/admin/products/hooks/useAdminProductsFilters";
 import { AdminProductCategoryFilter } from "@/features/admin/products/components/AdminProductCategoryFilter";
-import { AdminProductList } from "@/features/admin/products/components/AdminProductList";
 import { AdminProductEmptyState } from "@/features/admin/products/components/AdminProductEmptyState";
 import { useAdminResource } from "../shared/hooks/useAdminResource";
 
@@ -19,6 +16,10 @@ import {
 } from "./services/admin-products.service";
 import type { AdminProductListRow } from "../types/products.types";
 import { useAdminDeleteConfirm } from "../shared/hooks/useAdminDeleteConfirm";
+import { AdminProductCard } from "./components/AdminProductCard";
+import type { CategoryRow } from "../types/categories.types";
+import { fetchAdminCategories } from "../categories/services/admin-categories.service";
+import { EmptyState } from "@/shared/components/EmptyState";
 
 export const ProductsPage = () => {
   const {
@@ -32,7 +33,7 @@ export const ProductsPage = () => {
     data: categories,
     isLoading: isLoadingCategories,
     error: categoriesError,
-  } = useCategoriesData();
+  } = useAdminResource<CategoryRow[]>(fetchAdminCategories, []);
 
   const {
     searchQuery,
@@ -66,24 +67,19 @@ export const ProductsPage = () => {
 
   const isLoading = isLoadingProducts || isLoadingCategories;
   const error = productsError ?? categoriesError;
+  const hasProducts = products.length > 0;
+  const hasFilteredProducts = filteredProducts.length > 0;
 
   if (error) {
-    return <AdminDataState isLoading={false} error={error} />;
-  }
-
-  if (isLoading) {
     return (
-      <AdminSection
-        title="Productos"
-        description="Consulta productos del menú y entra a cada producto para editar su información, imagen y variantes."
-      >
-        <AdminProductsSkeleton />
-      </AdminSection>
+      <EmptyState
+        title="No se pudieron cargar los datos"
+        description={error.message}
+      />
     );
   }
 
-  const hasProducts = products.length > 0;
-  const hasFilteredProducts = filteredProducts.length > 0;
+  if (isLoading) return <ProductsSkeleton />;
 
   return (
     <AdminSection
@@ -137,10 +133,15 @@ export const ProductsPage = () => {
           onClearFilters={clearFilters}
         />
       ) : (
-        <AdminProductList
-          products={filteredProducts}
-          onDelete={onDeleteProduct}
-        />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+          {products.map((product) => (
+            <AdminProductCard
+              key={product.id}
+              product={product}
+              onDelete={onDeleteProduct}
+            />
+          ))}
+        </div>
       )}
 
       <ConfirmProductDeleteDialog />

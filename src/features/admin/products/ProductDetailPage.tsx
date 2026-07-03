@@ -2,7 +2,6 @@ import { Link, useParams } from "react-router";
 import { appRoutes } from "@/app/routes";
 import { AdminProductDetailSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { AdminNotFoundState } from "@/features/admin/shared/state/AdminNotFoundState";
-import { useCategoriesData } from "@/features/admin/categories/hooks/useCategoriesData";
 import { ProductForm } from "@/features/admin/products/components/ProductForm";
 import { ProductOptionGroupsSection } from "@/features/admin/products/option-groups/ProductOptionGroupsSection";
 import { ProductVariantsSection } from "@/features/admin/products/variants/ProductVariantsSection";
@@ -14,6 +13,8 @@ import { useCallback } from "react";
 import type { AdminProductDetailData } from "../types/products.types";
 import { fetchAdminProductDetail } from "./services/admin-products.service";
 import { useAdminResource } from "../shared/hooks/useAdminResource";
+import { fetchAdminCategories } from "../categories/services/admin-categories.service";
+import type { CategoryRow } from "../types/categories.types";
 
 const emptyProductDetail: AdminProductDetailData = {
   product: null,
@@ -34,7 +35,6 @@ export const ProductDetailPage = () => {
 
   const {
     data: productDetail,
-    setData: setProductDetail,
     isLoading: isLoadingProductDetail,
     error: productDetailError,
   } = useAdminResource(fetchProductDetail, emptyProductDetail, {
@@ -45,7 +45,7 @@ export const ProductDetailPage = () => {
     data: categories,
     isLoading: isLoadingCategories,
     error: categoriesError,
-  } = useCategoriesData();
+  } = useAdminResource<CategoryRow[]>(fetchAdminCategories, []);
 
   const isLoading = isLoadingProductDetail || isLoadingCategories;
   const error = productDetailError ?? categoriesError;
@@ -100,8 +100,7 @@ export const ProductDetailPage = () => {
             <div className="min-w-0 xl:col-start-2">
               <ProductVariantsSection
                 productId={productDetail.product.id}
-                variants={productDetail.product_variants}
-                setProductDetail={setProductDetail}
+                variantsData={productDetail.product_variants}
               />
             </div>
           ) : (
@@ -117,9 +116,8 @@ export const ProductDetailPage = () => {
           {productDetail.product ? (
             <div className="min-w-0 xl:col-span-2">
               <ProductAdditionsSection
-                additions={productDetail.product_additions}
+                additionsData={productDetail.product_additions}
                 productId={productDetail.product.id}
-                setProductDetail={setProductDetail}
               />
             </div>
           ) : (
@@ -138,7 +136,6 @@ export const ProductDetailPage = () => {
               <ProductOptionGroupsSection
                 productId={productDetail.product.id}
                 optionGroups={productDetail.product_option_groups}
-                setProductDetail={setProductDetail}
               />
             </div>
           ) : (

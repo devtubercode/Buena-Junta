@@ -104,20 +104,23 @@ export const AdminProductCard = ({
         {product.price && (
           <p className="mt-1.5 text-sm font-black text-primary">{`$${product.price.toLocaleString("es-CO")}`}</p>
         )}
-
-        <div className="my-2 flex flex-wrap gap-1.5">
-          {hasVariants ? (
-            <InfoBadge icon={Layers}>
-              {quantityVariants}{" "}
-              {quantityVariants === 1 ? "variante" : "variantes"}
-            </InfoBadge>
-          ) : null}
-          {hasOptionGroups ? (
-            <InfoBadge icon={List} variant="primary">
-              {quantityGroups} {quantityGroups === 1 ? "opción" : "opciones"}
-            </InfoBadge>
-          ) : null}
-        </div>
+        {hasVariants ||
+          (hasOptionGroups && (
+            <div className="my-2 flex flex-wrap gap-1.5">
+              {hasVariants ? (
+                <InfoBadge icon={Layers}>
+                  {quantityVariants}{" "}
+                  {quantityVariants === 1 ? "variante" : "variantes"}
+                </InfoBadge>
+              ) : null}
+              {hasOptionGroups ? (
+                <InfoBadge icon={List} variant="primary">
+                  {quantityGroups}{" "}
+                  {quantityGroups === 1 ? "opción" : "opciones"}
+                </InfoBadge>
+              ) : null}
+            </div>
+          ))}
 
         <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-2.5 sm:pt-3">
           <Link

@@ -55,7 +55,7 @@ export function AdminProductCategoryFilter({
       aria-label="Filtrar productos por categoría"
       className="relative min-w-0 -mx-4 sm:mx-0"
     >
-      <div className="flex min-w-0 gap-2 overflow-x-auto px-4 pb-1 pt-1 [-ms-overflow-style:none] scrollbar-none snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden">
+      <div className="flex min-w-0 gap-2 overflow-x-auto px-4 pb-3 pt-1 [-ms-overflow-style:none] scrollbar-none snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden">
         <CategoryChip
           active={selectedCategoryId === null}
           onClick={() => onChange(null)}
