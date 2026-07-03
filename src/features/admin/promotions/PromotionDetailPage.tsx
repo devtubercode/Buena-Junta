@@ -1,13 +1,13 @@
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { appRoutes } from "@/app/routes";
-import { AdminDataState } from "@/features/admin/shared/state/AdminDataState";
 import { AdminDetailShell } from "@/features/admin/shared/components/AdminDetailShell";
 import { AdminNotFoundState } from "@/features/admin/shared/state/AdminNotFoundState";
-import { AdminPromotionDetailSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
+import { PromotionDetailSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { usePromotionDetailData } from "@/features/admin/promotions/hooks/usePromotionDetailData";
 import { useAdminPromotionForm } from "@/features/admin/promotions/hooks/useAdminPromotionForm";
 import { PromotionDetailForm } from "@/features/admin/promotions/components/PromotionDetailForm";
 import type { PromotionRow } from "@/features/admin/types/promotions.types";
+import { EmptyState } from "@/shared/components/EmptyState";
 
 function getPromotionDetailPath(promotion: Pick<PromotionRow, "id" | "slug">) {
   return `${appRoutes.adminPromotions}/${promotion.slug}?id=${promotion.id}`;
@@ -48,20 +48,15 @@ export function PromotionDetailPage() {
   });
 
   if (error) {
-    return <AdminDataState isLoading={false} error={error} />;
-  }
-
-  if (isLoading) {
     return (
-      <AdminDetailShell
-        title="Cargando promoción..."
-        description="Gestiona la información, imagen, vigencia y relaciones de esta promoción."
-        backTo={appRoutes.adminPromotions}
-      >
-        <AdminPromotionDetailSkeleton />
-      </AdminDetailShell>
+      <EmptyState
+        title="No se pudieron cargar los datos"
+        description={error.message}
+      />
     );
   }
+
+  if (isLoading) return <PromotionDetailSkeleton />;
 
   if (!isNewPromotion && !selected) {
     return (

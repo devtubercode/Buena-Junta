@@ -1,9 +1,8 @@
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
 import { appRoutes } from "@/app/routes";
-import { AdminDataState } from "@/features/admin/shared/state/AdminDataState";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
-import { AdminPromotionsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
+import { PromotionsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { usePromotionsData } from "@/features/admin/promotions/hooks/usePromotionsData";
 import { useAdminPromotionFilters } from "@/features/admin/promotions/hooks/useAdminPromotionFilters";
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
@@ -12,6 +11,7 @@ import { PromotionList } from "@/features/admin/promotions/components/PromotionL
 import { PromotionEmptyState } from "@/features/admin/promotions/components/PromotionEmptyState";
 import { deletePromotion } from "@/features/admin/promotions/services/admin-promotions.service";
 import type { AdminPromotionListRow } from "@/features/admin/types/promotions.types";
+import { EmptyState } from "@/shared/components/EmptyState";
 
 export function PromotionsPage() {
   const { data: promotions, isLoading, error, reload } = usePromotionsData();
@@ -42,18 +42,16 @@ export function PromotionsPage() {
   };
 
   if (error) {
-    return <AdminDataState isLoading={false} error={error} />;
+    return (
+      <EmptyState
+        title="No se pudieron cargar los datos"
+        description={error.message}
+      />
+    );
   }
 
   if (isLoading) {
-    return (
-      <AdminSection
-        title="Promociones"
-        description="Consulta promociones del menú y entra a cada promoción para editar vigencia, imagen y relaciones."
-      >
-        <AdminPromotionsSkeleton />
-      </AdminSection>
-    );
+    return <PromotionsSkeleton />;
   }
 
   const hasPromotions = promotions.length > 0;
@@ -86,10 +84,7 @@ export function PromotionsPage() {
       {!hasPromotions ? (
         <PromotionEmptyState type="empty" />
       ) : !hasFilteredPromotions ? (
-        <PromotionEmptyState
-          type="no-results"
-          onClearFilters={clearFilters}
-        />
+        <PromotionEmptyState type="no-results" onClearFilters={clearFilters} />
       ) : (
         <PromotionList
           promotions={filteredPromotions}
