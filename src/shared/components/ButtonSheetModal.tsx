@@ -57,9 +57,7 @@ export function ButtonSheetModal({
       className="fixed inset-0 z-70 flex items-end justify-center bg-foreground/45 px-0 py-0 backdrop-blur-sm sm:items-center sm:px-4 sm:py-4"
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
+        if (event.target === event.currentTarget) onClose();
       }}
     >
       <section
@@ -73,11 +71,11 @@ export function ButtonSheetModal({
           contentClassName,
         )}
       >
-        <div className="relative flex items-start justify-between px-3 pb-2 pt-3 sm:px-0 sm:pb-0 sm:pt-0">
+        <div className="relative flex items-center justify-center px-3 pb-2 pt-3 sm:px-0 sm:pb-0 sm:pt-0">
           <div className="h-1.5 w-12 rounded-full bg-border sm:hidden" />
           <button
             type="button"
-            className="inline-flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:size-9"
+            className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary sm:right-0 sm:top-0 sm:size-9"
             aria-label="Cerrar modal"
             onClick={onClose}
           >
