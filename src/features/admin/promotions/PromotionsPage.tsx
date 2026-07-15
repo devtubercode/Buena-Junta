@@ -3,19 +3,26 @@ import { Plus } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
 import { PromotionsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
-import { usePromotionsData } from "@/features/admin/promotions/hooks/usePromotionsData";
-import { useAdminPromotionFilters } from "@/features/admin/promotions/hooks/useAdminPromotionFilters";
+import { useAdminResource } from "@/features/admin/shared/hooks/useAdminResource";
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
-import { PromotionsToolbar } from "@/features/admin/promotions/components/PromotionsToolbar";
-import { PromotionList } from "@/features/admin/promotions/components/PromotionList";
+import { PromotionStatusFilter } from "@/features/admin/promotions/components/PromotionStatusFilter";
+import { PromotionCard } from "@/features/admin/promotions/components/PromotionCard";
 import { PromotionEmptyState } from "@/features/admin/promotions/components/PromotionEmptyState";
-import { deletePromotion } from "@/features/admin/promotions/services/admin-promotions.service";
+import {
+  deletePromotion,
+  fetchAdminPromotionsList,
+} from "@/features/admin/promotions/services/admin-promotions.service";
+import { useAdminPromotionFilters } from "@/features/admin/promotions/hooks/useAdminPromotionFilters";
 import type { AdminPromotionListRow } from "@/features/admin/types/promotions.types";
 import { EmptyState } from "@/shared/components/EmptyState";
 
-export function PromotionsPage() {
-  const { data: promotions, isLoading, error, reload } = usePromotionsData();
-  const { confirmDelete, ConfirmDialog } = useAdminDeleteConfirm();
+export const PromotionsPage = () => {
+  const {
+    data: promotions,
+    setData: setPromotions,
+    isLoading,
+    error,
+  } = useAdminResource<AdminPromotionListRow[]>(fetchAdminPromotionsList, []);
 
   const {
     statusFilter,
@@ -24,8 +31,14 @@ export function PromotionsPage() {
     activeFiltersCount,
   } = useAdminPromotionFilters(promotions);
 
-  const handleDelete = async (promotion: AdminPromotionListRow) => {
-    const deleted = await confirmDelete({
+  const { confirmDelete, ConfirmDialog: ConfirmPromotionDeleteDialog } =
+    useAdminDeleteConfirm();
+
+  const hasPromotions = promotions.length > 0;
+  const hasFilteredPromotions = filteredPromotions.length > 0;
+
+  const onDeletePromotion = async (promotion: AdminPromotionListRow) => {
+    const deleted = await confirmDelete<AdminPromotionListRow>({
       item: promotion,
       deleteFn: deletePromotion,
       id: promotion.id,
@@ -33,13 +46,11 @@ export function PromotionsPage() {
     });
 
     if (deleted) {
-      await reload();
+      setPromotions((prev) => prev.filter((p) => p.id !== promotion.id));
     }
   };
 
-  const clearFilters = () => {
-    setStatusFilter("all");
-  };
+  const clearFilters = () => setStatusFilter("all");
 
   if (error) {
     return (
@@ -50,12 +61,7 @@ export function PromotionsPage() {
     );
   }
 
-  if (isLoading) {
-    return <PromotionsSkeleton />;
-  }
-
-  const hasPromotions = promotions.length > 0;
-  const hasFilteredPromotions = filteredPromotions.length > 0;
+  if (isLoading) return <PromotionsSkeleton />;
 
   return (
     <AdminSection
@@ -63,36 +69,51 @@ export function PromotionsPage() {
       description="Consulta promociones del menú y entra a cada promoción para editar vigencia, imagen y relaciones."
       actions={
         <Link
-          to={`${appRoutes.adminPromotions}/nueva`}
+          to={`${appRoutes.adminPromotions}/new`}
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
         >
           <Plus className="size-4" />
-          Nueva promoción
+          Nuevo
         </Link>
       }
     >
       {hasPromotions ? (
-        <PromotionsToolbar
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          activeFiltersCount={activeFiltersCount}
-          onClearFilters={clearFilters}
-          resultCount={filteredPromotions.length}
-        />
+        <div className="grid min-w-0 gap-4">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <PromotionStatusFilter
+              value={statusFilter}
+              onChange={setStatusFilter}
+            />
+            {activeFiltersCount > 0 ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
+              >
+                Limpiar filtros
+              </button>
+            ) : null}
+          </div>
+        </div>
       ) : null}
 
       {!hasPromotions ? (
         <PromotionEmptyState type="empty" />
       ) : !hasFilteredPromotions ? (
-        <PromotionEmptyState type="no-results" onClearFilters={clearFilters} />
+        <PromotionEmptyState type="no-results" />
       ) : (
-        <PromotionList
-          promotions={filteredPromotions}
-          onDelete={handleDelete}
-        />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
+          {filteredPromotions.map((promotion) => (
+            <PromotionCard
+              key={promotion.id}
+              promotion={promotion}
+              onDelete={onDeletePromotion}
+            />
+          ))}
+        </div>
       )}
 
-      <ConfirmDialog />
+      <ConfirmPromotionDeleteDialog />
     </AdminSection>
   );
-}
+};

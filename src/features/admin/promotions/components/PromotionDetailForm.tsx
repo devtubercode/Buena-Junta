@@ -12,51 +12,49 @@ import { toDatetimeLocal } from "@/features/admin/shared/utils/adminForms";
 import { weekdays } from "@/features/admin/promotions/utils/promotionForms";
 import { cn } from "@/shared/utils/cn";
 import { SUPABASE_BUCKETS } from "@/lib/supabase/constants";
-import type { PromotionFormData } from "@/features/admin/schemas/promotionSchema";
+
 import type { CategoryRow } from "@/features/admin/types/categories.types";
 import type { ProductRow } from "@/features/admin/types/products.types";
 import type { PromotionRow } from "@/features/admin/types/promotions.types";
-import type { UseFormReturn } from "react-hook-form";
-import type { ImageUploadAction } from "@/features/admin/shared/hooks/useImageUpload";
+import { usePromotionForm } from "../hooks/usePromotionForm";
 
 type PromotionDetailFormProps = {
   categories: CategoryRow[];
   products: ProductRow[];
-  selected: PromotionRow | null;
-  form: UseFormReturn<PromotionFormData>;
-  isSaving: boolean;
-  imagePreviewUrl: string | null;
-  imageAction: ImageUploadAction;
-  onImageFileChange: (file: File | null) => void;
-  onRemoveImage: () => void;
-  toggleWeekday: (weekday: number) => void;
-  onSubmit: (data: PromotionFormData) => Promise<void>;
+  promotion: PromotionRow | null;
+  onChangePromotionSaved: (savedPromotion: PromotionRow) => void;
 };
 
-export function PromotionDetailForm({
+export const PromotionDetailForm = ({
   categories,
   products,
-  selected,
-  form,
-  isSaving,
-  imagePreviewUrl,
-  imageAction,
-  onImageFileChange,
-  onRemoveImage,
-  toggleWeekday,
-  onSubmit,
-}: PromotionDetailFormProps) {
-  const { setValue, watch, handleSubmit } = form;
+  promotion,
+  onChangePromotionSaved,
+}: PromotionDetailFormProps) => {
+  const {
+    form,
+    isSaving,
+    imagePreviewUrl,
+    imageAction,
+    setSelectedImageFile,
+    removeImage,
+    toggleWeekday,
+    onSubmit,
+    onChangeField,
+  } = usePromotionForm({
+    promotion: promotion,
+    onSuccessSaved: onChangePromotionSaved,
+  });
 
-  const watchedIsActive = watch("is_active");
-  const watchedStartsAt = watch("starts_at");
-  const watchedEndsAt = watch("ends_at");
-  const watchedWeekdays = watch("active_weekdays");
+  const watchedIsActive = form.watch("is_active");
+  const watchedStartsAt = form.watch("starts_at");
+  const watchedEndsAt = form.watch("ends_at");
+  const watchedWeekdays = form.watch("active_weekdays");
 
   return (
     <form
       className="grid min-w-0 max-w-full gap-4 xl:grid-cols-[minmax(0,1fr)_420px] xl:gap-5"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(onSubmit)}
       noValidate
     >
       <div className="grid min-w-0 content-start gap-4">
@@ -110,11 +108,9 @@ export function PromotionDetailForm({
                 className={adminInputClass}
                 type="datetime-local"
                 value={toDatetimeLocal(watchedStartsAt)}
-                onChange={(event) => {
-                  setValue("starts_at", event.target.value, {
-                    shouldValidate: true,
-                  });
-                }}
+                onChange={(event) =>
+                  onChangeField("starts_at", event.target.value)
+                }
               />
             </AdminField>
             <AdminField label="Fin">
@@ -123,9 +119,7 @@ export function PromotionDetailForm({
                 type="datetime-local"
                 value={toDatetimeLocal(watchedEndsAt)}
                 onChange={(event) => {
-                  setValue("ends_at", event.target.value, {
-                    shouldValidate: true,
-                  });
+                  onChangeField("ends_at", event.target.value);
                 }}
               />
             </AdminField>
@@ -225,10 +219,10 @@ export function PromotionDetailForm({
 
           <AdminImageField
             imagePreviewUrl={imagePreviewUrl}
-            currentImagePath={selected?.image_path ?? null}
+            currentImagePath={promotion?.image_path ?? null}
             imageAction={imageAction}
-            onFileChange={onImageFileChange}
-            onRemove={onRemoveImage}
+            onFileChange={setSelectedImageFile}
+            onRemove={() => removeImage()}
             bucket={SUPABASE_BUCKETS.PROMOTION_IMAGES}
             label="Imagen de la promoción"
           />
@@ -238,11 +232,7 @@ export function PromotionDetailForm({
               label="Promoción activa"
               description="La promoción será visible para los clientes cuando cumpla la vigencia."
               checked={watchedIsActive}
-              onCheckedChange={(checked) => {
-                setValue("is_active", checked, {
-                  shouldValidate: true,
-                });
-              }}
+              onCheckedChange={(checked) => onChangeField("is_active", checked)}
             />
           </div>
 
@@ -252,10 +242,10 @@ export function PromotionDetailForm({
             className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
           >
             <Save className="size-4" />
-            {isSaving ? "Guardando" : "Guardar promoción"}
+            {isSaving ? "Guardando..." : "Guardar promoción"}
           </button>
         </section>
       </div>
     </form>
   );
-}
+};

@@ -19,8 +19,8 @@ export type PromotionRow = {
 export type PromotionInput = Omit<PromotionRow, "id">;
 
 export type AdminPromotionListRow = PromotionRow & {
-  categories: Pick<CategoryRow, "id" | "name"> | null;
-  products: Pick<ProductRow, "id" | "name"> | null;
+  category: Pick<CategoryRow, "id" | "name"> | null;
+  product: Pick<ProductRow, "id" | "name"> | null;
 };
 
 export type AdminPromotionDetailData = {

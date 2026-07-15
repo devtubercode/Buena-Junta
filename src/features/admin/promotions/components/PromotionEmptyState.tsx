@@ -5,13 +5,9 @@ import { appRoutes } from "@/app/routes";
 
 type PromotionEmptyStateProps = {
   type: "empty" | "no-results";
-  onClearFilters?: () => void;
 };
 
-export function PromotionEmptyState({
-  type,
-  onClearFilters,
-}: PromotionEmptyStateProps) {
+export const PromotionEmptyState = ({ type }: PromotionEmptyStateProps) => {
   if (type === "empty") {
     return (
       <EmptyState
@@ -34,18 +30,8 @@ export function PromotionEmptyState({
   return (
     <EmptyState
       title="Sin resultados"
-        description="No encontramos promociones que coincidan con el filtro seleccionado."
+      description="No encontramos promociones que coincidan con el filtro seleccionado."
       icon={<SearchX className="size-8" />}
-      action={
-        <button
-          type="button"
-          onClick={onClearFilters}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
-        >
-          <SearchX className="size-4" />
-          Limpiar filtros
-        </button>
-      }
     />
   );
-}
+};

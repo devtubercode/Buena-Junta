@@ -10,16 +10,16 @@ import type {
 import type { CategoryRow } from "@/features/admin/types/categories.types";
 import type { ProductRow } from "@/features/admin/types/products.types";
 
-export async function fetchAdminPromotionsList(): Promise<
+export const fetchAdminPromotionsList = async (): Promise<
   AdminPromotionListRow[]
-> {
+> => {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PROMOTIONS)
     .select(
       `
         *,
-        categories(id, name),
-        products(id, name)
+        category:categories(id, name),
+        product:products(id, name)
       `,
     )
     .order("title");
@@ -27,19 +27,21 @@ export async function fetchAdminPromotionsList(): Promise<
   throwIfError(error);
 
   return (data ?? []) as unknown as AdminPromotionListRow[];
-}
+};
 
-export async function fetchAdminPromotionDetail(
-  promotionId: string,
-): Promise<AdminPromotionDetailData> {
+export const fetchAdminPromotionDetail = async (
+  promotionSlug?: string,
+): Promise<AdminPromotionDetailData> => {
   const [categories, products, promotionResult] = await Promise.all([
     supabase.from(SUPABASE_TABLES.CATEGORIES).select("*").order("name"),
     supabase.from(SUPABASE_TABLES.PRODUCTS).select("*").order("name"),
-    supabase
-      .from(SUPABASE_TABLES.PROMOTIONS)
-      .select("*")
-      .eq("id", promotionId)
-      .maybeSingle(),
+    promotionSlug
+      ? supabase
+          .from(SUPABASE_TABLES.PROMOTIONS)
+          .select("*")
+          .eq("slug", promotionSlug)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
   ]);
 
   throwIfError(categories.error);
@@ -51,17 +53,17 @@ export async function fetchAdminPromotionDetail(
     products: (products.data ?? []) as unknown as ProductRow[],
     promotion: promotionResult.data as unknown as PromotionRow | null,
   };
-}
+};
 
-export async function savePromotion(
+export const savePromotion = async (
   input: PromotionInput,
-  id?: string,
-): Promise<PromotionRow> {
-  const result = id
+  promotionId?: string,
+): Promise<PromotionRow> => {
+  const result = promotionId
     ? await supabase
         .from(SUPABASE_TABLES.PROMOTIONS)
         .update(input)
-        .eq("id", id)
+        .eq("id", promotionId)
         .select()
         .single()
     : await supabase
@@ -73,13 +75,13 @@ export async function savePromotion(
   throwIfError(result.error);
 
   return result.data as unknown as PromotionRow;
-}
+};
 
-export async function deletePromotion(id: string): Promise<void> {
+export const deletePromotion = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from(SUPABASE_TABLES.PROMOTIONS)
     .delete()
     .eq("id", id);
 
   throwIfError(error);
-}
+};

@@ -84,7 +84,6 @@ const useProductForm = ({ selectedProduct }: UseProductFormOptions) => {
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-    defaultValues: defaultProductValues,
     values: selectedProduct
       ? toProductForm(selectedProduct)
       : defaultProductValues,

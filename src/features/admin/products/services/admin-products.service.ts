@@ -32,13 +32,9 @@ export async function fetchAdminProductsList(): Promise<AdminProductListRow[]> {
   return (products ?? []) as unknown as AdminProductListRow[];
 }
 
-// ==========================================
-// Product Detail
-// ==========================================
-
-export async function fetchAdminProductDetail(
+export const fetchAdminProductDetail = async (
   slug: string,
-): Promise<AdminProductDetailData> {
+): Promise<AdminProductDetailData> => {
   const product = await fetchProductBySlug(slug);
 
   if (!product) {
@@ -62,13 +58,15 @@ export async function fetchAdminProductDetail(
     product_additions: additions,
     product_option_groups: optionGroups,
   };
-}
+};
 
 // ==========================================
 // Data Fetchers
 // ==========================================
 
-async function fetchProductBySlug(slug: string): Promise<ProductRow | null> {
+export const fetchProductBySlug = async (
+  slug: string,
+): Promise<ProductRow | null> => {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PRODUCTS)
     .select("*")
@@ -78,7 +76,7 @@ async function fetchProductBySlug(slug: string): Promise<ProductRow | null> {
   throwIfError(error);
 
   return data as unknown as ProductRow | null;
-}
+};
 
 async function fetchProductAdditions(productId: string) {
   const { data, error } = await supabase

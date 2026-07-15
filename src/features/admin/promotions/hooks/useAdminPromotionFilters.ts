@@ -1,27 +1,25 @@
 import { useMemo, useState } from "react";
 import {
   getPromotionStatus,
-  type PromotionStatusFilter,
+  type StatusFilterPromotion,
 } from "@/features/admin/promotions/utils/promotionFilters";
 import type { AdminPromotionListRow } from "@/features/admin/types/promotions.types";
 
 type UseAdminPromotionFiltersResult = {
-  statusFilter: PromotionStatusFilter;
-  setStatusFilter: (value: PromotionStatusFilter) => void;
+  statusFilter: StatusFilterPromotion;
+  setStatusFilter: (value: StatusFilterPromotion) => void;
   filteredPromotions: AdminPromotionListRow[];
   activeFiltersCount: number;
 };
 
-export function useAdminPromotionFilters(
+export const useAdminPromotionFilters = (
   promotions: AdminPromotionListRow[],
-): UseAdminPromotionFiltersResult {
+): UseAdminPromotionFiltersResult => {
   const [statusFilter, setStatusFilter] =
-    useState<PromotionStatusFilter>("all");
+    useState<StatusFilterPromotion>("all");
 
   const filteredPromotions = useMemo(() => {
-    if (statusFilter === "all") {
-      return promotions;
-    }
+    if (statusFilter === "all") return promotions;
 
     return promotions.filter(
       (promotion) => getPromotionStatus(promotion) === statusFilter,
@@ -36,4 +34,4 @@ export function useAdminPromotionFilters(
     filteredPromotions,
     activeFiltersCount,
   };
-}
+};

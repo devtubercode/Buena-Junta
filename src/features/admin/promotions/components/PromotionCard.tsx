@@ -13,11 +13,8 @@ type PromotionCardProps = {
   onDelete: (promotion: AdminPromotionListRow) => void;
 };
 
-function getPromotionDetailPath(promotion: AdminPromotionListRow) {
-  return `${appRoutes.adminPromotions}/${promotion.slug}?id=${promotion.id}`;
-}
-
-export function PromotionCard({ promotion, onDelete }: PromotionCardProps) {
+export const PromotionCard = ({ promotion, onDelete }: PromotionCardProps) => {
+  const promotionDetailPath = `${appRoutes.adminPromotions}/${promotion.slug}`;
   const imageUrl = promotion.image_path
     ? getStorageImageUrl(
         promotion.image_path,
@@ -25,20 +22,15 @@ export function PromotionCard({ promotion, onDelete }: PromotionCardProps) {
       )
     : null;
 
-  const categoryName = promotion.categories?.name;
-  const productName = promotion.products?.name;
+  const categoryName = promotion.category?.name;
+  const productName = promotion.product?.name;
   const status = getPromotionStatus(promotion);
 
-  const relationLabel = [categoryName, productName]
-    .filter(Boolean)
-    .join(" · ");
+  const relationLabel = [categoryName, productName].filter(Boolean).join(" · ");
 
   return (
     <article className="group flex min-w-0 flex-row gap-3 rounded-xl border border-border bg-surface p-3 shadow-elevated transition hover:border-primary/30 hover:shadow-lg sm:flex-col">
-      <Link
-        to={getPromotionDetailPath(promotion)}
-        className="shrink-0 sm:block"
-      >
+      <Link to={promotionDetailPath} className="shrink-0 sm:block">
         <div
           className={cn(
             "flex size-18 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-muted text-muted-foreground transition group-hover:border-primary/30 sm:aspect-video sm:h-auto sm:w-full",
@@ -50,6 +42,7 @@ export function PromotionCard({ promotion, onDelete }: PromotionCardProps) {
               src={imageUrl}
               alt={promotion.title}
               className="size-full object-cover"
+              loading="lazy"
             />
           ) : (
             <ImageIcon className="size-7" />
@@ -61,13 +54,12 @@ export function PromotionCard({ promotion, onDelete }: PromotionCardProps) {
         <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="min-w-0">
             <Link
-              to={getPromotionDetailPath(promotion)}
+              to={promotionDetailPath}
               className="block truncate font-heading text-base font-black leading-tight text-foreground transition hover:text-primary sm:text-lg"
             >
               {promotion.title}
             </Link>
-            <p className="mt-0.5 truncate text-xs font-bold text-muted-foreground">
-              {promotion.slug}
+            <p className="mt-0.5 text-xs font-bold text-muted-foreground">
               {relationLabel ? ` · ${relationLabel}` : ""}
             </p>
           </div>
@@ -82,7 +74,7 @@ export function PromotionCard({ promotion, onDelete }: PromotionCardProps) {
 
         <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-2.5 sm:pt-3">
           <Link
-            to={getPromotionDetailPath(promotion)}
+            to={promotionDetailPath}
             className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-surface-muted text-foreground transition hover:border-primary hover:text-primary"
             aria-label={`Editar ${promotion.title}`}
           >
@@ -100,4 +92,4 @@ export function PromotionCard({ promotion, onDelete }: PromotionCardProps) {
       </div>
     </article>
   );
-}
+};

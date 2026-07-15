@@ -11,8 +11,7 @@ const statusConfig: Record<
 > = {
   active: {
     label: "Activa",
-    className:
-      "border-success-border bg-success-soft text-success",
+    className: "border-success-border bg-success-soft text-success",
   },
   scheduled: {
     label: "Programada",
@@ -20,17 +19,15 @@ const statusConfig: Record<
   },
   expired: {
     label: "Vencida",
-    className:
-      "border-warning-border bg-warning-soft text-warning",
+    className: "border-warning-border bg-warning-soft text-warning",
   },
   inactive: {
     label: "Inactiva",
-    className:
-      "border-border bg-surface-muted text-muted-foreground",
+    className: "border-border bg-surface-muted text-muted-foreground",
   },
 };
 
-export function PromotionStatusBadge({ status }: PromotionStatusBadgeProps) {
+export const PromotionStatusBadge = ({ status }: PromotionStatusBadgeProps) => {
   const config = statusConfig[status];
 
   return (
@@ -43,4 +40,4 @@ export function PromotionStatusBadge({ status }: PromotionStatusBadgeProps) {
       {config.label}
     </span>
   );
-}
+};

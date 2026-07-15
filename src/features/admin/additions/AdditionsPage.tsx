@@ -64,7 +64,7 @@ export const AdditionsPage = () => {
     );
   }
 
-  if (isLoading) <AdditionsSkeleton />;
+  if (isLoading) return <AdditionsSkeleton />;
 
   const hasAdditions = additions.length > 0;
 

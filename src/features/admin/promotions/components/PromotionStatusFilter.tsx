@@ -1,7 +1,7 @@
 import { cn } from "@/shared/utils/cn";
-import type { PromotionStatusFilter } from "@/features/admin/promotions/utils/promotionFilters";
+import type { StatusFilterPromotion } from "@/features/admin/promotions/utils/promotionFilters";
 
-const filterOptions: { value: PromotionStatusFilter; label: string }[] = [
+const filterOptions: { value: StatusFilterPromotion; label: string }[] = [
   { value: "all", label: "Todas" },
   { value: "active", label: "Activas" },
   { value: "scheduled", label: "Programadas" },
@@ -10,16 +10,20 @@ const filterOptions: { value: PromotionStatusFilter; label: string }[] = [
 ];
 
 type PromotionStatusFilterProps = {
-  value: PromotionStatusFilter;
-  onChange: (value: PromotionStatusFilter) => void;
+  value: StatusFilterPromotion;
+  onChange: (value: StatusFilterPromotion) => void;
 };
 
-export function PromotionStatusFilter({
+export const PromotionStatusFilter = ({
   value,
   onChange,
-}: PromotionStatusFilterProps) {
+}: PromotionStatusFilterProps) => {
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por estado">
+    <div
+      className="flex flex-wrap gap-2"
+      role="group"
+      aria-label="Filtrar por estado"
+    >
       {filterOptions.map((option) => {
         const isActive = option.value === value;
 
@@ -42,4 +46,4 @@ export function PromotionStatusFilter({
       })}
     </div>
   );
-}
+};

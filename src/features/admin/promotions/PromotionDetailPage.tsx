@@ -1,51 +1,47 @@
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { appRoutes } from "@/app/routes";
 import { AdminDetailShell } from "@/features/admin/shared/components/AdminDetailShell";
 import { AdminNotFoundState } from "@/features/admin/shared/state/AdminNotFoundState";
 import { PromotionDetailSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
-import { usePromotionDetailData } from "@/features/admin/promotions/hooks/usePromotionDetailData";
-import { useAdminPromotionForm } from "@/features/admin/promotions/hooks/useAdminPromotionForm";
 import { PromotionDetailForm } from "@/features/admin/promotions/components/PromotionDetailForm";
-import type { PromotionRow } from "@/features/admin/types/promotions.types";
+import type {
+  AdminPromotionDetailData,
+  PromotionRow,
+} from "@/features/admin/types/promotions.types";
 import { EmptyState } from "@/shared/components/EmptyState";
+import { useCallback } from "react";
+import { fetchAdminPromotionDetail } from "./services/admin-promotions.service";
+import { useAdminResource } from "../shared/hooks/useAdminResource";
 
-function getPromotionDetailPath(promotion: Pick<PromotionRow, "id" | "slug">) {
-  return `${appRoutes.adminPromotions}/${promotion.slug}?id=${promotion.id}`;
-}
+const emptyPromotionDetail: AdminPromotionDetailData = {
+  categories: [],
+  products: [],
+  promotion: null,
+};
 
-export function PromotionDetailPage() {
-  const { slug } = useParams();
-  const [searchParams] = useSearchParams();
+export const PromotionDetailPage = () => {
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const promotionId = searchParams.get("id");
-  const isNewPromotion = !slug || slug === "nueva";
+
+  const isNewPromotion = !slug || slug === "new";
+
+  const fetchPromotionDetail = useCallback(() => {
+    return fetchAdminPromotionDetail(isNewPromotion ? undefined : slug!);
+  }, [slug, isNewPromotion]);
 
   const {
     data: promotionDetail,
+    setData: setPromotionDetail,
     isLoading,
     error,
-    reload,
-  } = usePromotionDetailData(promotionId, isNewPromotion);
+  } = useAdminResource(fetchPromotionDetail, emptyPromotionDetail);
 
-  const { categories, products, promotion: selected } = promotionDetail;
+  const handlePromotionSaved = (promotionSaved: PromotionRow) => {
+    const goToNew = `/admin/promociones/${promotionSaved.slug}`;
+    setPromotionDetail({ ...promotionDetail, promotion: promotionSaved });
 
-  const {
-    form,
-    isSaving,
-    imagePreviewUrl,
-    imageAction,
-    setSelectedImageFile,
-    removeImage,
-    toggleWeekday,
-    onSubmit,
-  } = useAdminPromotionForm({
-    selected,
-    isNewPromotion,
-    onSaved: async (savedPromotion) => {
-      await reload();
-      navigate(getPromotionDetailPath(savedPromotion), { replace: true });
-    },
-  });
+    if (isNewPromotion) navigate(goToNew, { replace: true });
+  };
 
   if (error) {
     return (
@@ -58,7 +54,7 @@ export function PromotionDetailPage() {
 
   if (isLoading) return <PromotionDetailSkeleton />;
 
-  if (!isNewPromotion && !selected) {
+  if (!isNewPromotion && !promotionDetail.promotion) {
     return (
       <AdminNotFoundState
         title="Promoción no encontrada"
@@ -70,23 +66,20 @@ export function PromotionDetailPage() {
 
   return (
     <AdminDetailShell
-      title={selected ? selected.title : "Nueva promoción"}
+      title={
+        promotionDetail.promotion
+          ? promotionDetail.promotion.title
+          : "Nueva promoción"
+      }
       description="Gestiona la información, imagen, vigencia y relaciones de esta promoción."
       backTo={appRoutes.adminPromotions}
     >
       <PromotionDetailForm
-        categories={categories}
-        products={products}
-        selected={selected}
-        form={form}
-        isSaving={isSaving}
-        imagePreviewUrl={imagePreviewUrl}
-        imageAction={imageAction}
-        onImageFileChange={setSelectedImageFile}
-        onRemoveImage={removeImage}
-        toggleWeekday={toggleWeekday}
-        onSubmit={onSubmit}
+        categories={promotionDetail.categories}
+        products={promotionDetail.products}
+        promotion={promotionDetail.promotion}
+        onChangePromotionSaved={handlePromotionSaved}
       />
     </AdminDetailShell>
   );
-}
+};

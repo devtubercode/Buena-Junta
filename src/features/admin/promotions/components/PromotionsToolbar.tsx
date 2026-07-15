@@ -1,9 +1,9 @@
 import { PromotionStatusFilter } from "./PromotionStatusFilter";
-import type { PromotionStatusFilter as PromotionStatusFilterValue } from "@/features/admin/promotions/utils/promotionFilters";
+import type { StatusFilterPromotion } from "@/features/admin/promotions/utils/promotionFilters";
 
 type PromotionsToolbarProps = {
-  statusFilter: PromotionStatusFilterValue;
-  onStatusFilterChange: (value: PromotionStatusFilterValue) => void;
+  statusFilter: StatusFilterPromotion;
+  onStatusFilterChange: (value: StatusFilterPromotion) => void;
   activeFiltersCount: number;
   onClearFilters: () => void;
   resultCount?: number;

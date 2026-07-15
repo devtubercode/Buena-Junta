@@ -24,12 +24,10 @@ export function App() {
         <Route path="admin" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="productos" element={<ProductsPage />} />
-          <Route path="productos/new" element={<ProductDetailPage />} />
           <Route path="productos/:slug" element={<ProductDetailPage />} />
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="adiciones" element={<AdditionsPage />} />
           <Route path="promociones" element={<PromotionsPage />} />
-          <Route path="promociones/nueva" element={<PromotionDetailPage />} />
           <Route path="promociones/:slug" element={<PromotionDetailPage />} />
         </Route>
       </Route>

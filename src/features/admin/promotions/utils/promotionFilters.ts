@@ -1,6 +1,6 @@
 import type { AdminPromotionListRow } from "@/features/admin/types/promotions.types";
 
-export type PromotionStatusFilter =
+export type StatusFilterPromotion =
   | "all"
   | "active"
   | "scheduled"
@@ -24,9 +24,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
 export function getPromotionStatus(
   promotion: AdminPromotionListRow,
 ): PromotionVisualStatus {
-  if (!promotion.is_active) {
-    return "inactive";
-  }
+  if (!promotion.is_active) return "inactive";
 
   const now = Date.now();
 
