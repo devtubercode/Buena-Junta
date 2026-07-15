@@ -11,10 +11,10 @@ import { CustomModal } from "@/shared/components/CustomModal";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { ChevronLeft } from "lucide-react";
 import { WhatsappIcon } from "@/shared/icons";
-import { ProductCustomizationModal } from "@/features/menu/components/ProductCustomizationModal";
+
 import { ProductCustomizationForm } from "@/features/menu/components/ProductCustomizationForm";
 
-export function CartPage() {
+export const CartPage = () => {
   const {
     items,
     orderDraft,
@@ -125,19 +125,31 @@ export function CartPage() {
       {editingProduct ? (
         <>
           <div className="hidden sm:block">
-            <ProductCustomizationModal
-              product={editingProduct}
-              initialCartItem={editingItem ?? undefined}
+            <CustomModal
               isOpen={Boolean(editingProduct)}
+              title="Selecciona tus opciones"
+              description="Personaliza tu pedido antes de agregarlo al carrito."
+              contentClassName="max-w-lg p-0 sm:p-1"
               onClose={actions.closeEdit}
-              onAdd={actions.saveEdit}
-            />
+            >
+              <div className="p-3 sm:p-4">
+                <ProductCustomizationForm
+                  product={editingProduct}
+                  initialCartItem={editingItem ?? undefined}
+                  submitLabel={
+                    editingItem ? "Guardar cambios" : "Agregar al carrito"
+                  }
+                  onSubmit={actions.saveEdit}
+                  onClose={actions.closeEdit}
+                />
+              </div>
+            </CustomModal>
           </div>
           <div className="sm:hidden">
             <ButtonSheetModal
               isOpen={Boolean(editingProduct)}
-              title=""
-              description=""
+              title="Selecciona tus opciones"
+              description="Personaliza tu pedido antes de agregarlo al carrito."
               contentClassName="max-w-lg p-0 sm:p-1"
               onClose={actions.closeEdit}
             >
@@ -158,4 +170,4 @@ export function CartPage() {
       ) : null}
     </main>
   );
-}
+};

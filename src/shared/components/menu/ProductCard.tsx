@@ -5,7 +5,6 @@ import type { MenuProduct } from "@/features/menu/types/menu.types";
 import {
   getProductButtonLabel,
   getProductCardPriceLabel,
-  isSimpleProduct,
   requiresCustomization,
   hasAdditions,
   hasRequiredOptions,
@@ -58,8 +57,7 @@ export function ProductCard({
   const buttonLabel = getProductButtonLabel(product, true);
   const badges = getBadges(product);
   const isInCart = quantityInCart > 0;
-  const isSimple = isSimpleProduct(product);
-  const showAddedBadge = isSimple && isInCart;
+  const showAddedBadge = isInCart;
 
   return (
     <article

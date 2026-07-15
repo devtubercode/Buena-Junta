@@ -29,7 +29,7 @@ export function QuantityStepper({
       <button
         type="button"
         onClick={onDecrement}
-        className="flex aspect-square items-center justify-center text-primary transition hover:bg-primary-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        className="flex aspect-square items-center justify-center text-primary transition hover:bg-primary-soft focus-visible:outline focus-visible:outline-primary"
         aria-label="Disminuir cantidad"
       >
         <Minus className={cn(size === "sm" ? "size-3.5" : "size-4")} />
@@ -41,14 +41,14 @@ export function QuantityStepper({
         onChange={(event) => onChange?.(Number(event.target.value))}
         className={cn(
           "min-w-0 border-x border-border bg-surface text-center text-sm font-black text-foreground outline-none",
-          size === "sm" ? "w-10 px-1" : "w-12 px-2",
+          size === "sm" ? "w-15 px-1" : "w-25 px-2",
         )}
         aria-label="Cantidad"
       />
       <button
         type="button"
         onClick={onIncrement}
-        className="flex aspect-square items-center justify-center text-primary transition hover:bg-primary-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        className="flex aspect-square items-center justify-center text-primary transition hover:bg-primary-soft focus-visible:outline focus-visible:outline-primary"
         aria-label="Aumentar cantidad"
       >
         <Plus className={cn(size === "sm" ? "size-3.5" : "size-4")} />

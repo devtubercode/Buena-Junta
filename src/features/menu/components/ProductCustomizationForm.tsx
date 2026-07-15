@@ -85,7 +85,7 @@ export function ProductCustomizationForm({
       </header>
 
       <div className="overflow-y-auto py-3">
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-4">
           <VariantSelector
             variants={product.priceOptions}
             selectedVariant={selectedVariant}
@@ -104,7 +104,7 @@ export function ProductCustomizationForm({
             onToggle={handleToggleAddition}
           />
 
-          <section className="grid gap-1.5">
+          <section className="flex flex-col gap-2">
             <label
               htmlFor="product-note"
               className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground"
@@ -122,16 +122,18 @@ export function ProductCustomizationForm({
             />
           </section>
 
-          <section className="grid gap-1.5">
+          <section className="flex flex-col gap-2">
             <span className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
               Cantidad
             </span>
-            <QuantityStepper
-              quantity={quantity}
-              onIncrement={handleIncrement}
-              onDecrement={handleDecrement}
-              onChange={handleSetQuantity}
-            />
+            <div>
+              <QuantityStepper
+                quantity={quantity}
+                onIncrement={handleIncrement}
+                onDecrement={handleDecrement}
+                onChange={handleSetQuantity}
+              />
+            </div>
           </section>
         </div>
       </div>
@@ -148,7 +150,7 @@ export function ProductCustomizationForm({
           onClick={handleSubmit}
           className={cn(
             "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black shadow-elevated transition",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+            "focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary",
             isValid && totalPrice !== null
               ? "bg-primary text-primary-foreground hover:opacity-90"
               : "cursor-not-allowed bg-muted-foreground/30 text-muted-foreground",
