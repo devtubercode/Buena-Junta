@@ -1,8 +1,8 @@
-import type { MenuOptionGroup } from "@/features/menu/types/menu.types";
+import type { OptionGroup } from "@/features/menu/types/menu.types";
 import { cn } from "@/shared/utils/cn";
 
 type OptionGroupSelectorProps = {
-  groups: MenuOptionGroup[];
+  groups: OptionGroup[];
   selectedOptions: Record<string, string>;
   onSelect: (groupName: string, optionName: string) => void;
 };
@@ -25,7 +25,7 @@ export function OptionGroupSelector({
             ) : null}
           </legend>
           <div className="flex flex-wrap gap-2">
-            {group.product_option_values.map((option) => {
+            {group.options.map((option) => {
               const isSelected = selectedOptions[group.name] === option.name;
 
               return (

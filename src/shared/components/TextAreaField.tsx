@@ -2,6 +2,7 @@ import type { Control, FieldValues, Path } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { cn } from "@/shared/utils/cn";
+import { TextArea } from "@/shared/components/TextArea";
 
 interface TextAreaFieldProps<
   T extends FieldValues,
@@ -11,9 +12,6 @@ interface TextAreaFieldProps<
   label?: string;
   classNameContainer?: string;
 }
-
-const baseTextareaClass =
-  "min-h-24 w-full min-w-0 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-placeholder focus:border-primary focus:ring-2 focus:ring-primary/25";
 
 export function TextAreaField<T extends FieldValues>({
   name,
@@ -41,13 +39,12 @@ export function TextAreaField<T extends FieldValues>({
                 {label}
               </label>
             )}
-            <textarea
+            <TextArea
               {...textareaProps}
               id={name}
               name={field.name}
               placeholder={placeholder}
               className={cn(
-                baseTextareaClass,
                 error && "border-error focus:border-error focus:ring-error/25",
                 className,
               )}

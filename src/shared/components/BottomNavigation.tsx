@@ -1,12 +1,11 @@
 import { NavLink } from "react-router";
-import { ClipboardList, Home, ShoppingCart } from "lucide-react";
+import { Home, ShoppingCart } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { useCartStore } from "@/store/cart/useCartStore";
 import { cn } from "@/shared/utils/cn";
 
 const navItems = [
   { label: "Inicio", to: appRoutes.home, end: true, Icon: Home },
-  { label: "Menú", to: appRoutes.menu, end: true, Icon: ClipboardList },
   { label: "Carrito", to: appRoutes.cart, end: false, Icon: ShoppingCart },
 ];
 

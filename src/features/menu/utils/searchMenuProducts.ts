@@ -14,7 +14,7 @@ export const searchMenuProducts = (
     const searchableText = [
       product.name,
       product.description,
-      product.categories?.name,
+      product.category?.name,
       product.tags?.join(" "),
     ]
       .filter((value): value is string => Boolean(value))

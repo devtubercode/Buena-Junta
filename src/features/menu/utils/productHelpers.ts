@@ -1,11 +1,11 @@
 import type {
   MenuImage,
-  MenuOptionGroup,
+  OptionGroup,
   MenuProduct,
 } from "@/features/menu/types/menu.types";
 
 export function hasPriceVariants(product: MenuProduct): boolean {
-  return product.priceOptions.length > 0;
+  return product.priceVariants.length > 0;
 }
 
 export function hasRequiredOptions(product: MenuProduct): boolean {
@@ -17,6 +17,7 @@ export function hasAdditions(product: MenuProduct): boolean {
 }
 
 export function requiresCustomization(product: MenuProduct): boolean {
+  console.log("Checking if product requires customization:", product);
   return (
     hasPriceVariants(product) ||
     hasRequiredOptions(product) ||
@@ -28,30 +29,21 @@ export function isSimpleProduct(product: MenuProduct): boolean {
   return !requiresCustomization(product);
 }
 
-export function getRequiredGroups(product: MenuProduct): MenuOptionGroup[] {
-  return [...(product.option_groups ?? [])]
+export function getRequiredGroups(product: MenuProduct): OptionGroup[] {
+  console.log(
+    "Getting required option groups for product:",
+    product.groups,
+  );
+  return [...(product.groups ?? [])]
     .filter((group) => group.is_active && group.is_required)
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((group) => ({
       ...group,
-      product_option_values: [...(group.product_option_values ?? [])]
+      options: [...(group.options ?? [])]
         .filter((option) => option.is_active)
         .sort((a, b) => a.name.localeCompare(b.name)),
     }))
-    .filter((group) => group.product_option_values.length > 0);
-}
-
-export function getActiveOptionGroups(product: MenuProduct): MenuOptionGroup[] {
-  return [...(product.option_groups ?? [])]
-    .filter((group) => group.is_active)
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((group) => ({
-      ...group,
-      product_option_values: [...(group.product_option_values ?? [])]
-        .filter((option) => option.is_active)
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    }))
-    .filter((group) => group.product_option_values.length > 0);
+    .filter((group) => group.options.length > 0);
 }
 
 export function getProductButtonLabel(
@@ -75,7 +67,7 @@ export function getProductButtonLabel(
 
 export function getProductCardPriceLabel(product: MenuProduct): string | null {
   if (hasPriceVariants(product)) {
-    const prices = product.priceOptions.map((option) => option.price);
+    const prices = product.priceVariants.map((option) => option.price);
     const minPrice = Math.min(...prices);
     return `Desde ${formatCOP(minPrice)}`;
   }

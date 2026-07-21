@@ -37,7 +37,7 @@ export const useProductCatalog = (options?: UseProductCatalogOptions) => {
 
     if (selectedCategorySlug) {
       return products.filter(
-        (product) => product.categories?.slug === selectedCategorySlug,
+        (product) => product.category?.slug === selectedCategorySlug,
       );
     }
 

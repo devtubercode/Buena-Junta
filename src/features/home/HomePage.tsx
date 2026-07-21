@@ -6,7 +6,7 @@ import { CategoryChips } from "@/shared/components/menu/CategoryChips";
 import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductGridSkeleton";
 import { appRoutes } from "@/app/routes";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
-import { ProductCustomizationForm } from "../menu/components/ProductCustomizationForm";
+import { ProductCustomizationForm } from "@/shared/components/product/ProductCustomizationForm";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { ProductCard } from "@/shared/components/menu/ProductCard";
 import { CustomModal } from "@/shared/components/CustomModal";

@@ -5,11 +5,11 @@ export function buildCartProductName(product: MenuProduct, label?: string) {
 }
 
 export function getMissingSelectionMessage(product: MenuProduct) {
-  if (product.price === null && product.priceOptions.length > 0) {
+  if (product.price === null && product.priceVariants.length > 0) {
     return "Selecciona una presentación antes de agregar el producto.";
   }
 
-  const firstRequiredGroup = product.option_groups.find(
+  const firstRequiredGroup = product.groups.find(
     (group) => group.is_active && group.is_required,
   );
 

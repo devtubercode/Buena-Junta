@@ -1,25 +1,13 @@
+import type { AdditionRow } from "@/features/admin/types/additions.types";
+
 export type MenuImage = {
   src: string;
   alt: string;
 };
 
-export type MenuPriceOption = {
+export type MenuPriceVariant = {
   label: string;
   price: number;
-};
-
-export type MenuAddition = {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  source: "category" | "product";
-  created_at: string;
-};
-
-export type MenuProductVariant = {
-  name: string;
-  values: string[];
 };
 
 export type MenuCategory = {
@@ -39,18 +27,20 @@ export type MenuOptionValue = {
 };
 
 // NEW: Product-specific option groups
-export type MenuOptionGroup = {
+export type OptionGroup = {
   id: string;
+  product_id: string;
   name: string;
   is_required: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  product_option_values: MenuOptionValue[];
+  options: MenuOptionValue[];
 };
 
 export type MenuProductVariantRow = {
   id: string;
+  product_id: string;
   name: string;
   price: number;
   is_default: boolean;
@@ -66,18 +56,15 @@ export type MenuProductRow = {
   image_path: string | null;
   is_available: boolean;
   tags: string[] | null;
-  categories: MenuCategory | null;
-  product_variants: MenuProductVariantRow[];
-  // NEW: Product-specific option groups (flat array, no nested relation table)
-  product_option_groups: MenuOptionGroup[];
+  category: MenuCategory | null;
+  variants: MenuProductVariantRow[];
+  groups: OptionGroup[];
 };
 
-export type MenuProduct = MenuProductRow & {
+export type MenuProduct = Omit<MenuProductRow, "variants"> & {
   urlImage?: MenuImage;
-  option_groups: MenuOptionGroup[];
-  variants: MenuProductVariant[];
-  priceOptions: MenuPriceOption[];
-  additions: MenuAddition[];
+  priceVariants: MenuPriceVariant[];
+  additions: AdditionRow[];
 };
 
 export type ContactInfo = {

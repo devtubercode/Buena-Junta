@@ -1,77 +1,82 @@
 import { supabase } from "@/lib/supabase/client";
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { throwIfSupabaseError } from "@/shared/errors/handle-supabase-error";
-import type { MenuProductRow } from "@/features/menu/types/menu.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
+import type {
+  OptionGroup,
+  MenuProductRow,
+} from "@/features/menu/types/menu.types";
 
-export type ProductAvailableAdditionRow = {
-  product_id: string;
-  addition_id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  source: "category" | "product";
-  created_at: string;
+export type FetchProductsResult = {
+  products: MenuProductRow[];
+  optionGroups: OptionGroup[];
+  availableAdditions: AdditionRow[];
 };
 
-export async function fetchProducts(): Promise<MenuProductRow[]> {
-  // Fetch products with basic relations
+export const fetchProducts = async (): Promise<FetchProductsResult> => {
   const { data: products, error: productsError } = await supabase
     .from(SUPABASE_TABLES.PRODUCTS)
     .select(
       `
         *,
-        categories(*),
-        product_variants(*)
+        category:categories(*),
+        variants:product_variants(*)
       `,
     )
     .order("name");
 
   throwIfSupabaseError(productsError);
 
-  if (!products || products.length === 0) {
+  const productIds = products!.map((product: MenuProductRow) => product.id);
+  const [optionGroups, availableAdditions] = await Promise.all([
+    fetchProductOptionGroups(productIds),
+    fetchProductAvailableAdditions(productIds),
+  ]);
+
+  return {
+    products: products as MenuProductRow[],
+    optionGroups,
+    availableAdditions,
+  };
+};
+
+export const fetchProductOptionGroups = async (
+  productIds: string[],
+): Promise<OptionGroup[]> => {
+  if (productIds.length === 0) {
     return [];
   }
 
-  // Fetch option groups for all products in a single query
-  const productIds = products.map((p: Record<string, unknown>) => p.id as string);
   const { data: optionGroups, error: optionGroupsError } = await supabase
     .from(SUPABASE_TABLES.PRODUCT_OPTION_GROUPS)
-    .select(`
+    .select(
+      `
       *,
-      product_option_values(*)
-    `)
+      options:product_option_values(*)
+    `,
+    )
     .in("product_id", productIds)
+    .eq("is_active", true)
     .order("name");
 
   throwIfSupabaseError(optionGroupsError);
 
-  // Group option groups by product_id
-  const optionGroupsByProduct = new Map<string, unknown[]>();
-  for (const group of (optionGroups ?? [])) {
-    const productId = (group as Record<string, unknown>).product_id as string;
-    if (!optionGroupsByProduct.has(productId)) {
-      optionGroupsByProduct.set(productId, []);
-    }
-    optionGroupsByProduct.get(productId)!.push(group);
+  return (optionGroups ?? []) as OptionGroup[];
+};
+
+export const fetchProductAvailableAdditions = async (
+  productIds: string[],
+): Promise<AdditionRow[]> => {
+  if (productIds.length === 0) {
+    return [];
   }
 
-  // Combine products with their option groups
-  const productsWithGroups = (products ?? []).map((product: Record<string, unknown>) => ({
-    ...product,
-    product_option_groups: optionGroupsByProduct.get(product.id as string) ?? [],
-  }));
-
-  return productsWithGroups as MenuProductRow[];
-}
-
-export async function fetchProductAvailableAdditions(): Promise<
-  ProductAvailableAdditionRow[]
-> {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PRODUCT_AVAILABLE_ADDITIONS)
-    .select("*");
+    .select("*")
+    .in("product_id", productIds);
 
   throwIfSupabaseError(error);
 
-  return (data ?? []) as ProductAvailableAdditionRow[];
-}
+  return (data ?? []) as AdditionRow[];
+};

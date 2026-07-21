@@ -13,6 +13,7 @@ import { PromotionsPage } from "@/features/admin/promotions/PromotionsPage";
 import { CartPage } from "@/features/cart/CartPage";
 import { HomePage } from "@/features/home/HomePage";
 import { MenuPage } from "@/features/menu/MenuPage";
+import { MenuLayout } from "@/features/menu/MenuLayout";
 import { AboutPage } from "@/features/about/AboutPage";
 import { RequireAuth } from "@/features/auth/components/RequireAuth";
 
@@ -31,9 +32,11 @@ export function App() {
           <Route path="promociones/:slug" element={<PromotionDetailPage />} />
         </Route>
       </Route>
+      <Route element={<MenuLayout />}>
+        <Route path="menu" element={<MenuPage />} />
+      </Route>
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
-        <Route path="menu" element={<MenuPage />} />
         <Route path="nosotros" element={<AboutPage />} />
         <Route path="carrito" element={<CartPage />} />
         <Route path="cart" element={<Navigate to={appRoutes.cart} replace />} />

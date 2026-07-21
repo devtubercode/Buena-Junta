@@ -1,37 +1,36 @@
-import type { MenuAddition } from "@/features/menu/types/menu.types";
+import type { MenuPriceVariant } from "@/features/menu/types/menu.types";
 import { formatCOP } from "@/features/cart/utils/money";
 import { cn } from "@/shared/utils/cn";
 
-type AdditionSelectorProps = {
-  additions: MenuAddition[];
-  selectedAdditions: MenuAddition[];
-  onToggle: (addition: MenuAddition) => void;
+type VariantSelectorProps = {
+  variants: MenuPriceVariant[];
+  selectedVariant: MenuPriceVariant | null;
+  onSelect: (variant: MenuPriceVariant) => void;
 };
 
-export function AdditionSelector({
-  additions,
-  selectedAdditions,
-  onToggle,
-}: AdditionSelectorProps) {
-  if (additions.length === 0) return null;
+export function VariantSelector({
+  variants,
+  selectedVariant,
+  onSelect,
+}: VariantSelectorProps) {
+  if (variants.length === 0) return null;
 
   return (
     <section className="grid gap-3">
       <h3 className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
-        Acompañantes
+        Presentación
+        <span className="ml-1 text-primary">*</span>
       </h3>
       <div className="grid gap-2">
-        {additions.map((addition) => {
-          const isSelected = selectedAdditions.some(
-            (selected) => selected.id === addition.id,
-          );
+        {variants.map((variant) => {
+          const isSelected = selectedVariant?.label === variant.label;
 
           return (
             <button
-              key={addition.id}
+              key={variant.label}
               type="button"
               data-selected={isSelected}
-              onClick={() => onToggle(addition)}
+              onClick={() => onSelect(variant)}
               className={cn(
                 "flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
@@ -40,9 +39,9 @@ export function AdditionSelector({
                   : "border-border bg-surface text-foreground hover:border-primary-border",
               )}
             >
-              <span className="text-sm font-black">{addition.name}</span>
+              <span className="text-sm font-black">{variant.label}</span>
               <span className="shrink-0 text-sm font-black text-primary">
-                +{formatCOP(addition.price)}
+                {formatCOP(variant.price)}
               </span>
             </button>
           );

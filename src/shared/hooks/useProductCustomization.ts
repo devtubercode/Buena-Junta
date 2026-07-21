@@ -1,28 +1,30 @@
 import { useMemo, useState } from "react";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 import type { CartItem } from "@/features/cart/types/cart.types";
 import type {
-  MenuAddition,
-  MenuOptionGroup,
-  MenuPriceOption,
+  OptionGroup,
+  MenuPriceVariant,
   MenuProduct,
 } from "@/features/menu/types/menu.types";
 import { buildCartProductName } from "@/features/menu/utils/productCopy";
 
 function filterMatchingAdditions(
-  productAdditions: MenuAddition[],
+  productAdditions: AdditionRow[],
   itemAdditions?: { key: string }[],
-): MenuAddition[] {
+): AdditionRow[] {
   if (!itemAdditions?.length) return [];
 
   return productAdditions.filter((productAddition) =>
-    itemAdditions.some((itemAddition) => itemAddition.key === productAddition.id),
+    itemAdditions.some(
+      (itemAddition) => itemAddition.key === productAddition.id,
+    ),
   );
 }
 
 export type ProductCustomizationConfig = {
-  selectedVariant: MenuPriceOption | null;
+  selectedVariant: MenuPriceVariant | null;
   selectedOptions: Record<string, string>;
-  selectedAdditions: MenuAddition[];
+  selectedAdditions: AdditionRow[];
   quantity: number;
   note: string;
 };
@@ -30,19 +32,19 @@ export type ProductCustomizationConfig = {
 function getInitialVariant(
   product: MenuProduct,
   initialConfig?: Partial<ProductCustomizationConfig>,
-): MenuPriceOption | null {
+): MenuPriceVariant | null {
   if (initialConfig?.selectedVariant) {
-    const match = product.priceOptions.find(
+    const match = product.priceVariants.find(
       (option) => option.label === initialConfig.selectedVariant?.label,
     );
     if (match) return match;
   }
 
-  return product.priceOptions[0] ?? null;
+  return product.priceVariants[0] ?? null;
 }
 
 function getInitialOptions(
-  optionGroups: MenuOptionGroup[],
+  optionGroups: OptionGroup[],
   initialConfig?: Partial<ProductCustomizationConfig>,
 ): Record<string, string> {
   const requiredGroups = optionGroups.filter(
@@ -53,7 +55,7 @@ function getInitialOptions(
     (acc, group) => {
       const existingValue = initialConfig?.selectedOptions?.[group.name];
       const validValue = existingValue
-        ? group.product_option_values.find((option) => option.name === existingValue)?.name
+        ? group.options.find((option) => option.name === existingValue)?.name
         : undefined;
 
       if (validValue) {
@@ -69,11 +71,13 @@ function getInitialOptions(
 function getInitialAdditions(
   product: MenuProduct,
   initialConfig?: Partial<ProductCustomizationConfig>,
-): MenuAddition[] {
+): AdditionRow[] {
   if (!initialConfig?.selectedAdditions?.length) return [];
 
   return initialConfig.selectedAdditions.filter((selectedAddition) =>
-    product.additions.some((productAddition) => productAddition.id === selectedAddition.id),
+    product.additions.some(
+      (productAddition) => productAddition.id === selectedAddition.id,
+    ),
   );
 }
 
@@ -84,9 +88,10 @@ export function useProductCustomization(
   const initialConfig: Partial<ProductCustomizationConfig> | undefined =
     initialCartItem
       ? {
-          selectedVariant: product.priceOptions.find(
-            (option) => option.label === initialCartItem.variantKey,
-          ) ?? null,
+          selectedVariant:
+            product.priceVariants.find(
+              (option) => option.label === initialCartItem.variantKey,
+            ) ?? null,
           selectedOptions: initialCartItem.selectedOptions ?? {},
           selectedAdditions: filterMatchingAdditions(
             initialCartItem.availableAdditions ?? product.additions,
@@ -97,23 +102,27 @@ export function useProductCustomization(
         }
       : undefined;
 
-  const optionGroupsSource = initialCartItem?.optionGroups ?? product.option_groups;
-  const additionsSource = initialCartItem?.availableAdditions ?? product.additions;
+  const optionGroupsSource = initialCartItem?.optionGroups ?? product.groups;
+  const additionsSource =
+    initialCartItem?.availableAdditions ?? product.additions;
 
-  const [selectedVariant, setSelectedVariant] = useState<MenuPriceOption | null>(
-    () => getInitialVariant(product, initialConfig),
+  const [selectedVariant, setSelectedVariant] =
+    useState<MenuPriceVariant | null>(() =>
+      getInitialVariant(product, initialConfig),
+    );
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string>
+  >(() => getInitialOptions(optionGroupsSource, initialConfig));
+  const [selectedAdditions, setSelectedAdditions] = useState<AdditionRow[]>(
+    () => getInitialAdditions(product, initialConfig),
   );
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
-    () => getInitialOptions(optionGroupsSource, initialConfig),
+  const [quantity, setQuantity] = useState(() =>
+    Math.max(1, initialConfig?.quantity ?? 1),
   );
-  const [selectedAdditions, setSelectedAdditions] = useState<MenuAddition[]>(() =>
-    getInitialAdditions(product, initialConfig),
-  );
-  const [quantity, setQuantity] = useState(() => Math.max(1, initialConfig?.quantity ?? 1));
   const [note, setNote] = useState(() => initialConfig?.note ?? "");
 
   const basePrice = useMemo(() => {
-    if (product.priceOptions.length > 0) {
+    if (product.priceVariants.length > 0) {
       return selectedVariant?.price ?? null;
     }
 
@@ -125,13 +134,11 @@ export function useProductCustomization(
     [optionGroupsSource],
   );
 
-  const availableAdditions = useMemo(
-    () => additionsSource,
-    [additionsSource],
-  );
+  const availableAdditions = useMemo(() => additionsSource, [additionsSource]);
 
   const additionsTotal = useMemo(
-    () => selectedAdditions.reduce((total, addition) => total + addition.price, 0),
+    () =>
+      selectedAdditions.reduce((total, addition) => total + addition.price, 0),
     [selectedAdditions],
   );
 
@@ -154,7 +161,7 @@ export function useProductCustomization(
   );
 
   const missingSelections = useMemo(() => {
-    if (product.priceOptions.length > 0 && !selectedVariant) {
+    if (product.priceVariants.length > 0 && !selectedVariant) {
       return "Selecciona una presentación";
     }
 
@@ -171,7 +178,7 @@ export function useProductCustomization(
 
   const isValid = missingSelections === null;
 
-  const handleSelectVariant = (variant: MenuPriceOption) => {
+  const handleSelectVariant = (variant: MenuPriceVariant) => {
     setSelectedVariant(variant);
   };
 
@@ -182,7 +189,7 @@ export function useProductCustomization(
     }));
   };
 
-  const handleToggleAddition = (addition: MenuAddition) => {
+  const handleToggleAddition = (addition: AdditionRow) => {
     setSelectedAdditions((current) => {
       const exists = current.some((item) => item.id === addition.id);
 
@@ -218,31 +225,31 @@ export function useProductCustomization(
     const variantLabel = buildVariantLabel();
     const displayName = buildCartProductName(product, variantLabel);
 
-  return {
-    productId: product.id,
-    image: product.urlImage,
-    variantKey: variantLabel,
-    baseName: product.name,
-    displayName,
-    name: displayName,
-    unitPrice,
-    quantity,
-    note: note.trim() || undefined,
-    selectedOptions,
-    variantOptions: product.priceOptions.map((option) => ({
-      key: option.label,
-      label: option.label,
-      itemName: buildCartProductName(product, option.label),
-      unitPrice: option.price,
-    })),
-    additionOptions: selectedAdditions.map((selectedAddition) => ({
-      key: selectedAddition.id,
-      label: selectedAddition.name,
-      unitPrice: selectedAddition.price,
-    })),
-    optionGroups: activeOptionGroups,
-    availableAdditions,
-  };
+    return {
+      productId: product.id,
+      image: product.urlImage,
+      variantKey: variantLabel,
+      baseName: product.name,
+      displayName,
+      name: displayName,
+      unitPrice,
+      quantity,
+      note: note.trim() || undefined,
+      selectedOptions,
+      variantOptions: product.priceVariants.map((option) => ({
+        key: option.label,
+        label: option.label,
+        itemName: buildCartProductName(product, option.label),
+        unitPrice: option.price,
+      })),
+      additionOptions: selectedAdditions.map((selectedAddition) => ({
+        key: selectedAddition.id,
+        label: selectedAddition.name,
+        unitPrice: selectedAddition.price,
+      })),
+      optionGroups: activeOptionGroups,
+      availableAdditions,
+    };
   };
 
   return {

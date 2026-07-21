@@ -1,35 +1,20 @@
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 import type { CartItem } from "@/features/cart/types/cart.types";
 import type {
-  MenuAddition,
-  MenuOptionGroup,
-  MenuPriceOption,
+  OptionGroup,
+  MenuPriceVariant,
   MenuProduct,
-  MenuProductVariantRow,
 } from "@/features/menu/types/menu.types";
 
 export type CartItemToMenuProductInput = {
   item: CartItem;
-  availableAdditions?: MenuAddition[];
-  optionGroups?: MenuOptionGroup[];
+  availableAdditions?: AdditionRow[];
+  optionGroups?: OptionGroup[];
 };
 
-function buildProductVariantRows(
+function buildPriceVariants(
   variantOptions: CartItem["variantOptions"],
-): MenuProductVariantRow[] {
-  return (
-    variantOptions?.map((option) => ({
-      id: option.key,
-      name: option.label,
-      price: option.unitPrice,
-      is_default: false,
-      is_active: true,
-    })) ?? []
-  );
-}
-
-function buildPriceOptions(
-  variantOptions: CartItem["variantOptions"],
-): MenuPriceOption[] {
+): MenuPriceVariant[] {
   return (
     variantOptions?.map((option) => ({
       label: option.label,
@@ -56,13 +41,10 @@ export function cartItemToMenuProduct({
     image_path: item.image?.src ?? null,
     is_available: true,
     tags: null,
-    categories: null,
-    product_variants: buildProductVariantRows(item.variantOptions),
-    product_option_groups: groups.map((group) => ({ ...group })),
+    category: null,
+    groups: groups.map((group) => ({ ...group })),
     urlImage: item.image,
-    option_groups: groups.map((group) => ({ ...group })),
-    variants: [],
-    priceOptions: buildPriceOptions(item.variantOptions),
+    priceVariants: buildPriceVariants(item.variantOptions),
     additions,
   };
 }

@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
 import { fetchCategories } from "@/shared/services/category.service";
-import {
-  fetchProductAvailableAdditions,
-  fetchProducts,
-} from "@/shared/services/product.service";
-import { SUPABASE_BUCKETS } from "@/lib/supabase/constants";
-import { getStorageImageUrl } from "@/shared/services/storage.service";
-import { mapCatalogProduct } from "@/features/menu/mappers/menu-catalog.mapper";
+import { fetchAdditions } from "@/shared/services/addition.service";
+import { fetchProducts } from "@/shared/services/product.service";
+
+import { mapProducts } from "@/features/menu/mappers/menu-products.mapper";
 
 import type {
   MenuCategory,
   MenuProduct,
 } from "@/features/menu/types/menu.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 
 export const useCatalogData = () => {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [products, setProducts] = useState<MenuProduct[]>([]);
+  const [additions, setAdditions] = useState<AdditionRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -24,27 +23,24 @@ export const useCatalogData = () => {
 
     const loadData = async () => {
       try {
-        const [categoriesData, productsData, additionsData] = await Promise.all(
-          [
+        const [categoriesData, productsResult, additionsData] =
+          await Promise.all([
             fetchCategories(),
             fetchProducts(),
-            fetchProductAvailableAdditions(),
-          ],
-        );
+            fetchAdditions(),
+          ]);
 
         if (!isMounted) return;
 
         setCategories(categoriesData);
         setProducts(
-          productsData.map((product) =>
-            mapCatalogProduct(
-              product,
-              (storagePath) =>
-                getStorageImageUrl(storagePath, SUPABASE_BUCKETS.MENU_IMAGES),
-              additionsData,
-            ),
-          ),
+          mapProducts({
+            products: productsResult.products,
+            groups: productsResult.optionGroups,
+            availableAdditions: productsResult.availableAdditions,
+          }),
         );
+        setAdditions(additionsData);
         setError(null);
       } catch (err) {
         if (!isMounted) return;
@@ -72,6 +68,7 @@ export const useCatalogData = () => {
   return {
     categories,
     products,
+    additions,
     isLoading,
     error,
   };

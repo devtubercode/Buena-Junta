@@ -1,36 +1,37 @@
-import type { MenuPriceOption } from "@/features/menu/types/menu.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 import { formatCOP } from "@/features/cart/utils/money";
 import { cn } from "@/shared/utils/cn";
 
-type VariantSelectorProps = {
-  variants: MenuPriceOption[];
-  selectedVariant: MenuPriceOption | null;
-  onSelect: (variant: MenuPriceOption) => void;
+type AdditionSelectorProps = {
+  additions: AdditionRow[];
+  selectedAdditions: AdditionRow[];
+  onToggle: (addition: AdditionRow) => void;
 };
 
-export function VariantSelector({
-  variants,
-  selectedVariant,
-  onSelect,
-}: VariantSelectorProps) {
-  if (variants.length === 0) return null;
+export function AdditionSelector({
+  additions,
+  selectedAdditions,
+  onToggle,
+}: AdditionSelectorProps) {
+  if (additions.length === 0) return null;
 
   return (
     <section className="grid gap-3">
       <h3 className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
-        Presentación
-        <span className="ml-1 text-primary">*</span>
+        Acompañantes
       </h3>
       <div className="grid gap-2">
-        {variants.map((variant) => {
-          const isSelected = selectedVariant?.label === variant.label;
+        {additions.map((addition) => {
+          const isSelected = selectedAdditions.some(
+            (selected) => selected.id === addition.id,
+          );
 
           return (
             <button
-              key={variant.label}
+              key={addition.id}
               type="button"
               data-selected={isSelected}
-              onClick={() => onSelect(variant)}
+              onClick={() => onToggle(addition)}
               className={cn(
                 "flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
@@ -39,9 +40,9 @@ export function VariantSelector({
                   : "border-border bg-surface text-foreground hover:border-primary-border",
               )}
             >
-              <span className="text-sm font-black">{variant.label}</span>
+              <span className="text-sm font-black">{addition.name}</span>
               <span className="shrink-0 text-sm font-black text-primary">
-                {formatCOP(variant.price)}
+                +{formatCOP(addition.price)}
               </span>
             </button>
           );

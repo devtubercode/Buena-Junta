@@ -1,7 +1,5 @@
-import type {
-  MenuAddition,
-  MenuOptionGroup,
-} from "@/features/menu/types/menu.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
+import type { OptionGroup } from "@/features/menu/types/menu.types";
 
 export type CartVariantOption = {
   key: string;
@@ -34,8 +32,8 @@ export type CartItem = {
   selectedOptions?: Record<string, string>;
   variantOptions?: CartVariantOption[];
   additionOptions?: CartAdditionOption[];
-  optionGroups?: MenuOptionGroup[];
-  availableAdditions?: MenuAddition[];
+  optionGroups?: OptionGroup[];
+  availableAdditions?: AdditionRow[];
 };
 
 export type OrderDraft = {
@@ -60,8 +58,8 @@ export type AddCartItemInput = {
   selectedOptions?: Record<string, string>;
   variantOptions?: CartVariantOption[];
   additionOptions?: CartAdditionOption[];
-  optionGroups?: MenuOptionGroup[];
-  availableAdditions?: MenuAddition[];
+  optionGroups?: OptionGroup[];
+  availableAdditions?: AdditionRow[];
 };
 
 export type UpdateCartItemVariantResult =

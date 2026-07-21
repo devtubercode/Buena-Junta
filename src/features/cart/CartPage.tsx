@@ -12,7 +12,7 @@ import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { ChevronLeft } from "lucide-react";
 import { WhatsappIcon } from "@/shared/icons";
 
-import { ProductCustomizationForm } from "@/features/menu/components/ProductCustomizationForm";
+import { ProductCustomizationForm } from "@/shared/components/product/ProductCustomizationForm";
 
 export const CartPage = () => {
   const {

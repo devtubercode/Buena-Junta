@@ -5,11 +5,14 @@ import type {
   AddCartItemInput,
 } from "@/features/cart/types/cart.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
-import { useProductCustomization } from "@/features/menu/hooks/useProductCustomization";
-import { AdditionSelector } from "@/features/menu/components/AdditionSelector";
-import { OptionGroupSelector } from "@/features/menu/components/OptionGroupSelector";
-import { VariantSelector } from "@/features/menu/components/VariantSelector";
-import { getProductImage } from "@/features/menu/utils/productHelpers";
+import { useProductCustomization } from "@/shared/hooks/useProductCustomization";
+import { AdditionSelector } from "@/shared/components/product/AdditionSelector";
+import { OptionGroupSelector } from "@/shared/components/product/OptionGroupSelector";
+import { VariantSelector } from "@/shared/components/product/VariantSelector";
+import {
+  getProductImage,
+  isSimpleProduct,
+} from "@/features/menu/utils/productHelpers";
 import { cn } from "@/shared/utils/cn";
 
 type ProductCustomizationFormProps = {
@@ -36,7 +39,6 @@ export function ProductCustomizationForm({
     unitPrice,
     totalPrice,
     isValid,
-    missingSelections,
     activeOptionGroups,
     availableAdditions,
     handleSelectVariant,
@@ -52,6 +54,24 @@ export function ProductCustomizationForm({
   const productImage = getProductImage(product);
 
   const handleSubmit = () => {
+    if (isSimpleProduct(product)) {
+      if (product.price === null) return;
+
+      onSubmit({
+        productId: product.id,
+        image: product.urlImage,
+        baseName: product.name,
+        displayName: product.name,
+        name: product.name,
+        unitPrice: product.price,
+        quantity,
+        selectedOptions: {},
+        additionOptions: [],
+      });
+      onClose();
+      return;
+    }
+
     const input = buildCartInput();
     if (!input) return;
     onSubmit(input);
@@ -87,7 +107,7 @@ export function ProductCustomizationForm({
       <div className="overflow-y-auto py-3">
         <div className="flex flex-col gap-4">
           <VariantSelector
-            variants={product.priceOptions}
+            variants={product.priceVariants}
             selectedVariant={selectedVariant}
             onSelect={handleSelectVariant}
           />
@@ -139,11 +159,6 @@ export function ProductCustomizationForm({
       </div>
 
       <footer className="border-t border-border pt-3">
-        {!isValid && missingSelections ? (
-          <p className="mb-1.5 text-center text-xs font-black text-warning">
-            {missingSelections}
-          </p>
-        ) : null}
         <button
           type="button"
           disabled={!isValid || totalPrice === null}
