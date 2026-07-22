@@ -38,7 +38,7 @@ export function PromotionsTab({
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="aspect-[4/3] animate-pulse rounded-2xl bg-surface-muted"
+              className="aspect-4/3 animate-pulse rounded-2xl bg-surface-muted"
             />
           ))}
         </div>

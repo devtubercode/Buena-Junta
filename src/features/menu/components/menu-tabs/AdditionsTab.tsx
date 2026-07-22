@@ -11,13 +11,13 @@ type AdditionsTabProps = {
   onDecrementAddition?: (addition: AdditionRow) => void;
 };
 
-export function AdditionsTab({
+export const AdditionsTab = ({
   additions,
   onAddToOrder,
   getQuantityInOrder,
   onIncrementAddition,
   onDecrementAddition,
-}: AdditionsTabProps) {
+}: AdditionsTabProps) => {
   return (
     <section
       id="menu-tabpanel-additions"
@@ -51,7 +51,9 @@ export function AdditionsTab({
               addition={addition}
               quantityInOrder={getQuantityInOrder?.(addition.id) ?? 0}
               onAdd={() => onAddToOrder(addition)}
-              onIncrement={() => onIncrementAddition?.(addition) ?? onAddToOrder(addition)}
+              onIncrement={() =>
+                onIncrementAddition?.(addition) ?? onAddToOrder(addition)
+              }
               onDecrement={() => onDecrementAddition?.(addition)}
             />
           ))}
@@ -59,4 +61,4 @@ export function AdditionsTab({
       )}
     </section>
   );
-}
+};

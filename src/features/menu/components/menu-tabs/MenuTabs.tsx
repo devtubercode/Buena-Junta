@@ -39,7 +39,7 @@ export function MenuTabs({ activeTab, onChange }: MenuTabsProps) {
               id={`menu-tab-${tab.id}`}
               onClick={() => onChange(tab.id)}
               className={cn(
-                "group inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-black transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:flex-initial sm:px-5 sm:py-3",
+                "group inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-black transition focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary sm:flex-initial sm:px-5 sm:py-3",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-elevated"
                   : "bg-surface text-muted-foreground hover:bg-surface-muted hover:text-foreground",

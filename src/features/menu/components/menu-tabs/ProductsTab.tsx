@@ -5,10 +5,6 @@ import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductG
 import { EmptyState } from "@/shared/components/EmptyState";
 import { ProductCard } from "@/features/menu/components/ProductCard";
 import { searchMenuProducts } from "@/features/menu/utils/searchMenuProducts";
-import {
-  hasPriceVariants,
-  hasRequiredOptions,
-} from "@/features/menu/utils/productHelpers";
 import type {
   MenuCategory,
   MenuProduct,
@@ -20,7 +16,6 @@ type ProductsTabProps = {
   categories: MenuCategory[];
   isLoading: boolean;
   onOpenProductDetail: (product: MenuProduct) => void;
-  onAddToOrder: (product: MenuProduct) => void;
   getQuantityInOrder?: (productId: string) => number;
 };
 
@@ -29,7 +24,6 @@ export function ProductsTab({
   categories,
   isLoading,
   onOpenProductDetail,
-  onAddToOrder,
   getQuantityInOrder,
 }: ProductsTabProps) {
   const [query, setQuery] = useState("");
@@ -67,7 +61,7 @@ export function ProductsTab({
         label="Buscar productos"
       />
 
-      <div className="sticky top-[72px] z-10 -mx-4 overflow-x-hidden bg-background/95 py-2 backdrop-blur sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-18 z-10 -mx-4 overflow-x-hidden bg-background/95 py-2 backdrop-blur sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8">
           {isLoading ? (
             <div className="h-10 animate-pulse rounded-full bg-surface-muted sm:h-11" />
@@ -85,23 +79,13 @@ export function ProductsTab({
         {isLoading ? (
           <ProductGridSkeleton count={6} />
         ) : filteredProducts.length > 0 ? (
-          <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:gap-6">
+          <div className="grid w-full min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 quantityInOrder={getQuantityInOrder?.(product.id) ?? 0}
                 onOpenDetail={() => onOpenProductDetail(product)}
-                onAddOrCustomize={() => {
-                  if (
-                    hasPriceVariants(product) ||
-                    hasRequiredOptions(product)
-                  ) {
-                    onOpenProductDetail(product);
-                  } else {
-                    onAddToOrder(product);
-                  }
-                }}
               />
             ))}
           </div>

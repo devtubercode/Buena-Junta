@@ -1,14 +1,14 @@
 import { formatCOP } from "@/features/cart/utils/money";
 
-type WhatsAppOrderSummaryProps = {
+type MenuOrderSummaryProps = {
   total: number;
   totalQuantity: number;
 };
 
-export function WhatsAppOrderSummary({
+export function MenuOrderSummary({
   total,
   totalQuantity,
-}: WhatsAppOrderSummaryProps) {
+}: MenuOrderSummaryProps) {
   return (
     <section
       className="flex items-center justify-between gap-3 rounded-xl border border-primary-border bg-primary-soft px-3 py-2"

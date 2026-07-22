@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useCatalogData } from "@/shared/hooks/useCatalogData";
 import { useMenuPromotions } from "@/features/menu/hooks/useMenuPromotions";
-import { useWhatsAppOrder } from "@/features/menu/hooks/useWhatsAppOrder";
-import { useWhatsAppOrderDrawer } from "@/features/menu/hooks/useWhatsAppOrderDrawer";
+import { useMenuOrder } from "@/features/menu/hooks/useMenuOrder";
+import { useMenuOrderDrawer } from "@/features/menu/hooks/useMenuOrderDrawer";
 import { notify } from "@/shared/notifications/notify";
 import {
   MenuTabs,
@@ -13,16 +13,31 @@ import { AdditionsTab } from "@/features/menu/components/menu-tabs/AdditionsTab"
 import { PromotionsTab } from "@/features/menu/components/menu-tabs/PromotionsTab";
 
 import { PromotionDetailModal } from "@/features/menu/components/PromotionDetailModal";
-import { WhatsAppOrderButton } from "@/features/menu/components/WhatsAppOrderButton";
-import { WhatsAppOrderDrawer } from "@/features/menu/components/WhatsAppOrderDrawer";
+import { MenuOrderButton } from "@/features/menu/components/MenuOrderButton";
+import { MenuOrderDrawer } from "@/features/menu/components/MenuOrderDrawer";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
 import type { Promotion } from "@/features/home/types/promotion.types";
-import type { AddWhatsAppOrderItemInput } from "@/store/whatsapp/types/whatsapp-order.types";
 import { CustomModal } from "@/shared/components/CustomModal";
 import { ProductCustomizationForm } from "@/shared/components/product/ProductCustomizationForm";
+import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
-import { cartInputToWhatsAppInput } from "./utils/whatsappOrderAdapter";
+
+function additionToAddAdditionInput(
+  addition: AdditionRow,
+): {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+} {
+  return {
+    id: addition.id,
+    name: addition.name,
+    price: addition.price,
+    quantity: 1,
+  };
+}
 
 export function MenuPage() {
   const [activeTab, setActiveTab] = useState<Tab>("products");
@@ -33,67 +48,44 @@ export function MenuPage() {
     null,
   );
 
-  const {
-    categories,
-    products,
-    additions: globalAdditions,
-    isLoading,
-  } = useCatalogData();
+  const { categories, products, additions, isLoading } = useCatalogData();
+
   const { promotions, isLoading: isLoadingPromotions } = useMenuPromotions();
-  const order = useWhatsAppOrder();
-  const { isOpen, open, close } = useWhatsAppOrderDrawer();
+  const order = useMenuOrder();
+  const { isOpen, open, close } = useMenuOrderDrawer();
 
   const getProductQuantity = (productId: string) => {
     return order.items
-      .filter((item) => item.productId === productId && !item.isGlobalAddition)
+      .filter((item) => item.id === productId)
       .reduce((sum, item) => sum + item.quantity, 0);
   };
 
   const getAdditionQuantity = (additionId: string) => {
-    return order.items
-      .filter((item) => item.productId === additionId && item.isGlobalAddition)
-      .reduce((sum, item) => sum + item.quantity, 0);
+    return order.additions
+      .filter((addition) => addition.id === additionId)
+      .reduce((sum, addition) => sum + addition.quantity, 0);
   };
 
-  const handleAddToOrder = (input: AddWhatsAppOrderItemInput) => {
-    order.actions.addItem(input);
-  };
-
-  const handleAddProduct = (product: MenuProduct) => {
-    if (product.price === null) return;
-    handleAddToOrder({
-      productId: product.id,
-      image: product.urlImage,
-      baseName: product.name,
-      displayName: product.name,
-      name: product.name,
-      unitPrice: product.price,
-      quantity: 1,
-      selectedOptions: {},
-      additionOptions: [],
-    });
-    notify.whatsapp(`Agregaste ${product.name} al pedido.`);
+  const handleAddItem = (output: ProductCustomizationOutput) => {
+    order.actions.addItem(output);
   };
 
   const handleAddGlobalAddition = (addition: AdditionRow) => {
-    const item = order.items.find(
-      (i) => i.productId === addition.id && i.isGlobalAddition,
+    const existingAddition = order.additions.find(
+      (a) => a.id === addition.id,
     );
 
-    handleAddToOrder({
-      productId: addition.id,
-      baseName: addition.name,
-      displayName: addition.name,
-      name: addition.name,
-      unitPrice: addition.price,
-      quantity: 1,
-      isGlobalAddition: true,
-      selectedOptions: {},
-      additionOptions: [],
-    });
+    order.actions.addAddition(additionToAddAdditionInput(addition));
 
-    if (!item) {
+    if (!existingAddition) {
       notify.whatsapp(`Agregaste ${addition.name} al pedido.`);
+    }
+  };
+
+  const handleDecrementGlobalAddition = (addition: AdditionRow) => {
+    const existingAddition = order.additions.find((a) => a.id === addition.id);
+    if (existingAddition) {
+      order.actions.decrementAddition(existingAddition.lineId);
     }
   };
 
@@ -121,25 +113,17 @@ export function MenuPage() {
             categories={categories}
             isLoading={isLoading}
             onOpenProductDetail={setSelectedProduct}
-            onAddToOrder={handleAddProduct}
             getQuantityInOrder={getProductQuantity}
           />
         )}
 
         {activeTab === "additions" && (
           <AdditionsTab
-            additions={globalAdditions}
+            additions={additions}
             onAddToOrder={handleAddGlobalAddition}
             getQuantityInOrder={getAdditionQuantity}
             onIncrementAddition={handleAddGlobalAddition}
-            onDecrementAddition={(addition) => {
-              const item = order.items.find(
-                (i) => i.productId === addition.id && i.isGlobalAddition,
-              );
-              if (item) {
-                order.actions.decrementItem(item.lineId);
-              }
-            }}
+            onDecrementAddition={handleDecrementGlobalAddition}
           />
         )}
 
@@ -164,9 +148,9 @@ export function MenuPage() {
                 <ProductCustomizationForm
                   product={selectedProduct}
                   submitLabel="Agregar al pedido"
-                  onSubmit={(input) => {
-                    handleAddToOrder(cartInputToWhatsAppInput(input));
-                    notify.whatsapp(`Agregaste ${input.name} al pedido.`);
+                  onSubmit={(output) => {
+                    handleAddItem(output);
+                    notify.whatsapp(`Agregaste ${output.name} al pedido.`);
                     setSelectedProduct(null);
                   }}
                   onClose={() => setSelectedProduct(null)}
@@ -185,9 +169,9 @@ export function MenuPage() {
                 <ProductCustomizationForm
                   product={selectedProduct}
                   submitLabel="Agregar al pedido"
-                  onSubmit={(input) => {
-                    handleAddToOrder(cartInputToWhatsAppInput(input));
-                    notify.whatsapp(`Agregaste ${input.name} al pedido.`);
+                  onSubmit={(output) => {
+                    handleAddItem(output);
+                    notify.whatsapp(`Agregaste ${output.name} al pedido.`);
                     setSelectedProduct(null);
                   }}
                   onClose={() => setSelectedProduct(null)}
@@ -206,9 +190,9 @@ export function MenuPage() {
         />
       )}
 
-      <WhatsAppOrderButton itemCount={order.totalQuantity} onClick={open} />
+      <MenuOrderButton itemCount={order.totalQuantity} onClick={open} />
 
-      <WhatsAppOrderDrawer isOpen={isOpen} onClose={close} order={order} />
+      <MenuOrderDrawer isOpen={isOpen} onClose={close} order={order} />
     </main>
   );
 }

@@ -1,20 +1,20 @@
 import { WhatsappIcon } from "@/shared/icons";
 import { cn } from "@/shared/utils/cn";
 
-type WhatsAppOrderButtonProps = {
+type MenuOrderButtonProps = {
   itemCount: number;
   onClick: () => void;
 };
 
-export function WhatsAppOrderButton({
+export function MenuOrderButton({
   itemCount,
   onClick,
-}: WhatsAppOrderButtonProps) {
+}: MenuOrderButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Ver pedido por WhatsApp con ${itemCount} ${itemCount === 1 ? "producto" : "productos"}`}
+      aria-label={`Ver pedido con ${itemCount} ${itemCount === 1 ? "producto" : "productos"}`}
       title="Hacer pedido"
       className={cn(
         "fixed bottom-6 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 pr-5 text-primary-foreground shadow-elevated transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:bottom-8 sm:right-6 lg:bottom-10 lg:right-8",

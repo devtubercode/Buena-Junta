@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-export type UseWhatsAppOrderDrawerResult = {
+export type UseMenuOrderDrawerResult = {
   isOpen: boolean;
   open: () => void;
   close: () => void;
@@ -8,9 +8,9 @@ export type UseWhatsAppOrderDrawerResult = {
 
 /**
  * Hook simple para controlar la apertura y cierre del drawer del pedido
- * por WhatsApp.
+ * desde el menú.
  */
-export function useWhatsAppOrderDrawer(): UseWhatsAppOrderDrawerResult {
+export function useMenuOrderDrawer(): UseMenuOrderDrawerResult {
   const [isOpen, setIsOpen] = useState(false);
 
   const open = useCallback(() => setIsOpen(true), []);
