@@ -1,57 +1,67 @@
+import { useState } from "react";
 import type { CartItem } from "@/features/cart/types/cart.types";
 import { formatCOP } from "@/features/cart/utils/money";
+import { cn } from "@/shared/utils/cn";
 
 type CartItemDetailsProps = {
   item: CartItem;
 };
 
-export function CartItemDetails({ item }: CartItemDetailsProps) {
-  const hasSelectedVariant = Boolean(item.variantKey);
-  const hasSelectedOptions =
-    item.selectedOptions && Object.keys(item.selectedOptions).length > 0;
-  const hasSelectedAdditions =
-    item.additionOptions && item.additionOptions.length > 0;
+const VISIBLE_ADDITIONS = 3;
 
-  if (!hasSelectedVariant && !hasSelectedOptions && !hasSelectedAdditions) {
+export function CartItemDetails({ item }: CartItemDetailsProps) {
+  const [showAllAdditions, setShowAllAdditions] = useState(false);
+
+  const variantKey = item.variantKey;
+  const selectedOptions = item.selectedOptions;
+  const additions = item.additionOptions ?? [];
+
+  const hasVariant = Boolean(variantKey);
+  const hasOptions = selectedOptions && Object.keys(selectedOptions).length > 0;
+  const hasAdditions = additions.length > 0;
+
+  if (!hasVariant && !hasOptions && !hasAdditions) {
     return null;
   }
 
+  const visibleAdditions = showAllAdditions
+    ? additions
+    : additions.slice(0, VISIBLE_ADDITIONS);
+  const hiddenCount = Math.max(0, additions.length - VISIBLE_ADDITIONS);
+
   return (
-    <div className="mt-2.5 grid gap-2">
-      {hasSelectedVariant ? (
-        <span className="inline-flex w-fit items-center rounded-full border border-primary-border bg-primary-soft px-2.5 py-1 text-xs font-black text-primary">
-          {item.variantKey}
-        </span>
-      ) : null}
+    <div className={cn("mt-2 flex flex-col gap-2")}>
+      {(hasVariant || hasOptions) && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {hasVariant && (
+            <span className="inline-flex items-center rounded-full border border-primary-border bg-primary-soft px-2.5 py-1 text-xs font-black text-primary">
+              {variantKey}
+            </span>
+          )}
 
-      {hasSelectedOptions ? (
-        <div className="rounded-lg border border-primary-border bg-primary-soft px-3 py-2">
-          <div className="flex flex-wrap gap-x-3 gap-y-1">
-            {Object.entries(item.selectedOptions!).map(
-              ([groupName, optionName]) => (
-                <span
-                  key={groupName}
-                  className="text-xs font-black text-foreground"
-                >
-                  <span className="text-primary">{groupName}:</span>{" "}
-                  {optionName}
-                </span>
-              ),
-            )}
-          </div>
+          {hasOptions &&
+            Object.entries(selectedOptions!).map(([group, value]) => (
+              <span
+                key={group}
+                className="inline-flex items-center rounded-full border border-border bg-surface-muted px-2.5 py-1 text-xs font-black text-foreground"
+              >
+                <span className="text-muted-foreground">{group}:</span>
+                <span className="ml-1">{value}</span>
+              </span>
+            ))}
         </div>
-      ) : null}
+      )}
 
-      {hasSelectedAdditions ? (
-        <div className="rounded-lg border border-border bg-surface-muted px-3 py-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-muted-foreground">
+      {hasAdditions && (
+        <div className="rounded-xl border border-border bg-surface-muted px-2.5 py-2">
+          <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
             Acompañantes
           </p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {item.additionOptions?.map((addition) => (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {visibleAdditions.map((addition) => (
               <span
                 key={addition.key}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-xs font-black text-foreground"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-black text-foreground"
               >
                 <span>{addition.label}</span>
                 <span className="text-primary">
@@ -59,9 +69,33 @@ export function CartItemDetails({ item }: CartItemDetailsProps) {
                 </span>
               </span>
             ))}
+
+            {hiddenCount > 0 && !showAllAdditions && (
+              <button
+                type="button"
+                onClick={() => setShowAllAdditions(true)}
+                className="inline-flex items-center rounded-full border border-dashed border-border bg-surface px-2.5 py-1 text-xs font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                aria-expanded={false}
+                aria-label={`Mostrar ${hiddenCount} acompañantes más`}
+              >
+                +{hiddenCount} más
+              </button>
+            )}
+
+            {showAllAdditions && hiddenCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAllAdditions(false)}
+                className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                aria-expanded={true}
+                aria-label="Mostrar menos acompañantes"
+              >
+                Ver menos
+              </button>
+            )}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

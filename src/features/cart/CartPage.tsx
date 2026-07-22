@@ -8,11 +8,8 @@ import { CartEmpty } from "@/features/cart/components/CartEmpty";
 import { useCartPage } from "@/features/cart/hooks/useCartPage";
 
 import { CustomModal } from "@/shared/components/CustomModal";
-import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { ChevronLeft } from "lucide-react";
 import { WhatsappIcon } from "@/shared/icons";
-
-import { ProductCustomizationForm } from "@/shared/components/product/ProductCustomizationForm";
 
 export const CartPage = () => {
   const {
@@ -20,8 +17,6 @@ export const CartPage = () => {
     orderDraft,
     total,
     totalQuantity,
-    editingItem,
-    editingProduct,
     isConfirmationOpen,
     canSendOrder,
     actions,
@@ -64,8 +59,6 @@ export const CartPage = () => {
                 onQuantityChange={(quantity) =>
                   actions.updateQuantity(item, quantity)
                 }
-                onNoteChange={(note) => actions.updateNote(item, note)}
-                onEdit={() => actions.editItem(item)}
                 onRemove={() => actions.remove(item)}
               />
             ))}
@@ -121,53 +114,6 @@ export const CartPage = () => {
           </button>
         </div>
       </CustomModal>
-
-      {editingProduct ? (
-        <>
-          <div className="hidden sm:block">
-            <CustomModal
-              isOpen={Boolean(editingProduct)}
-              title="Selecciona tus opciones"
-              description="Personaliza tu pedido antes de agregarlo al carrito."
-              contentClassName="max-w-lg p-0 sm:p-1"
-              onClose={actions.closeEdit}
-            >
-              <div className="p-3 sm:p-4">
-                <ProductCustomizationForm
-                  product={editingProduct}
-                  initialCartItem={editingItem ?? undefined}
-                  submitLabel={
-                    editingItem ? "Guardar cambios" : "Agregar al carrito"
-                  }
-                  onSubmit={actions.saveEdit}
-                  onClose={actions.closeEdit}
-                />
-              </div>
-            </CustomModal>
-          </div>
-          <div className="sm:hidden">
-            <ButtonSheetModal
-              isOpen={Boolean(editingProduct)}
-              title="Selecciona tus opciones"
-              description="Personaliza tu pedido antes de agregarlo al carrito."
-              contentClassName="max-w-lg p-0 sm:p-1"
-              onClose={actions.closeEdit}
-            >
-              <div className="p-3">
-                <ProductCustomizationForm
-                  product={editingProduct}
-                  initialCartItem={editingItem ?? undefined}
-                  submitLabel={
-                    editingItem ? "Guardar cambios" : "Agregar al carrito"
-                  }
-                  onSubmit={actions.saveEdit}
-                  onClose={actions.closeEdit}
-                />
-              </div>
-            </ButtonSheetModal>
-          </div>
-        </>
-      ) : null}
     </main>
   );
 };

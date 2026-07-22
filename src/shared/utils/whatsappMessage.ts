@@ -1,12 +1,26 @@
-import type { CartItem, OrderDraft } from "@/features/cart/types/cart.types";
 import { formatCartItemName } from "@/features/cart/utils/cartCopy";
 import { formatCOP } from "@/features/cart/utils/money";
 
 const WHATSAPP_PHONE = "573174263716";
 
-type BuildMessageInput = {
-  items: CartItem[];
-  orderDraft: OrderDraft;
+type WhatsAppMessageItem = {
+  name: string;
+  price: number;
+  quantity: number;
+  variantKey?: string;
+  selectedOptions?: Record<string, string>;
+  additionOptions?: Array<{ key: string; label: string; unitPrice: number }>;
+};
+
+type WhatsAppMessageDraft = {
+  customerName: string;
+  generalObservation: string;
+  table?: string;
+};
+
+type BuildWhatsAppMessageInput = {
+  items: WhatsAppMessageItem[];
+  orderDraft: WhatsAppMessageDraft;
   total: number;
 };
 
@@ -16,7 +30,7 @@ function compactLines(lines: CompactLine[]): string {
   return lines.filter(Boolean).join("\n");
 }
 
-function formatSelectedOptions(item: CartItem): string | false {
+function formatSelectedOptions(item: WhatsAppMessageItem): string | false {
   if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
     return false;
   }
@@ -28,7 +42,7 @@ function formatSelectedOptions(item: CartItem): string | false {
   return `   Opciones: ${options}`;
 }
 
-function formatAdditions(item: CartItem): string | false {
+function formatAdditions(item: WhatsAppMessageItem): string | false {
   if (!item.additionOptions?.length) {
     return false;
   }
@@ -40,30 +54,29 @@ function formatAdditions(item: CartItem): string | false {
   return `   Acompañantes: ${additions}`;
 }
 
-function formatProductLine(item: CartItem, index: number): string {
+function formatProductLine(item: WhatsAppMessageItem, index: number): string {
   const productName = formatCartItemName(item.name);
-  const subtotal = item.unitPrice * item.quantity;
+  const subtotal = item.price * item.quantity;
 
   return compactLines([
     `${index + 1}. ${productName}`,
     item.variantKey?.trim() ? `   Presentación: ${item.variantKey.trim()}` : false,
     formatSelectedOptions(item),
     `   Cantidad: ${item.quantity}`,
-    `   Precio unitario: ${formatCOP(item.unitPrice)}`,
+    `   Precio unitario: ${formatCOP(item.price)}`,
     `   Subtotal: ${formatCOP(subtotal)}`,
     formatAdditions(item),
-    item.note?.trim() ? `   Observación: ${item.note.trim()}` : false,
   ]);
 }
 
-function formatOrderNotes(orderDraft: OrderDraft): CompactLine[] {
-  const notes = orderDraft.generalNotes.trim();
+function formatOrderNotes(orderDraft: WhatsAppMessageDraft): CompactLine[] {
+  const observation = orderDraft.generalObservation.trim();
 
-  if (!notes) {
+  if (!observation) {
     return [];
   }
 
-  return ["", "Observaciones del pedido:", notes];
+  return ["", "Observaciones del pedido:", observation];
 }
 
 /**
@@ -77,7 +90,7 @@ export function buildWhatsAppOrderMessage({
   items,
   orderDraft,
   total,
-}: BuildMessageInput): string {
+}: BuildWhatsAppMessageInput): string {
   if (items.length === 0) {
     throw new Error("No se puede generar el mensaje: el carrito está vacío.");
   }
@@ -87,7 +100,7 @@ export function buildWhatsAppOrderMessage({
   }
 
   const customerName = orderDraft.customerName.trim() || "Sin responsable";
-  const table = orderDraft.table.trim();
+  const table = orderDraft.table?.trim() ?? "";
   const productLines = items.map(formatProductLine).join("\n\n");
 
   return compactLines([

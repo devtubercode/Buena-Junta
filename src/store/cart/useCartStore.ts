@@ -15,7 +15,6 @@ type CartState = {
   incrementItem: (lineId: string) => void;
   decrementItem: (lineId: string) => void;
   updateQuantity: (lineId: string, quantity: number) => void;
-  updateItemNote: (lineId: string, note: string) => void;
   updateItemVariant: (
     lineId: string,
     variantKey: string,
@@ -31,12 +30,8 @@ type CartState = {
 const emptyOrderDraft: OrderDraft = {
   customerName: "",
   table: "",
-  generalNotes: "",
+  generalObservation: "",
 };
-
-function normalizeNote(note?: string) {
-  return note?.trim().replace(/\s+/g, " ").toLowerCase() ?? "";
-}
 
 function normalizeAdditionKeys(additionOptions?: AddCartItemInput["additionOptions"]) {
   return [...(additionOptions ?? [])]
@@ -58,7 +53,6 @@ function buildLineId(item: AddCartItemInput) {
   return [
     item.productId,
     item.variantKey ?? "base",
-    normalizeNote(item.note),
     normalizeAdditionKeys(item.additionOptions),
     normalizeSelectedOptions(item.selectedOptions),
   ].join("::");
@@ -67,14 +61,12 @@ function buildLineId(item: AddCartItemInput) {
 function buildLineIdFromParts(
   productId: string,
   variantKey?: string,
-  note?: string,
   additionOptions?: AddCartItemInput["additionOptions"],
   selectedOptions?: Record<string, string>,
 ) {
   return [
     productId,
     variantKey ?? "base",
-    normalizeNote(note),
     normalizeAdditionKeys(additionOptions),
     normalizeSelectedOptions(selectedOptions),
   ].join("::");
@@ -130,7 +122,6 @@ export const useCartStore = create<CartState>()(
                 name: item.name,
                 unitPrice: item.unitPrice,
                 quantity,
-                note: item.note?.trim() || undefined,
                 selectedOptions: item.selectedOptions,
                 variantOptions: item.variantOptions,
                 additionOptions: item.additionOptions,
@@ -175,13 +166,6 @@ export const useCartStore = create<CartState>()(
           ),
         }));
       },
-      updateItemNote: (lineId, note) => {
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.lineId === lineId ? { ...item, note } : item,
-          ),
-        }));
-      },
       updateItemVariant: (lineId, variantKey) => {
         const state = get();
         const currentItem = state.items.find((item) => item.lineId === lineId);
@@ -201,7 +185,6 @@ export const useCartStore = create<CartState>()(
         const nextLineId = buildLineIdFromParts(
           currentItem.productId,
           selectedOption.key,
-          currentItem.note,
           currentItem.additionOptions,
           currentItem.selectedOptions,
         );
@@ -254,7 +237,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "buenajunta-cart",
-      version: 4,
+      version: 5,
       partialize: (state) => ({
         items: state.items,
         orderDraft: state.orderDraft,

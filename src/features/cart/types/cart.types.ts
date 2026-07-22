@@ -28,7 +28,6 @@ export type CartItem = {
   name: string;
   unitPrice: number;
   quantity: number;
-  note?: string;
   selectedOptions?: Record<string, string>;
   variantOptions?: CartVariantOption[];
   additionOptions?: CartAdditionOption[];
@@ -39,7 +38,7 @@ export type CartItem = {
 export type OrderDraft = {
   customerName: string;
   table: string;
-  generalNotes: string;
+  generalObservation: string;
 };
 
 export type AddCartItemInput = {
@@ -54,7 +53,6 @@ export type AddCartItemInput = {
   name: string;
   unitPrice: number;
   quantity?: number;
-  note?: string;
   selectedOptions?: Record<string, string>;
   variantOptions?: CartVariantOption[];
   additionOptions?: CartAdditionOption[];

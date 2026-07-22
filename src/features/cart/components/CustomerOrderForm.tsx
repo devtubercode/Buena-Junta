@@ -61,13 +61,13 @@ export function CustomerOrderForm({ draft, onChange }: CustomerOrderFormProps) {
             Observaciones del pedido
           </span>
           <textarea
-            value={draft.generalNotes}
+            value={draft.generalObservation}
             maxLength={240}
             rows={3}
             className="w-full resize-none rounded-lg border border-border bg-surface-muted px-4 py-3 text-base font-medium text-foreground outline-none transition placeholder:text-placeholder focus:border-primary focus:ring-2 focus:ring-primary/20"
             placeholder="Ej: entregar todo junto, sin picante..."
             onChange={(event) =>
-              onChange({ generalNotes: event.target.value })
+              onChange({ generalObservation: event.target.value })
             }
           />
         </label>

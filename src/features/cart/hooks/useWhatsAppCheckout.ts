@@ -3,7 +3,7 @@ import { useCartStore } from "@/store/cart/useCartStore";
 import {
   buildWhatsAppOrderMessage,
   buildWhatsAppUrl,
-} from "@/features/cart/utils/whatsapp";
+} from "@/shared/utils/whatsappMessage";
 import { notify } from "@/shared/notifications/notify";
 
 export type WhatsAppCheckoutState = {
@@ -51,7 +51,14 @@ export function useWhatsAppCheckout(): WhatsAppCheckoutState {
 
     try {
       const message = buildWhatsAppOrderMessage({
-        items,
+        items: items.map((item) => ({
+          name: item.name,
+          price: item.unitPrice,
+          quantity: item.quantity,
+          variantKey: item.variantKey,
+          selectedOptions: item.selectedOptions,
+          additionOptions: item.additionOptions,
+        })),
         orderDraft,
         total,
       });
