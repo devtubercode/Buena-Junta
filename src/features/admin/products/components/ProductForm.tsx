@@ -1,5 +1,6 @@
 import { Save } from "lucide-react";
 import { AdminImageField } from "@/features/admin/shared/components/AdminImageField";
+import { CurrencyField } from "@/shared/components/CurrencyField";
 import { InputField } from "@/shared/components/InputField";
 import { SelectField } from "@/shared/components/SelectField";
 import { TextAreaField } from "@/shared/components/TextAreaField";
@@ -120,13 +121,11 @@ export const ProductForm = ({
           onRemove={removeImage}
         />
 
-        <InputField
+        <CurrencyField
           name="price"
           control={form.control}
           label="Precio en pesos"
-          type="number"
-          min={0}
-          step={1}
+          placeholder="Ej: 12.500"
         />
 
         <InputField

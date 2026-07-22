@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save, X } from "lucide-react";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
+import { CurrencyField } from "@/shared/components/CurrencyField";
 import { InputField } from "@/shared/components/InputField";
 import { TextAreaField } from "@/shared/components/TextAreaField";
 import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
@@ -90,13 +91,11 @@ export const ProductAdditionModal = ({
             autoComplete="off"
           />
 
-          <InputField
+          <CurrencyField
             name="price"
             control={form.control}
             label="Precio"
-            type="number"
-            min={0}
-            step={1}
+            placeholder="Ej: 5.000"
           />
         </div>
 

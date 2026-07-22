@@ -3,6 +3,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Checkbox } from "@/shared/components/Checkbox";
+import { CurrencyField } from "@/shared/components/CurrencyField";
 import { InputField } from "@/shared/components/InputField";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 
@@ -105,13 +106,11 @@ export const VariantModal = ({
           autoComplete="off"
         />
 
-        <InputField
+        <CurrencyField
           name="price"
           control={form.control}
           label="Precio en pesos"
-          type="number"
-          min={0}
-          step={1}
+          placeholder="Ej: 12.500"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">

@@ -1,4 +1,5 @@
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
+import { CurrencyField } from "@/shared/components/CurrencyField";
 import { InputField } from "@/shared/components/InputField";
 import { TextAreaField } from "@/shared/components/TextAreaField";
 import { Save, X } from "lucide-react";
@@ -85,13 +86,11 @@ export const AdditionForm = ({
           autoComplete="off"
         />
 
-        <InputField
+        <CurrencyField
           name="price"
           control={form.control}
           label="Precio"
-          type="number"
-          min={0}
-          step={1}
+          placeholder="Ej: 5.000"
         />
 
         <TextAreaField
