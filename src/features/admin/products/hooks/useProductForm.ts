@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { useNavigate } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useImageUpload,
@@ -15,12 +14,12 @@ import {
   SUPABASE_BUCKETS,
   SUPABASE_STORAGE_PATHS,
 } from "@/lib/supabase/constants";
+import { createOptimizedImageFile } from "@/shared/utils/image-optimizer";
 import {
   normalizeSlug,
   parsePrice,
   textToTags,
 } from "@/features/admin/shared/utils/adminForms";
-import { appRoutes } from "@/app/routes";
 import { notify } from "@/shared/notifications/notify";
 import {
   productSchema,
@@ -55,6 +54,19 @@ interface ImageResolution {
   uploadedPath: string | null;
 }
 
+const uploadOriginalBackup = async (
+  imageFile: File,
+  bucket: string,
+  pathPrefix: string,
+): Promise<void> => {
+  try {
+    await uploadStorageImage(imageFile, bucket, pathPrefix);
+  } catch {
+    // The original backup is optional; its failure should not block the save.
+    console.warn("No se pudo guardar la copia original de la imagen.");
+  }
+};
+
 const resolveProductImagePath = async (
   imageFile: File | null,
   imageAction: ImageUploadAction,
@@ -63,11 +75,32 @@ const resolveProductImagePath = async (
   if (imageAction === "remove") return { imagePath: null, uploadedPath: null };
 
   if (imageFile) {
+    let fileToUpload: File;
+    try {
+      fileToUpload = await createOptimizedImageFile(imageFile, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+      });
+    } catch (error) {
+      console.warn("No se pudo optimizar la imagen; se subirá el original.", error);
+      fileToUpload = imageFile;
+    }
+
     const uploaded = await uploadStorageImage(
-      imageFile,
+      fileToUpload,
       SUPABASE_BUCKETS.PRODUCT_IMAGES,
       SUPABASE_STORAGE_PATHS.PRODUCTS,
     );
+
+    // Keep the original file as a backup under a separate path, accessible
+    // only from the storage bucket itself (not exposed in the public UI).
+    void uploadOriginalBackup(
+      imageFile,
+      SUPABASE_BUCKETS.PRODUCT_IMAGES,
+      SUPABASE_STORAGE_PATHS.ORIGINAL_PRODUCTS,
+    );
+
     return { imagePath: uploaded, uploadedPath: uploaded };
   }
 
@@ -76,11 +109,11 @@ const resolveProductImagePath = async (
 
 type UseProductFormOptions = {
   selectedProduct: ProductRow | null;
+  onProductSaved: (savedProduct: ProductRow) => void;
 };
 
-const useProductForm = ({ selectedProduct }: UseProductFormOptions) => {
+const useProductForm = ({ selectedProduct, onProductSaved }: UseProductFormOptions) => {
   const [isSaving, setIsSaving] = useState(false);
-  const navigate = useNavigate();
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -141,9 +174,7 @@ const useProductForm = ({ selectedProduct }: UseProductFormOptions) => {
 
       resetImageState();
       notify.success("Producto guardado correctamente.");
-      navigate(`${appRoutes.adminProducts}/${savedProduct.slug}`, {
-        replace: true,
-      });
+      onProductSaved(savedProduct);
     } catch (error) {
       if (currentUploadedImagePath) {
         await removeStorageImage(

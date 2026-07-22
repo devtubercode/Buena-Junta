@@ -36,11 +36,13 @@ function AvailabilityBadge({ isAvailable }: { isAvailable: boolean }) {
 type ProductFormProps = {
   categories: CategoryRow[];
   selectedProduct: ProductRow | null;
+  onProductSaved: (savedProduct: ProductRow) => void;
 };
 
 export const ProductForm = ({
   categories,
   selectedProduct,
+  onProductSaved,
 }: ProductFormProps) => {
   const {
     form,
@@ -53,6 +55,7 @@ export const ProductForm = ({
     setSelectedImageFile,
   } = useProductForm({
     selectedProduct: selectedProduct,
+    onProductSaved,
   });
 
   console.log("form errors:", form.formState.errors);

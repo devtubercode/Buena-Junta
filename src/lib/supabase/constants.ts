@@ -20,4 +20,6 @@ export const SUPABASE_BUCKETS = {
 export const SUPABASE_STORAGE_PATHS = {
   PRODUCTS: "products",
   PROMOTIONS: "promotions",
+  ORIGINAL_PRODUCTS: "originals/products",
+  ORIGINAL_PROMOTIONS: "originals/promotions",
 } as const;

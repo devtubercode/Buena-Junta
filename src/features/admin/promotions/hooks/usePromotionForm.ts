@@ -16,6 +16,7 @@ import {
   SUPABASE_BUCKETS,
   SUPABASE_STORAGE_PATHS,
 } from "@/lib/supabase/constants";
+import { createOptimizedImageFile } from "@/shared/utils/image-optimizer";
 import {
   promotionSchema,
   type PromotionFormData,
@@ -34,7 +35,20 @@ type UsePromotionFormOptions = {
   onSuccessSaved: (savedPromotion: PromotionRow) => void;
 };
 
-const resolveProductImagePath = async (
+const uploadOriginalBackup = async (
+  imageFile: File,
+  bucket: string,
+  pathPrefix: string,
+): Promise<void> => {
+  try {
+    await uploadStorageImage(imageFile, bucket, pathPrefix);
+  } catch {
+    // The original backup is optional; its failure should not block the save.
+    console.warn("No se pudo guardar la copia original de la imagen.");
+  }
+};
+
+const resolvePromotionImagePath = async (
   imageFile: File | null,
   imageAction: ImageUploadAction,
   currentImagePath: string | null,
@@ -42,11 +56,32 @@ const resolveProductImagePath = async (
   if (imageAction === "remove") return null;
 
   if (imageFile) {
+    let fileToUpload: File;
+    try {
+      fileToUpload = await createOptimizedImageFile(imageFile, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+      });
+    } catch (error) {
+      console.warn("No se pudo optimizar la imagen; se subirá el original.", error);
+      fileToUpload = imageFile;
+    }
+
     const uploaded = await uploadStorageImage(
-      imageFile,
+      fileToUpload,
       SUPABASE_BUCKETS.PROMOTION_IMAGES,
       SUPABASE_STORAGE_PATHS.PROMOTIONS,
     );
+
+    // Keep the original file as a backup under a separate path, accessible
+    // only from the storage bucket itself (not exposed in the public UI).
+    void uploadOriginalBackup(
+      imageFile,
+      SUPABASE_BUCKETS.PROMOTION_IMAGES,
+      SUPABASE_STORAGE_PATHS.ORIGINAL_PROMOTIONS,
+    );
+
     return uploaded;
   }
 
@@ -98,7 +133,7 @@ export const usePromotionForm = ({
 
   const onSubmit = async (data: PromotionFormData) => {
     await savedHandler.execute(async () => {
-      const imagePath = await resolveProductImagePath(
+      const imagePath = await resolvePromotionImagePath(
         imageFile,
         imageAction,
         promotion?.image_path ?? null,

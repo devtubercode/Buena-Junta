@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { appRoutes } from "@/app/routes";
 import { AdminProductDetailSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { AdminNotFoundState } from "@/features/admin/shared/state/AdminNotFoundState";
@@ -10,7 +10,7 @@ import { EmptyState } from "@/shared/components/EmptyState";
 import { AdminSection } from "../shared/components/AdminSection";
 import { ArrowLeft } from "lucide-react";
 import { useCallback } from "react";
-import type { AdminProductDetailData } from "../types/products.types";
+import type { AdminProductDetailData, ProductRow } from "../types/products.types";
 import { fetchAdminProductDetail } from "./services/admin-products.service";
 import { useAdminResource } from "../shared/hooks/useAdminResource";
 import { fetchAdminCategories } from "../categories/services/admin-categories.service";
@@ -25,6 +25,7 @@ const emptyProductDetail: AdminProductDetailData = {
 
 export const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
 
   const isNewProduct = !slug || slug === "new";
 
@@ -35,6 +36,7 @@ export const ProductDetailPage = () => {
 
   const {
     data: productDetail,
+    setData: setProductDetail,
     isLoading: isLoadingProductDetail,
     error: productDetailError,
   } = useAdminResource(fetchProductDetail, emptyProductDetail, {
@@ -49,6 +51,15 @@ export const ProductDetailPage = () => {
 
   const isLoading = isLoadingProductDetail || isLoadingCategories;
   const error = productDetailError ?? categoriesError;
+
+  const handleProductSaved = (savedProduct: ProductRow) => {
+    const goToNew = `${appRoutes.adminProducts}/${savedProduct.slug}`;
+    setProductDetail({ ...productDetail, product: savedProduct });
+
+    if (isNewProduct) {
+      navigate(goToNew, { replace: true });
+    }
+  };
 
   if (error) {
     return (
@@ -93,6 +104,7 @@ export const ProductDetailPage = () => {
         <ProductForm
           categories={categories}
           selectedProduct={productDetail.product}
+          onProductSaved={handleProductSaved}
         />
 
         <div className="flex flex-col gap-2">
