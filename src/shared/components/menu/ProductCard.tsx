@@ -1,21 +1,13 @@
 import { useState } from "react";
-import { ShoppingCart, SlidersHorizontal } from "lucide-react";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
-import {
-  getProductButtonLabel,
-  getProductCardPriceLabel,
-  requiresCustomization,
-  hasAdditions,
-  hasRequiredOptions,
-} from "@/features/menu/utils/productHelpers";
+import { getProductCardPriceLabel } from "@/features/menu/utils/productHelpers";
 import { cn } from "@/shared/utils/cn";
 
 type ProductCardProps = {
   product: MenuProduct;
   quantityInCart?: number;
-  onQuickAdd: () => void;
-  onOpenCustomization: () => void;
+  onOpenDetail: () => void;
 };
 
 function getProductImage(product: MenuProduct) {
@@ -27,25 +19,10 @@ function getProductImage(product: MenuProduct) {
   );
 }
 
-function getBadges(product: MenuProduct) {
-  const badges: { label: string; variant: "required" | "additions" }[] = [];
-
-  if (hasRequiredOptions(product)) {
-    badges.push({ label: "Requiere selección", variant: "required" });
-  }
-
-  if (hasAdditions(product)) {
-    badges.push({ label: "Adiciones disponibles", variant: "additions" });
-  }
-
-  return badges;
-}
-
 export function ProductCard({
   product,
   quantityInCart = 0,
-  onQuickAdd,
-  onOpenCustomization,
+  onOpenDetail,
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   const isUnavailable = !product.is_available;
@@ -54,15 +31,33 @@ export function ProductCard({
     : (product.urlImage ?? getProductImage(product));
   const isPlaceholder = !product.urlImage || imageError;
   const priceLabel = getProductCardPriceLabel(product);
-  const buttonLabel = getProductButtonLabel(product, true);
-  const badges = getBadges(product);
   const isInCart = quantityInCart > 0;
-  const showAddedBadge = isInCart;
+  const hasDescription = product.description.trim().length > 0;
 
   return (
     <article
-      className="group flex h-auto flex-row overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated transition sm:h-full sm:flex-col"
+      role="button"
+      tabIndex={isUnavailable ? -1 : 0}
+      onClick={isUnavailable ? undefined : onOpenDetail}
+      onKeyDown={(event) => {
+        if (isUnavailable) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpenDetail();
+        }
+      }}
+      className={cn(
+        "group flex h-auto flex-row overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated transition duration-200 ease-out sm:h-full sm:flex-col",
+        !isUnavailable &&
+          "cursor-pointer hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-xl hover:ring-1 hover:ring-primary/10 focus-visible:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+        isUnavailable && "opacity-60 grayscale",
+      )}
       data-product-id={product.id}
+      aria-label={
+        isUnavailable
+          ? `${product.name}, no disponible`
+          : `Ver detalles de ${product.name}`
+      }
     >
       <div className="relative aspect-square w-28 shrink-0 overflow-hidden bg-surface-muted sm:aspect-4/3 sm:w-full">
         <img
@@ -74,7 +69,6 @@ export function ProductCard({
             isPlaceholder
               ? "bg-surface-raised object-contain p-3 sm:p-6"
               : "bg-surface-muted object-cover",
-            isUnavailable && "opacity-60 grayscale",
           )}
           loading="lazy"
         />
@@ -87,7 +81,7 @@ export function ProductCard({
           </div>
         ) : null}
 
-        {showAddedBadge ? (
+        {isInCart ? (
           <span className="absolute right-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-primary px-1 text-[10px] font-black text-primary-foreground shadow-elevated sm:right-2 sm:top-2 sm:h-7 sm:min-w-7 sm:px-1.5 sm:text-xs">
             {quantityInCart}
           </span>
@@ -99,29 +93,13 @@ export function ProductCard({
           {product.name}
         </h3>
 
-        <p className="mt-0.5  text-xs leading-relaxed text-muted-foreground sm:mt-1 sm:text-sm">
-          {product.description}
-        </p>
-
-        {badges.length > 0 ? (
-          <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-2 sm:gap-1.5">
-            {badges.map((badge) => (
-              <span
-                key={badge.label}
-                className={cn(
-                  "inline-flex items-center rounded-full px-1.5 py-0 text-[9px] font-black uppercase tracking-wide sm:px-2 sm:py-0.5 sm:text-[10px]",
-                  badge.variant === "required"
-                    ? "bg-warning-soft text-warning"
-                    : "bg-primary-soft text-primary",
-                )}
-              >
-                {badge.label}
-              </span>
-            ))}
-          </div>
+        {hasDescription ? (
+          <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:mt-1 sm:text-sm">
+            {product.description}
+          </p>
         ) : null}
 
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2 sm:flex-row sm:items-end sm:justify-between sm:pt-3">
+        <div className="mt-auto flex items-end justify-between gap-2 pt-2 sm:pt-3">
           <div className="min-w-0">
             {priceLabel ? (
               <p className="font-heading text-base font-black leading-none text-primary sm:text-xl md:text-2xl">
@@ -133,32 +111,6 @@ export function ProductCard({
               </p>
             )}
           </div>
-
-          <button
-            type="button"
-            disabled={isUnavailable || priceLabel === null}
-            aria-label={buttonLabel}
-            onClick={() => {
-              if (requiresCustomization(product)) {
-                onOpenCustomization();
-              } else {
-                onQuickAdd();
-              }
-            }}
-            className="relative inline-flex min-h-9 w-auto shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-11 sm:gap-2 sm:px-4"
-          >
-            {showAddedBadge ? (
-              <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-foreground px-1 text-[9px] font-black text-primary shadow-sm sm:h-5 sm:min-w-5 sm:px-1.5 sm:text-[10px]">
-                {quantityInCart}
-              </span>
-            ) : null}
-            {requiresCustomization(product) ? (
-              <SlidersHorizontal className="size-4 shrink-0" />
-            ) : (
-              <ShoppingCart className="size-4 shrink-0" />
-            )}
-            <span className="hidden truncate sm:inline">{buttonLabel}</span>
-          </button>
         </div>
       </div>
     </article>

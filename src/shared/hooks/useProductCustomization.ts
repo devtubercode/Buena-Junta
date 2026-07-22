@@ -1,125 +1,22 @@
 import { useMemo, useState } from "react";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
-import type { CartItem } from "@/features/cart/types/cart.types";
 import type {
-  OptionGroup,
   MenuPriceVariant,
   MenuProduct,
 } from "@/features/menu/types/menu.types";
 import { buildCartProductName } from "@/features/menu/utils/productCopy";
+import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
-function filterMatchingAdditions(
-  productAdditions: AdditionRow[],
-  itemAdditions?: { key: string }[],
-): AdditionRow[] {
-  if (!itemAdditions?.length) return [];
-
-  return productAdditions.filter((productAddition) =>
-    itemAdditions.some(
-      (itemAddition) => itemAddition.key === productAddition.id,
-    ),
-  );
-}
-
-export type ProductCustomizationConfig = {
-  selectedVariant: MenuPriceVariant | null;
-  selectedOptions: Record<string, string>;
-  selectedAdditions: AdditionRow[];
-  quantity: number;
-  note: string;
-};
-
-function getInitialVariant(
-  product: MenuProduct,
-  initialConfig?: Partial<ProductCustomizationConfig>,
-): MenuPriceVariant | null {
-  if (initialConfig?.selectedVariant) {
-    const match = product.priceVariants.find(
-      (option) => option.label === initialConfig.selectedVariant?.label,
-    );
-    if (match) return match;
-  }
-
-  return product.priceVariants[0] ?? null;
-}
-
-function getInitialOptions(
-  optionGroups: OptionGroup[],
-  initialConfig?: Partial<ProductCustomizationConfig>,
-): Record<string, string> {
-  const requiredGroups = optionGroups.filter(
-    (group) => group.is_active && group.is_required,
-  );
-
-  return requiredGroups.reduce(
-    (acc, group) => {
-      const existingValue = initialConfig?.selectedOptions?.[group.name];
-      const validValue = existingValue
-        ? group.options.find((option) => option.name === existingValue)?.name
-        : undefined;
-
-      if (validValue) {
-        acc[group.name] = validValue;
-      }
-
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
-}
-
-function getInitialAdditions(
-  product: MenuProduct,
-  initialConfig?: Partial<ProductCustomizationConfig>,
-): AdditionRow[] {
-  if (!initialConfig?.selectedAdditions?.length) return [];
-
-  return initialConfig.selectedAdditions.filter((selectedAddition) =>
-    product.additions.some(
-      (productAddition) => productAddition.id === selectedAddition.id,
-    ),
-  );
-}
-
-export function useProductCustomization(
-  product: MenuProduct,
-  initialCartItem?: CartItem,
-) {
-  const initialConfig: Partial<ProductCustomizationConfig> | undefined =
-    initialCartItem
-      ? {
-          selectedVariant:
-            product.priceVariants.find(
-              (option) => option.label === initialCartItem.variantKey,
-            ) ?? null,
-          selectedOptions: initialCartItem.selectedOptions ?? {},
-          selectedAdditions: filterMatchingAdditions(
-            initialCartItem.availableAdditions ?? product.additions,
-            initialCartItem.additionOptions,
-          ),
-          quantity: initialCartItem.quantity,
-          note: initialCartItem.note ?? "",
-        }
-      : undefined;
-
-  const optionGroupsSource = initialCartItem?.optionGroups ?? product.groups;
-  const additionsSource =
-    initialCartItem?.availableAdditions ?? product.additions;
-
+export function useProductCustomization(product: MenuProduct) {
   const [selectedVariant, setSelectedVariant] =
-    useState<MenuPriceVariant | null>(() =>
-      getInitialVariant(product, initialConfig),
-    );
+    useState<MenuPriceVariant | null>(() => product.priceVariants[0] ?? null);
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
-  >(() => getInitialOptions(optionGroupsSource, initialConfig));
+  >(() => ({}));
   const [selectedAdditions, setSelectedAdditions] = useState<AdditionRow[]>(
-    () => getInitialAdditions(product, initialConfig),
+    () => [],
   );
-  const [quantity, setQuantity] = useState(() =>
-    Math.max(1, initialConfig?.quantity ?? 1),
-  );
-  const [note, setNote] = useState(() => initialConfig?.note ?? "");
+  const [quantity, setQuantity] = useState(() => 1);
 
   const basePrice = useMemo(() => {
     if (product.priceVariants.length > 0) {
@@ -129,12 +26,12 @@ export function useProductCustomization(
     return product.price;
   }, [product, selectedVariant]);
 
-  const activeOptionGroups = useMemo(
-    () => optionGroupsSource,
-    [optionGroupsSource],
-  );
+  const activeOptionGroups = useMemo(() => product.groups, [product.groups]);
 
-  const availableAdditions = useMemo(() => additionsSource, [additionsSource]);
+  const availableAdditions = useMemo(
+    () => product.additions,
+    [product.additions],
+  );
 
   const additionsTotal = useMemo(
     () =>
@@ -219,36 +116,24 @@ export function useProductCustomization(
     return parts.join(" / ") || undefined;
   };
 
-  const buildCartInput = () => {
+  const buildOutput = (): ProductCustomizationOutput | null => {
     if (unitPrice === null || !isValid) return null;
 
     const variantLabel = buildVariantLabel();
-    const displayName = buildCartProductName(product, variantLabel);
 
     return {
-      productId: product.id,
-      image: product.urlImage,
-      variantKey: variantLabel,
-      baseName: product.name,
-      displayName,
-      name: displayName,
-      unitPrice,
+      id: product.id,
+      urlImage: product.urlImage,
+      name: buildCartProductName(product, variantLabel),
+      price: unitPrice,
       quantity,
-      note: note.trim() || undefined,
+      variantKey: variantLabel,
       selectedOptions,
-      variantOptions: product.priceVariants.map((option) => ({
-        key: option.label,
-        label: option.label,
-        itemName: buildCartProductName(product, option.label),
-        unitPrice: option.price,
-      })),
       additionOptions: selectedAdditions.map((selectedAddition) => ({
         key: selectedAddition.id,
         label: selectedAddition.name,
         unitPrice: selectedAddition.price,
       })),
-      optionGroups: activeOptionGroups,
-      availableAdditions,
     };
   };
 
@@ -257,7 +142,6 @@ export function useProductCustomization(
     selectedOptions,
     selectedAdditions,
     quantity,
-    note,
     basePrice,
     additionsTotal,
     unitPrice,
@@ -272,7 +156,6 @@ export function useProductCustomization(
     handleSetQuantity,
     handleIncrement,
     handleDecrement,
-    setNote,
-    buildCartInput,
+    buildOutput,
   };
 }

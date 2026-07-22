@@ -24,7 +24,6 @@ export const HomePage = () => {
     handleOpenCustomization,
     handleCloseCustomization,
     handleAddCustomized,
-    handleQuickAdd,
   } = useProductCatalog({ products: products });
 
   return (
@@ -72,8 +71,7 @@ export const HomePage = () => {
                   key={product.id}
                   product={product}
                   quantityInCart={getQuantityInCart?.(product.id)}
-                  onQuickAdd={() => handleQuickAdd(product)}
-                  onOpenCustomization={() => handleOpenCustomization(product)}
+                  onOpenDetail={() => handleOpenCustomization(product)}
                 />
               ))}
             </div>
@@ -99,8 +97,6 @@ export const HomePage = () => {
             <div className="hidden sm:block">
               <CustomModal
                 isOpen={Boolean(customizingProduct)}
-                title="Selecciona tus opciones"
-                description="Personaliza tu pedido antes de agregarlo al carrito."
                 contentClassName="max-w-lg p-0 sm:p-1"
                 onClose={handleCloseCustomization}
               >
@@ -117,8 +113,7 @@ export const HomePage = () => {
             <div className="sm:hidden">
               <ButtonSheetModal
                 isOpen={Boolean(customizingProduct)}
-                title="Selecciona tus opciones"
-                description="Personaliza tu pedido antes de agregarlo al carrito."
+                title=""
                 contentClassName="max-w-lg p-0 sm:p-1"
                 onClose={handleCloseCustomization}
               >

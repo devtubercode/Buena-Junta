@@ -5,8 +5,7 @@ import { ProductCard } from "@/shared/components/menu/ProductCard";
 type ProductGridProps = {
   products: MenuProduct[];
   getQuantityInCart?: (productId: string) => number;
-  onQuickAdd: (product: MenuProduct) => void;
-  onOpenCustomization: (product: MenuProduct) => void;
+  onOpenDetail: (product: MenuProduct) => void;
   emptyTitle?: string;
   emptyDescription?: string;
 };
@@ -14,8 +13,7 @@ type ProductGridProps = {
 export function ProductGrid({
   products,
   getQuantityInCart,
-  onQuickAdd,
-  onOpenCustomization,
+  onOpenDetail,
   emptyTitle = "No hay productos para mostrar",
   emptyDescription = "Prueba con otra categoría o cambia la búsqueda.",
 }: ProductGridProps) {
@@ -30,8 +28,7 @@ export function ProductGrid({
           key={product.id}
           product={product}
           quantityInCart={getQuantityInCart?.(product.id)}
-          onQuickAdd={() => onQuickAdd(product)}
-          onOpenCustomization={() => onOpenCustomization(product)}
+          onOpenDetail={() => onOpenDetail(product)}
         />
       ))}
     </div>

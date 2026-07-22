@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import type { AddCartItemInput } from "@/features/cart/types/cart.types";
+import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import { useCartStore } from "@/store/cart/useCartStore";
 import { useMenuFilterStore } from "@/store/menu-filter/useMenuFilterStore";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 
 import { searchMenuProducts } from "@/features/menu/utils/searchMenuProducts";
 import { notify } from "@/shared/notifications/notify";
+import { customizationOutputToAddCartItemInput } from "@/features/cart/utils/productCustomizationAdapter";
 
 interface UseProductCatalogOptions {
   searchQuery?: string;
@@ -67,7 +68,13 @@ export const useProductCatalog = (options?: UseProductCatalogOptions) => {
     setCustomizingProduct(null);
   };
 
-  const handleAddCustomized = (input: AddCartItemInput) => {
+  const handleAddCustomized = (output: ProductCustomizationOutput) => {
+    if (!customizingProduct) return;
+
+    const input = customizationOutputToAddCartItemInput(
+      output,
+      customizingProduct,
+    );
     addItem(input);
     notify.whatsapp(`Agregaste ${input.name} al carrito.`);
   };

@@ -8,6 +8,24 @@ type VariantSelectorProps = {
   onSelect: (variant: MenuPriceVariant) => void;
 };
 
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
 export function VariantSelector({
   variants,
   selectedVariant,
@@ -16,36 +34,41 @@ export function VariantSelector({
   if (variants.length === 0) return null;
 
   return (
-    <section className="grid gap-3">
+    <section className="grid gap-2">
       <h3 className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
-        Presentación
-        <span className="ml-1 text-primary">*</span>
+        Elegir Presentación
+        <span aria-hidden="true" className="ml-1 text-primary">
+          *
+        </span>
       </h3>
-      <div className="grid gap-2">
-        {variants.map((variant) => {
-          const isSelected = selectedVariant?.label === variant.label;
 
-          return (
-            <button
-              key={variant.label}
-              type="button"
-              data-selected={isSelected}
-              onClick={() => onSelect(variant)}
-              className={cn(
-                "flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                isSelected
-                  ? "border-primary bg-primary-soft text-primary"
-                  : "border-border bg-surface text-foreground hover:border-primary-border",
-              )}
-            >
-              <span className="text-sm font-black">{variant.label}</span>
-              <span className="shrink-0 text-sm font-black text-primary">
-                {formatCOP(variant.price)}
-              </span>
-            </button>
-          );
-        })}
+      <div className="relative">
+        <select
+          value={selectedVariant?.label ?? ""}
+          onChange={(event) => {
+            const variant = variants.find(
+              (item) => item.label === event.target.value,
+            );
+            if (variant) onSelect(variant);
+          }}
+          className={cn(
+            "min-h-11 w-full appearance-none rounded-xl border-2 bg-surface px-4 py-2.5 text-sm font-black text-foreground transition",
+            "focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
+            selectedVariant
+              ? "border-primary"
+              : "border-border hover:border-primary/50",
+          )}
+        >
+          <option value="" disabled>
+            Selecciona una presentación
+          </option>
+          {variants.map((variant) => (
+            <option key={variant.label} value={variant.label}>
+              {variant.label} — {formatCOP(variant.price)}
+            </option>
+          ))}
+        </select>
+        <ChevronIcon className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" />
       </div>
     </section>
   );

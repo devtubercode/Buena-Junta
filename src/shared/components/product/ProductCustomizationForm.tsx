@@ -1,32 +1,24 @@
 import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
-import type {
-  CartItem,
-  AddCartItemInput,
-} from "@/features/cart/types/cart.types";
+import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import { useProductCustomization } from "@/shared/hooks/useProductCustomization";
 import { AdditionSelector } from "@/shared/components/product/AdditionSelector";
 import { OptionGroupSelector } from "@/shared/components/product/OptionGroupSelector";
 import { VariantSelector } from "@/shared/components/product/VariantSelector";
-import {
-  getProductImage,
-  isSimpleProduct,
-} from "@/features/menu/utils/productHelpers";
+import { getProductImage } from "@/features/menu/utils/productHelpers";
 import { cn } from "@/shared/utils/cn";
 
 type ProductCustomizationFormProps = {
   product: MenuProduct;
-  initialCartItem?: CartItem;
   submitLabel?: string;
-  onSubmit: (input: AddCartItemInput) => void;
+  onSubmit: (output: ProductCustomizationOutput) => void;
   onClose: () => void;
 };
 
 export function ProductCustomizationForm({
   product,
-  initialCartItem,
-  submitLabel = "Agregar al carrito",
+  submitLabel = "Agregar al pedido",
   onSubmit,
   onClose,
 }: ProductCustomizationFormProps) {
@@ -35,7 +27,6 @@ export function ProductCustomizationForm({
     selectedOptions,
     selectedAdditions,
     quantity,
-    note,
     unitPrice,
     totalPrice,
     isValid,
@@ -47,34 +38,20 @@ export function ProductCustomizationForm({
     handleIncrement,
     handleDecrement,
     handleSetQuantity,
-    setNote,
-    buildCartInput,
-  } = useProductCustomization(product, initialCartItem);
+    buildOutput,
+  } = useProductCustomization(product);
 
   const productImage = getProductImage(product);
+  const hasCustomizations =
+    product.priceVariants.length > 0 ||
+    activeOptionGroups.length > 0 ||
+    availableAdditions.length > 0;
 
   const handleSubmit = () => {
-    if (isSimpleProduct(product)) {
-      if (product.price === null) return;
+    const output = buildOutput();
+    if (!output) return;
 
-      onSubmit({
-        productId: product.id,
-        image: product.urlImage,
-        baseName: product.name,
-        displayName: product.name,
-        name: product.name,
-        unitPrice: product.price,
-        quantity,
-        selectedOptions: {},
-        additionOptions: [],
-      });
-      onClose();
-      return;
-    }
-
-    const input = buildCartInput();
-    if (!input) return;
-    onSubmit(input);
+    onSubmit(output);
     onClose();
   };
 
@@ -104,43 +81,29 @@ export function ProductCustomizationForm({
         </div>
       </header>
 
-      <div className="overflow-y-auto py-3">
+      <div className="min-h-0 overflow-y-auto py-3">
         <div className="flex flex-col gap-4">
-          <VariantSelector
-            variants={product.priceVariants}
-            selectedVariant={selectedVariant}
-            onSelect={handleSelectVariant}
-          />
+          {hasCustomizations ? (
+            <>
+              <VariantSelector
+                variants={product.priceVariants}
+                selectedVariant={selectedVariant}
+                onSelect={handleSelectVariant}
+              />
 
-          <OptionGroupSelector
-            groups={activeOptionGroups}
-            selectedOptions={selectedOptions}
-            onSelect={handleSelectOption}
-          />
+              <OptionGroupSelector
+                groups={activeOptionGroups}
+                selectedOptions={selectedOptions}
+                onSelect={handleSelectOption}
+              />
 
-          <AdditionSelector
-            additions={availableAdditions}
-            selectedAdditions={selectedAdditions}
-            onToggle={handleToggleAddition}
-          />
-
-          <section className="flex flex-col gap-2">
-            <label
-              htmlFor="product-note"
-              className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground"
-            >
-              Nota o instrucciones
-            </label>
-            <textarea
-              id="product-note"
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              maxLength={160}
-              rows={2}
-              placeholder="Ej: sin cebolla, sin salsas..."
-              className="w-full resize-none rounded-lg border border-border bg-surface-muted px-3 py-2 text-sm font-medium text-foreground outline-none transition placeholder:text-placeholder focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </section>
+              <AdditionSelector
+                additions={availableAdditions}
+                selectedAdditions={selectedAdditions}
+                onToggle={handleToggleAddition}
+              />
+            </>
+          ) : null}
 
           <section className="flex flex-col gap-2">
             <span className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
