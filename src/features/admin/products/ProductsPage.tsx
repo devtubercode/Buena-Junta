@@ -134,7 +134,7 @@ export const ProductsPage = () => {
         />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <AdminProductCard
               key={product.id}
               product={product}
