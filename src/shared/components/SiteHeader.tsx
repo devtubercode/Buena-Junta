@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router";
-import { Home, Info, MapPin } from "lucide-react";
+import { Info, MapPin } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { publicLocation } from "@/features/menu/content/menuContent";
 import { CustomModal } from "@/shared/components/CustomModal";
@@ -10,7 +10,6 @@ import { CartButton } from "@/shared/components/CartButton";
 import { cn } from "@/shared/utils/cn";
 
 const primaryNavItems = [
-  { label: "Inicio", to: appRoutes.home, end: true, Icon: Home },
   { label: "Nosotros", to: appRoutes.about, end: true, Icon: Info },
 ] as const;
 
