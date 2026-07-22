@@ -103,6 +103,7 @@ function OrderItemRow({
         alt={image.alt}
         className="size-12 shrink-0 rounded-md object-cover sm:size-14"
         loading="lazy"
+        decoding="async"
       />
       <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div className="flex items-start justify-between gap-2">

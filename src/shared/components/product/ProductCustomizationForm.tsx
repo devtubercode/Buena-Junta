@@ -64,6 +64,7 @@ export function ProductCustomizationForm({
             alt={productImage.alt}
             className="aspect-square w-16 shrink-0 rounded-lg border border-border object-cover sm:w-20"
             loading="lazy"
+            decoding="async"
           />
           <div className="min-w-0">
             <h2 className="font-heading text-xl font-black leading-tight text-foreground sm:text-2xl">

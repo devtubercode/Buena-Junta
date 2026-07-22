@@ -22,6 +22,7 @@ export function PromotionCard({ promotion, onOpenDetail }: PromotionCardProps) {
             alt={image?.alt ?? promotion.title}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-primary-soft text-primary">

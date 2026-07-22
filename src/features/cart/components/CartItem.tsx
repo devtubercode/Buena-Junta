@@ -44,6 +44,7 @@ export function CartItem({
             alt={item.image.alt}
             className="aspect-square w-16 rounded-xl border border-border object-cover sm:w-20"
             loading="lazy"
+            decoding="async"
           />
         ) : null}
 

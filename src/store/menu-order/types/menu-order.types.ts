@@ -6,6 +6,8 @@
  * mantiene la información necesaria para generar el resumen del pedido.
  */
 
+import type { MenuImage } from "@/features/menu/types/menu.types";
+
 export type MenuOrderItem = {
   /** Identificador único de la línea, generado a partir de producto + personalizaciones. */
   lineId: string;
@@ -18,7 +20,7 @@ export type MenuOrderItem = {
   /** Cantidad solicitada. */
   quantity: number;
   /** Imagen del producto. */
-  urlImage?: { src: string; alt: string };
+  urlImage?: MenuImage;
   /** Presentación / variante seleccionada. */
   variantKey?: string;
   /** Opciones requeridas seleccionadas (grupo -> valor). */

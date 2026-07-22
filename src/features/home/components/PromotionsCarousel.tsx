@@ -148,6 +148,8 @@ export const PromotionsCarousel = () => {
                   <img
                     src={promotion.image}
                     alt={promotion.imageAlt}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    decoding="async"
                     className="h-full w-full object-cover object-center transition duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                   />
                 ) : null}

@@ -1,5 +1,5 @@
 import type { AdditionRow } from "@/features/admin/types/additions.types";
-import type { OptionGroup } from "@/features/menu/types/menu.types";
+import type { MenuImage, OptionGroup } from "@/features/menu/types/menu.types";
 
 export type CartVariantOption = {
   key: string;
@@ -18,10 +18,7 @@ export type CartItem = {
   cartItemId?: string;
   lineId: string;
   productId: string;
-  image?: {
-    src: string;
-    alt: string;
-  };
+  image?: MenuImage;
   variantKey?: string;
   baseName?: string;
   displayName?: string;
@@ -43,10 +40,7 @@ export type OrderDraft = {
 
 export type AddCartItemInput = {
   productId: string;
-  image?: {
-    src: string;
-    alt: string;
-  };
+  image?: MenuImage;
   variantKey?: string;
   baseName?: string;
   displayName?: string;

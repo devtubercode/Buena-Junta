@@ -71,6 +71,7 @@ export function ProductCard({
               : "bg-surface-muted object-cover",
           )}
           loading="lazy"
+          decoding="async"
         />
 
         {isUnavailable ? (
