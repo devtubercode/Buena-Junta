@@ -110,14 +110,14 @@ export function ButtonSheetModal({
         <div className="sm:hidden">
           <h2
             id={titleId}
-            className="m-0 font-heading text-2xl font-black leading-tight text-foreground"
+            className="m-0 pr-8 font-heading text-2xl font-black leading-tight text-foreground"
           >
             {title}
           </h2>
           {description ? (
             <p
               id={descriptionId}
-              className="mt-2 text-sm font-medium leading-6 text-muted-foreground"
+              className="mt-2 pr-8 text-sm font-medium leading-6 text-muted-foreground"
             >
               {description}
             </p>

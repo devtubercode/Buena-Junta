@@ -8,6 +8,7 @@ type CustomModalProps = {
   description?: string;
   icon?: ReactNode;
   contentClassName?: string;
+  scrollable?: boolean;
   onClose: () => void;
   children?: ReactNode;
 };
@@ -18,6 +19,7 @@ export function CustomModal({
   description,
   icon,
   contentClassName,
+  scrollable = true,
   onClose,
   children,
 }: CustomModalProps) {
@@ -64,38 +66,31 @@ export function CustomModal({
           contentClassName,
         )}
       >
-        {icon ||
-          title ||
-          (description && (
-            <div className="flex min-w-0 items-start gap-3">
-              {icon && (
-                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevated">
-                  {icon}
-                </span>
-              )}
-              {title ||
-                (description && (
-                  <div className="min-w-0">
-                    {title && (
-                      <h2
-                        id={titleId}
-                        className="m-0 font-heading text-2xl font-black leading-tight text-foreground"
-                      >
-                        {title}
-                      </h2>
-                    )}
-                    {description && (
-                      <p
-                        id={descriptionId}
-                        className="mt-2 text-sm font-medium leading-6 text-muted-foreground"
-                      >
-                        {description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-            </div>
-          ))}
+        <div className="mb-4 flex items-start gap-3">
+          {icon ? (
+            <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevated">
+              {icon}
+            </span>
+          ) : null}
+          <div className="min-w-0">
+            {title ? (
+              <h2
+                id={titleId}
+                className="m-0 font-heading text-2xl font-black leading-tight text-foreground"
+              >
+                {title}
+              </h2>
+            ) : null}
+            {description ? (
+              <p
+                id={descriptionId}
+                className="mt-2 text-sm font-medium leading-6 text-muted-foreground"
+              >
+                {description}
+              </p>
+            ) : null}
+          </div>
+        </div>
 
         <button
           type="button"
@@ -107,7 +102,12 @@ export function CustomModal({
         </button>
 
         {children ? (
-          <div className=" text-sm font-medium leading-6 text-muted-foreground">
+          <div
+            className={cn(
+              scrollable &&
+                "max-h-[70dvh] overflow-y-auto sm:max-h-[80dvh] sm:overflow-y-auto",
+            )}
+          >
             {children}
           </div>
         ) : null}
