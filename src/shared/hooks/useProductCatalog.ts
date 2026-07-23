@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import { useCartStore } from "@/store/cart/useCartStore";
-import { useMenuFilterStore } from "@/store/menu-filter/useMenuFilterStore";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 
 import { searchMenuProducts } from "@/features/menu/utils/searchMenuProducts";
@@ -19,12 +18,9 @@ export const useProductCatalog = (options?: UseProductCatalogOptions) => {
   const addItem = useCartStore((state) => state.addItem);
   const items = useCartStore((state) => state.items);
 
-  const selectedCategorySlug = useMenuFilterStore(
-    (state) => state.selectedCategorySlug,
-  );
-  const setSelectedCategorySlug = useMenuFilterStore(
-    (state) => state.setSelectedCategorySlug,
-  );
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<
+    string | null
+  >(null);
 
   const [customizingProduct, setCustomizingProduct] =
     useState<MenuProduct | null>(null);
