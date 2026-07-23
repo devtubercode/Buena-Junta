@@ -72,11 +72,35 @@ export function getProductCardPriceLabel(product: MenuProduct): string | null {
     return `Desde ${formatCOP(minPrice)}`;
   }
 
-  if (product.price !== null) {
-    return formatCOP(product.price);
+  const effectivePrice = product.sale_price ?? product.price;
+  if (effectivePrice !== null) {
+    return formatCOP(effectivePrice);
   }
 
   return null;
+}
+
+export type ProductDiscountInfo = {
+  originalPrice: number;
+  salePrice: number;
+  discountPercent: number;
+};
+
+export function getProductDiscountInfo(
+  product: MenuProduct,
+): ProductDiscountInfo | null {
+  if (hasPriceVariants(product)) return null;
+  if (product.sale_price === null || product.price === null) return null;
+  if (product.sale_price >= product.price) return null;
+
+  const discountPercent = Math.round(
+    (1 - product.sale_price / product.price) * 100,
+  );
+  return {
+    originalPrice: product.price,
+    salePrice: product.sale_price,
+    discountPercent,
+  };
 }
 
 export function getProductImage(product: MenuProduct): MenuImage {

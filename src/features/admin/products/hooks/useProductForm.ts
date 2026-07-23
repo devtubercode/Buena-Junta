@@ -34,6 +34,7 @@ const defaultProductValues: ProductFormData = {
   name: "",
   description: "",
   price: "",
+  sale_price: null,
   is_available: true,
   tags: "",
 };
@@ -45,6 +46,10 @@ const toProductForm = (product: ProductRow): ProductFormData => ({
   description: product.description,
   price:
     product.price !== null ? String(Math.round(Number(product.price))) : "",
+  sale_price:
+    product.sale_price !== null
+      ? String(Math.round(Number(product.sale_price)))
+      : null,
   is_available: product.is_available,
   tags: product.tags?.join(", ") ?? "",
 });
@@ -155,6 +160,7 @@ const useProductForm = ({ selectedProduct, onProductSaved }: UseProductFormOptio
         name: data.name.trim(),
         description: data.description.trim(),
         price: parsePrice(data.price),
+        sale_price: data.sale_price ? parsePrice(data.sale_price) ?? null : null,
         image_path: imagePath,
         is_available: data.is_available,
         tags: textToTags(data.tags),

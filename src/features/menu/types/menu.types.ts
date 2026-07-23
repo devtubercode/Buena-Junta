@@ -53,6 +53,7 @@ export type MenuProductRow = {
   name: string;
   description: string;
   price: number | null;
+  sale_price: number | null;
   image_path: string | null;
   is_available: boolean;
   tags: string[] | null;

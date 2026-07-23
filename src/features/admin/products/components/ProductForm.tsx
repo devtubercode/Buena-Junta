@@ -125,12 +125,21 @@ export const ProductForm = ({
           onRemove={removeImage}
         />
 
-        <CurrencyField
-          name="price"
-          control={form.control}
-          label="Precio en pesos"
-          placeholder="Ej: 12.500"
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <CurrencyField
+            name="price"
+            control={form.control}
+            label="Precio en pesos"
+            placeholder="Ej: 12.500"
+          />
+          <CurrencyField
+            name="sale_price"
+            control={form.control}
+            label="Precio de oferta (opcional)"
+            placeholder="Ej: 10.000"
+            description="Si se define y es menor al precio, se mostrará como descuento."
+          />
+        </div>
 
         <InputField
           name="tags"

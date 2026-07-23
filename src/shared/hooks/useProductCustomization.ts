@@ -23,7 +23,7 @@ export function useProductCustomization(product: MenuProduct) {
       return selectedVariant?.price ?? null;
     }
 
-    return product.price;
+    return product.sale_price ?? product.price;
   }, [product, selectedVariant]);
 
   const activeOptionGroups = useMemo(() => product.groups, [product.groups]);

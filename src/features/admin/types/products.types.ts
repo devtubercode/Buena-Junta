@@ -11,6 +11,7 @@ export type ProductRow = {
   image_path: string | null;
   is_available: boolean;
   tags: string[] | null;
+  sale_price: number | null;
 };
 
 export type ProductVariantRow = {

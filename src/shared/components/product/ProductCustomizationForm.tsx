@@ -6,7 +6,10 @@ import { useProductCustomization } from "@/shared/hooks/useProductCustomization"
 import { AdditionSelector } from "@/shared/components/product/AdditionSelector";
 import { OptionGroupSelector } from "@/shared/components/product/OptionGroupSelector";
 import { VariantSelector } from "@/shared/components/product/VariantSelector";
-import { getProductImage } from "@/features/menu/utils/productHelpers";
+import {
+  getProductDiscountInfo,
+  getProductImage,
+} from "@/features/menu/utils/productHelpers";
 import { Button } from "@/shared/components/Button";
 
 type ProductCustomizationFormProps = {
@@ -42,6 +45,7 @@ export function ProductCustomizationForm({
   } = useProductCustomization(product);
 
   const productImage = getProductImage(product);
+  const discountInfo = getProductDiscountInfo(product);
   const hasCustomizations =
     product.priceVariants.length > 0 ||
     activeOptionGroups.length > 0 ||
@@ -59,13 +63,20 @@ export function ProductCustomizationForm({
     <div className="grid max-h-[80vh] grid-rows-[auto_1fr_auto]">
       <header className="border-b border-border pb-3">
         <div className="flex items-start gap-3">
-          <img
-            src={productImage.src}
-            alt={productImage.alt}
-            className="aspect-square w-28 shrink-0 rounded-lg border border-border object-cover sm:w-32"
-            loading="lazy"
-            decoding="async"
-          />
+          <div className="relative shrink-0">
+            <img
+              src={productImage.src}
+              alt={productImage.alt}
+              className="aspect-square w-28 rounded-lg border border-border object-cover sm:w-32"
+              loading="lazy"
+              decoding="async"
+            />
+            {discountInfo ? (
+              <span className="absolute left-0 top-0 rounded-br-lg rounded-tl-lg bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-elevated sm:px-2 sm:py-1 sm:text-xs">
+                -{discountInfo.discountPercent}%
+              </span>
+            ) : null}
+          </div>
           <div className="min-w-0">
             <h2 className="font-heading text-xl font-black leading-tight text-foreground sm:text-2xl">
               {product.name}
@@ -75,9 +86,16 @@ export function ProductCustomizationForm({
                 {product.description}
               </p>
             ) : null}
-            <p className="mt-1 font-heading text-xl font-black leading-none text-primary sm:text-2xl">
-              {unitPrice === null ? "—" : formatCOP(unitPrice)}
-            </p>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <p className="font-heading text-xl font-black leading-none text-primary sm:text-2xl">
+                {unitPrice === null ? "—" : formatCOP(unitPrice)}
+              </p>
+              {discountInfo ? (
+                <p className="text-sm font-bold leading-none text-muted-foreground line-through sm:text-base">
+                  {formatCOP(discountInfo.originalPrice)}
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
       </header>
