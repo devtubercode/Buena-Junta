@@ -1,3 +1,4 @@
+import { Button } from "@/shared/components/Button";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { InputField } from "@/shared/components/InputField";
 import { Save, X } from "lucide-react";
@@ -95,22 +96,26 @@ export const CategoryForm = ({
         />
 
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          <button
+          <Button
             type="submit"
-            disabled={savedHandler.isSaving}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
+            variant="primary"
+            radius="full"
+            size="lg"
+            loading={savedHandler.isSaving}
+            icon={<Save className="size-4" />}
           >
-            <Save className="size-4" />
             {savedHandler.isSaving ? "Guardando..." : "Guardar"}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
+            variant="secondary"
+            radius="full"
+            size="lg"
             onClick={onCloseModal}
+            icon={<X className="size-4" />}
           >
-            <X className="size-4" />
             Cancelar
-          </button>
+          </Button>
         </div>
       </form>
     </ButtonSheetModal>

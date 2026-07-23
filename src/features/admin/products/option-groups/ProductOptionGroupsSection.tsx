@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudModal";
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
@@ -186,14 +187,16 @@ export const ProductOptionGroupsSection = ({
             {groups.length} grupo{groups.length === 1 ? "" : "s"}
           </p>
         </div>
-        <button
+        <Button
           type="button"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
+          variant="primary"
+          radius="full"
+          size="sm"
           onClick={groupModal.openNew}
+          icon={<Plus className="size-4" />}
         >
-          <Plus className="size-4" />
           Nuevo grupo
-        </button>
+        </Button>
       </div>
 
       {sortedGroups.length === 0 ? (

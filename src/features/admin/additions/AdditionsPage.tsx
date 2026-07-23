@@ -7,6 +7,7 @@ import { useAdminCrudModal } from "@/features/admin/shared/hooks/useAdminCrudMod
 import { AdditionCard } from "@/features/admin/additions/components/AdditionCard";
 import { AdditionEmptyState } from "@/features/admin/additions/components/AdditionEmptyState";
 import { AdditionForm } from "@/features/admin/additions/components/AdditionForm";
+import { Button } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
 import {
@@ -73,14 +74,16 @@ export const AdditionsPage = () => {
       title="Adiciones"
       description="Gestiona las adiciones globales reutilizables."
       actions={
-        <button
+        <Button
           type="button"
+          variant="primary"
+          radius="full"
+          size="md"
           onClick={additionModal.openNew}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
+          icon={<Plus className="size-4" />}
         >
-          <Plus className="size-4" />
           Nueva adición
-        </button>
+        </Button>
       }
     >
       {!hasAdditions ? (

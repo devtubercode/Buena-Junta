@@ -1,4 +1,5 @@
 import { Save } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import {
   AdminField,
   adminInputClass,
@@ -236,14 +237,16 @@ export const PromotionDetailForm = ({
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={isSaving}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60"
+            variant="primary"
+            radius="full"
+            fullWidth
+            loading={isSaving}
+            icon={<Save className="size-4" />}
           >
-            <Save className="size-4" />
             {isSaving ? "Guardando..." : "Guardar promoción"}
-          </button>
+          </Button>
         </section>
       </div>
     </form>

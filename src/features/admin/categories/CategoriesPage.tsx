@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
 import { CategoriesSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { useCategoryFilters } from "@/features/admin/categories/hooks/useCategoryFilters";
@@ -82,21 +83,21 @@ export const CategoriesPage = () => {
       title="Categorías"
       description="Crea y edita las categorías públicas del menú."
       actions={
-        <button
+        <Button
           type="button"
+          variant="primary"
+          radius="full"
           onClick={categoryModal.openNew}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
+          icon={<Plus className="size-4" />}
         >
-          <Plus className="size-4" />
           Nueva categoría
-        </button>
+        </Button>
       }
     >
       {hasCategories && (
         <CategoriesToolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onClearFilters={clearFilters}
           resultCount={filteredCategories.length}
         />
       )}

@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
 import { appRoutes } from "@/app/routes";
+import { Button } from "@/shared/components/Button";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
 import { ProductsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { SearchInput } from "@/shared/components/SearchInput";
@@ -107,13 +108,14 @@ export const ProductsPage = () => {
               />
             </div>
             {activeFiltersCount > 0 ? (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                radius="full"
                 onClick={clearFilters}
-                className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
               >
                 Limpiar filtros
-              </button>
+              </Button>
             ) : null}
           </div>
 

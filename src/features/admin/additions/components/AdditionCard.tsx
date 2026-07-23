@@ -1,5 +1,7 @@
 import { Cookie, Pencil, Trash2 } from "lucide-react";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
+import { getStorageImageUrl } from "@/shared/services/storage.service";
+import { SUPABASE_BUCKETS } from "@/lib/supabase/constants";
 
 type AdditionCardProps = {
   addition: AdditionRow;
@@ -9,6 +11,24 @@ type AdditionCardProps = {
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("es-CO").format(price);
+}
+
+function AdditionImage({ addition }: { addition: AdditionRow }) {
+  if (addition.image_path) {
+    return (
+      <img
+        src={getStorageImageUrl(addition.image_path, SUPABASE_BUCKETS.PRODUCT_IMAGES)}
+        alt={addition.name}
+        className="size-12 shrink-0 rounded-xl object-cover"
+      />
+    );
+  }
+
+  return (
+    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+      <Cookie className="size-6" aria-hidden="true" />
+    </div>
+  );
 }
 
 export function AdditionCard({
@@ -23,9 +43,7 @@ export function AdditionCard({
         onClick={() => onEdit(addition)}
         className="flex min-w-0 flex-1 items-center gap-3 text-left cursor-pointer"
       >
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-          <Cookie className="size-6" aria-hidden="true" />
-        </div>
+        <AdditionImage addition={addition} />
         <div className="min-w-0">
           <span className="block truncate font-heading text-base font-black text-foreground sm:text-lg">
             {addition.name}

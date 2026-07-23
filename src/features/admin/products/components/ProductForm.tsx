@@ -1,4 +1,5 @@
 import { Save } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import { AdminImageField } from "@/features/admin/shared/components/AdminImageField";
 import { CurrencyField } from "@/shared/components/CurrencyField";
 import { InputField } from "@/shared/components/InputField";
@@ -151,14 +152,16 @@ export const ProductForm = ({
         />
 
         <div className="pt-1">
-          <button
+          <Button
             type="submit"
-            disabled={isSaving}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 disabled:opacity-60 sm:w-auto"
+            variant="primary"
+            radius="full"
+            size="lg"
+            loading={isSaving}
+            icon={<Save className="size-4" />}
           >
-            <Save className="size-4" />
             {isSaving ? "Guardando" : "Guardar producto"}
-          </button>
+          </Button>
         </div>
       </form>
     </section>

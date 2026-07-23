@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Plus, SearchX } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { appRoutes } from "@/app/routes";
 
@@ -34,16 +35,17 @@ export function AdminProductEmptyState({
     <EmptyState
       title="Sin resultados"
       description="No encontramos productos que coincidan con tu búsqueda o filtro."
-      action={
-        <button
-          type="button"
-          onClick={onClearFilters}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
-        >
-          <SearchX className="size-4" />
-          Limpiar filtros
-        </button>
-      }
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            radius="full"
+            onClick={onClearFilters}
+            icon={<SearchX className="size-4" />}
+          >
+            Limpiar filtros
+          </Button>
+        }
     />
   );
 }

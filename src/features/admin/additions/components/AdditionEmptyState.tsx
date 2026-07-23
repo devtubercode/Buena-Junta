@@ -1,4 +1,5 @@
 import { Plus, Cookie, SearchX } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
 
 type AdditionEmptyStateProps = {
@@ -19,14 +20,15 @@ export function AdditionEmptyState({
         description="Crea la primera adición para ofrecer complementos en tu menú."
         icon={<Cookie className="size-8" />}
         action={
-          <button
+          <Button
             type="button"
+            variant="primary"
+            radius="full"
             onClick={onCreate}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground transition hover:opacity-90"
+            icon={<Plus className="size-4" />}
           >
-            <Plus className="size-4" />
             Crear primera adición
-          </button>
+          </Button>
         }
       />
     );
@@ -38,14 +40,15 @@ export function AdditionEmptyState({
       description="No encontramos adiciones que coincidan con tu búsqueda."
       icon={<SearchX className="size-8" />}
       action={
-        <button
+        <Button
           type="button"
+          variant="outline"
+          radius="full"
           onClick={onClearFilters}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
+          icon={<SearchX className="size-4" />}
         >
-          <SearchX className="size-4" />
           Limpiar filtros
-        </button>
+        </Button>
       }
     />
   );

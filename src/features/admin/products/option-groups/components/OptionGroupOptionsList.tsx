@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Plus } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import type { ProductOptionValueRow } from "@/features/admin/types/products.types";
 import { OptionItem } from "./OptionItem";
 
@@ -40,14 +41,16 @@ export const OptionGroupOptionsList = ({
         </p>
       )}
 
-      <button
+      <Button
         type="button"
-        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-xs font-black text-muted-foreground transition hover:border-primary hover:text-primary"
+        variant="outline"
+        radius="full"
+        size="sm"
         onClick={onAdd}
+        icon={<Plus className="size-4" />}
       >
-        <Plus className="size-4" />
         Agregar opción
-      </button>
+      </Button>
     </div>
   );
 };

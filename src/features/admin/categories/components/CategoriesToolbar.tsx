@@ -3,17 +3,16 @@ import { SearchInput } from "@/shared/components/SearchInput";
 type CategoriesToolbarProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  onClearFilters: () => void;
+
   resultCount?: number;
 };
 
 export const CategoriesToolbar = ({
   searchQuery,
   onSearchChange,
-  onClearFilters,
+
   resultCount,
 }: CategoriesToolbarProps) => {
-  const activeFiltersCount = searchQuery.trim() ? 1 : 0;
   return (
     <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
@@ -24,15 +23,6 @@ export const CategoriesToolbar = ({
           label="Buscar categoría"
         />
       </div>
-      {activeFiltersCount > 0 ? (
-        <button
-          type="button"
-          onClick={onClearFilters}
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary"
-        >
-          Limpiar filtros
-        </button>
-      ) : null}
 
       {resultCount !== undefined ? (
         <div className="sr-only" aria-live="polite" aria-atomic="true">

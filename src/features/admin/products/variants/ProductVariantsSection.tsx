@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { Edit3, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/shared/components/Button";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
 import { VariantModal } from "@/features/admin/products/variants/VariantModal";
@@ -89,14 +90,16 @@ export const ProductVariantsSection = ({
             {variants.length} variant{variants.length === 1 ? "e" : "es"}
           </p>
         </div>
-        <button
+        <Button
           type="button"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-xs font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
+          variant="primary"
+          radius="full"
+          size="sm"
           onClick={() => variantModal.openNew()}
+          icon={<Plus className="size-4" />}
         >
-          <Plus className="size-4" />
           Nueva
-        </button>
+        </Button>
       </div>
 
       {sortedVariants.length > 0 ? (
