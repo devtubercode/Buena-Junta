@@ -97,7 +97,7 @@ export const ProductsSkeleton = () => {
         {/* Filtro de categorías — scroll horizontal de chips */}
         <nav className="relative min-w-0 -mx-4 sm:mx-0">
           <div className="flex min-w-0 gap-2 overflow-x-auto px-4 pb-3 pt-1 [-ms-overflow-style:none] scrollbar-none snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden">
-            {Array.from({ length: 6 }).map((_, index) => (
+        {Array.from({ length: 3 }).map((_, index) => (
               <SkeletonBlock
                 key={index}
                 className="h-10 w-24 shrink-0 snap-start rounded-full sm:h-11"
@@ -338,22 +338,19 @@ export const AdditionsSkeleton = () => {
         <SkeletonBlock className="h-11 w-40 rounded-full" />
       </div>
 
-      {/* Lista de adiciones */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-        {Array.from({ length: 8 }).map((_, index) => (
+        {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
             className="flex min-w-0 items-center gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated"
           >
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <SkeletonBlock className="size-12 shrink-0 rounded-xl" />
-              <div className="min-w-0 grid gap-1">
-                <SkeletonBlock className="h-5 w-36 max-w-full rounded-md" />
-                <SkeletonBlock className="h-4 w-20 max-w-full rounded-md" />
-                <SkeletonBlock className="h-3 w-48 max-w-full rounded-md" />
-              </div>
+            <SkeletonBlock className="size-12 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <SkeletonBlock className="h-5 w-40 max-w-full rounded-md" />
+              <SkeletonBlock className="h-4 w-20 max-w-full rounded-md" />
+              <SkeletonBlock className="h-3 w-48 max-w-full rounded-md" />
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1.5">
               <SkeletonBlock className="size-11 rounded-full" />
               <SkeletonBlock className="size-11 rounded-full" />
             </div>
