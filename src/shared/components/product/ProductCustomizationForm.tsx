@@ -7,7 +7,7 @@ import { AdditionSelector } from "@/shared/components/product/AdditionSelector";
 import { OptionGroupSelector } from "@/shared/components/product/OptionGroupSelector";
 import { VariantSelector } from "@/shared/components/product/VariantSelector";
 import { getProductImage } from "@/features/menu/utils/productHelpers";
-import { cn } from "@/shared/utils/cn";
+import { Button } from "@/shared/components/Button";
 
 type ProductCustomizationFormProps = {
   product: MenuProduct;
@@ -117,21 +117,17 @@ export function ProductCustomizationForm({
             onDecrement={handleDecrement}
             onChange={handleSetQuantity}
           />
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="md"
+            radius="full"
+            fullWidth
             disabled={!isValid || totalPrice === null}
             onClick={handleSubmit}
-            className={cn(
-              "flex-1 inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-black shadow-elevated transition",
-              "focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary",
-              isValid && totalPrice !== null
-                ? "bg-primary text-primary-foreground hover:opacity-90"
-                : "cursor-not-allowed bg-muted-foreground/30 text-muted-foreground",
-            )}
           >
             {submitLabel}
             {totalPrice !== null ? <span>· {formatCOP(totalPrice)}</span> : null}
-          </button>
+          </Button>
         </div>
       </footer>
     </div>

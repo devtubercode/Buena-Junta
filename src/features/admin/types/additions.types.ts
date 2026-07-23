@@ -4,6 +4,7 @@ export type AdditionRow = {
   name: string;
   description: string | null;
   price: number;
+  image_path: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -13,4 +14,5 @@ export type AdditionInput = {
   name: string;
   description: string | null;
   price: number;
+  image_path?: string | null;
 };

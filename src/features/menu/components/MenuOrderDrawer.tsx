@@ -5,6 +5,7 @@ import { formatCOP } from "@/features/cart/utils/money";
 import { MenuOrderForm } from "@/features/menu/components/MenuOrderForm";
 import { MenuOrderSummary } from "@/features/menu/components/MenuOrderSummary";
 import { cn } from "@/shared/utils/cn";
+import { Button } from "@/shared/components/Button";
 import type {
   MenuOrderItem,
   MenuOrderTopping,
@@ -280,9 +281,7 @@ export function MenuOrderDrawer({
                         onDecrement={() =>
                           order.actions.decrementTopping(topping.id)
                         }
-                        onRemove={() =>
-                          order.actions.removeTopping(topping.id)
-                        }
+                        onRemove={() => order.actions.removeTopping(topping.id)}
                       />
                     ))}
                   </ul>
@@ -311,7 +310,7 @@ export function MenuOrderDrawer({
                 type="button"
                 disabled={!order.canSendOrder}
                 onClick={() => setShowConfirm(true)}
-                className="inline-flex min-h-12 w-full items-center justify-between rounded-xl bg-green-600 px-4 text-sm font-black text-white shadow-md transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:cursor-not-allowed disabled:bg-muted-foreground/30 disabled:text-muted-foreground disabled:shadow-none"
+                className="inline-flex min-h-12 w-full items-center justify-between gap-2 rounded-xl bg-green-600 px-4 text-sm font-black text-white shadow-md transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:cursor-not-allowed disabled:bg-muted-foreground/30 disabled:text-muted-foreground disabled:shadow-none"
               >
                 <span>Enviar pedido por WhatsApp</span>
                 <span className="rounded-lg bg-white/20 px-2 py-1 text-base">
@@ -336,20 +335,25 @@ export function MenuOrderDrawer({
             totalQuantity={order.totalQuantity}
           />
           <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              radius="full"
+              size="lg"
+              fullWidth
               onClick={() => setShowConfirm(false)}
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               Volver
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="primary"
+              radius="full"
+              size="lg"
+              fullWidth
               onClick={handleSend}
-              className="inline-flex min-h-12 items-center justify-center rounded-full bg-green-600 px-4 text-sm font-black text-white shadow-elevated transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
               Enviar
-            </button>
+            </Button>
           </div>
         </div>
       </CustomModal>
