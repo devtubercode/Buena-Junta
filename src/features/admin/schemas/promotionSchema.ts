@@ -22,10 +22,16 @@ export const promotionSchema = z.object({
     .max(1000, "La descripción no puede superar los 1000 caracteres")
     .nullable()
     .transform((value) => (value?.trim() ? value.trim() : null)),
-  category_id: z.string().nullable(),
-  product_id: z.string().nullable(),
   is_active: z.boolean(),
   active_weekdays: weekdaysSchema,
+  promotion_price: z
+    .string()
+    .min(1, "El precio de promoción es obligatorio")
+    .regex(/^\d+$/, "El precio debe ser un número válido"),
+  original_price: z
+    .string()
+    .regex(/^\d*$/, "El precio debe ser un número válido")
+    .nullable(),
   starts_at: z.string().nullable(),
   ends_at: z.string().nullable(),
   terms: z

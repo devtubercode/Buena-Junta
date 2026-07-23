@@ -6,7 +6,10 @@ import {
 } from "@/features/admin/shared/hooks/useImageUpload";
 import { useSaveHandler } from "@/features/admin/shared/hooks/useSaveHandler";
 
-import { normalizeSlug } from "@/features/admin/shared/utils/adminForms";
+import {
+  normalizeSlug,
+  parsePrice,
+} from "@/features/admin/shared/utils/adminForms";
 import { savePromotion } from "@/features/admin/promotions/services/admin-promotions.service";
 import {
   removeStorageImage,
@@ -140,13 +143,15 @@ export const usePromotionForm = ({
       );
 
       const bodySave: PromotionInput = {
-        category_id: data.category_id,
-        product_id: data.product_id,
         slug: normalizeSlug(data.slug),
         title: data.title.trim(),
         description: data.description?.trim() || "",
         is_active: data.is_active,
         active_weekdays: data.active_weekdays,
+        promotion_price: parsePrice(data.promotion_price) ?? 0,
+        original_price: data.original_price
+          ? parsePrice(data.original_price) ?? null
+          : null,
         starts_at: data.starts_at,
         ends_at: data.ends_at,
         image_path: imagePath,

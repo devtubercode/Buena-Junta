@@ -6,16 +6,10 @@ import { throwIfSupabaseError } from "@/shared/errors/handle-supabase-error";
 export const fetchPromotions = async (): Promise<MenuPromotionRow[]> => {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PROMOTIONS)
-    .select(
-      `
-        *,
-        category:categories(*),
-        product:products(id, slug, name)
-      `,
-    )
+    .select("*")
     .order("created_at");
 
   throwIfSupabaseError(error);
 
-  return data ?? [];
+  return (data ?? []) as MenuPromotionRow[];
 };

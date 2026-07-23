@@ -7,21 +7,13 @@ import type {
   PromotionInput,
   PromotionRow,
 } from "@/features/admin/types/promotions.types";
-import type { CategoryRow } from "@/features/admin/types/categories.types";
-import type { ProductRow } from "@/features/admin/types/products.types";
 
 export const fetchAdminPromotionsList = async (): Promise<
   AdminPromotionListRow[]
 > => {
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.PROMOTIONS)
-    .select(
-      `
-        *,
-        category:categories(id, name),
-        product:products(id, name)
-      `,
-    )
+    .select("*")
     .order("title");
 
   throwIfError(error);
@@ -32,25 +24,17 @@ export const fetchAdminPromotionsList = async (): Promise<
 export const fetchAdminPromotionDetail = async (
   promotionSlug?: string,
 ): Promise<AdminPromotionDetailData> => {
-  const [categories, products, promotionResult] = await Promise.all([
-    supabase.from(SUPABASE_TABLES.CATEGORIES).select("*").order("name"),
-    supabase.from(SUPABASE_TABLES.PRODUCTS).select("*").order("name"),
-    promotionSlug
-      ? supabase
-          .from(SUPABASE_TABLES.PROMOTIONS)
-          .select("*")
-          .eq("slug", promotionSlug)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-  ]);
+  const promotionResult = promotionSlug
+    ? await supabase
+        .from(SUPABASE_TABLES.PROMOTIONS)
+        .select("*")
+        .eq("slug", promotionSlug)
+        .maybeSingle()
+    : { data: null, error: null };
 
-  throwIfError(categories.error);
-  throwIfError(products.error);
   throwIfError(promotionResult.error);
 
   return {
-    categories: (categories.data ?? []) as CategoryRow[],
-    products: (products.data ?? []) as unknown as ProductRow[],
     promotion: promotionResult.data as unknown as PromotionRow | null,
   };
 };

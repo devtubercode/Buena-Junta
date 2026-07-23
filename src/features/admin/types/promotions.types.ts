@@ -1,10 +1,5 @@
-import type { CategoryRow } from "@/features/admin/types/categories.types";
-import type { ProductRow } from "@/features/admin/types/products.types";
-
 export type PromotionRow = {
   id: string;
-  category_id: string | null;
-  product_id: string | null;
   slug: string;
   title: string;
   description: string | null;
@@ -14,17 +9,14 @@ export type PromotionRow = {
   ends_at: string | null;
   image_path: string | null;
   terms: string | null;
+  promotion_price: number;
+  original_price: number | null;
 };
 
 export type PromotionInput = Omit<PromotionRow, "id">;
 
-export type AdminPromotionListRow = PromotionRow & {
-  category: Pick<CategoryRow, "id" | "name"> | null;
-  product: Pick<ProductRow, "id" | "name"> | null;
-};
+export type AdminPromotionListRow = PromotionRow;
 
 export type AdminPromotionDetailData = {
-  categories: CategoryRow[];
-  products: ProductRow[];
   promotion: PromotionRow | null;
 };

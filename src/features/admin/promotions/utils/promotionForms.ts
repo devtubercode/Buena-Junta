@@ -15,10 +15,10 @@ export const defaultPromotionValues: PromotionFormData = {
   title: "",
   slug: "",
   description: null,
-  category_id: null,
-  product_id: null,
   is_active: true,
   active_weekdays: [],
+  promotion_price: "",
+  original_price: null,
   starts_at: null,
   ends_at: null,
   terms: null,
@@ -29,10 +29,13 @@ export function toPromotionForm(promotion: PromotionRow): PromotionFormData {
     title: promotion.title,
     slug: promotion.slug,
     description: promotion.description,
-    category_id: promotion.category_id,
-    product_id: promotion.product_id,
     is_active: promotion.is_active,
     active_weekdays: [...promotion.active_weekdays].sort((a, b) => a - b),
+    promotion_price: String(Math.round(Number(promotion.promotion_price))),
+    original_price:
+      promotion.original_price !== null
+        ? String(Math.round(Number(promotion.original_price)))
+        : null,
     starts_at: promotion.starts_at,
     ends_at: promotion.ends_at,
     terms: promotion.terms,

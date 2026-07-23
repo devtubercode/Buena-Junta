@@ -34,7 +34,6 @@ export function buildPromotions(promotions: MenuPromotionRow[]): Promotion[] {
   );
 
   return activePromotions.map((promotion) => {
-    const category = promotion.category;
     const imagePath = promotion.image_path;
     const activeDays = mapWeekdays(promotion.active_weekdays);
     const dayLabel = buildActiveDaysLabel(activeDays);
@@ -44,7 +43,7 @@ export function buildPromotions(promotions: MenuPromotionRow[]): Promotion[] {
       : "";
 
     return {
-      slug: `${promotion.slug}-${category.slug}`,
+      slug: promotion.slug,
       title: promotion.title,
       description: promotion.description,
       activeDays,
@@ -52,10 +51,10 @@ export function buildPromotions(promotions: MenuPromotionRow[]): Promotion[] {
       dayLabel,
       dayShortLabel: getWeekdayLabel(activeDays[0]).slice(0, 3),
       tag: isTodayPromotion ? "Hoy" : `Promoción del ${dayLabel.toLowerCase()}`,
-      categoryName: category.name,
-      categorySlug: category.slug,
       image: urlImg,
-      imageAlt: category.name,
+      imageAlt: promotion.title,
+      promotionPrice: promotion.promotion_price,
+      originalPrice: promotion.original_price,
     };
   });
 }

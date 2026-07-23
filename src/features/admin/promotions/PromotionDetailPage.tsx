@@ -14,8 +14,6 @@ import { fetchAdminPromotionDetail } from "./services/admin-promotions.service";
 import { useAdminResource } from "../shared/hooks/useAdminResource";
 
 const emptyPromotionDetail: AdminPromotionDetailData = {
-  categories: [],
-  products: [],
   promotion: null,
 };
 
@@ -38,7 +36,7 @@ export const PromotionDetailPage = () => {
 
   const handlePromotionSaved = (promotionSaved: PromotionRow) => {
     const goToNew = `/admin/promociones/${promotionSaved.slug}`;
-    setPromotionDetail({ ...promotionDetail, promotion: promotionSaved });
+    setPromotionDetail({ promotion: promotionSaved });
 
     if (isNewPromotion) navigate(goToNew, { replace: true });
   };
@@ -71,12 +69,10 @@ export const PromotionDetailPage = () => {
           ? promotionDetail.promotion.title
           : "Nueva promoción"
       }
-      description="Gestiona la información, imagen, vigencia y relaciones de esta promoción."
+      description="Gestiona la información, precio, imagen y vigencia de esta promoción."
       backTo={appRoutes.adminPromotions}
     >
       <PromotionDetailForm
-        categories={promotionDetail.categories}
-        products={promotionDetail.products}
         promotion={promotionDetail.promotion}
         onChangePromotionSaved={handlePromotionSaved}
       />

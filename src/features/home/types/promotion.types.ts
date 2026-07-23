@@ -9,8 +9,8 @@ export type Promotion = {
   dayLabel: string;
   dayShortLabel: string;
   tag: string;
-  categoryName: string;
-  categorySlug: string;
   image: string;
   imageAlt: string;
+  promotionPrice: number;
+  originalPrice: number | null;
 };

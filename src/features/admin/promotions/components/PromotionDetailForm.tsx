@@ -6,7 +6,7 @@ import {
 } from "@/features/admin/shared/components/AdminField";
 import { AdminImageField } from "@/features/admin/shared/components/AdminImageField";
 import { InputField } from "@/shared/components/InputField";
-import { SelectField } from "@/shared/components/SelectField";
+import { CurrencyField } from "@/shared/components/CurrencyField";
 import { TextAreaField } from "@/shared/components/TextAreaField";
 import { Checkbox } from "@/shared/components/Checkbox";
 import { toDatetimeLocal } from "@/features/admin/shared/utils/adminForms";
@@ -14,21 +14,15 @@ import { weekdays } from "@/features/admin/promotions/utils/promotionForms";
 import { cn } from "@/shared/utils/cn";
 import { SUPABASE_BUCKETS } from "@/lib/supabase/constants";
 
-import type { CategoryRow } from "@/features/admin/types/categories.types";
-import type { ProductRow } from "@/features/admin/types/products.types";
 import type { PromotionRow } from "@/features/admin/types/promotions.types";
 import { usePromotionForm } from "../hooks/usePromotionForm";
 
 type PromotionDetailFormProps = {
-  categories: CategoryRow[];
-  products: ProductRow[];
   promotion: PromotionRow | null;
   onChangePromotionSaved: (savedPromotion: PromotionRow) => void;
 };
 
 export const PromotionDetailForm = ({
-  categories,
-  products,
   promotion,
   onChangePromotionSaved,
 }: PromotionDetailFormProps) => {
@@ -73,7 +67,7 @@ export const PromotionDetailForm = ({
             name="title"
             control={form.control}
             label="Título"
-            placeholder="Ej: Promo del fin de semana"
+            placeholder="Ej: Combo hamburguesa + papas + gaseosa"
             autoComplete="off"
           />
 
@@ -81,7 +75,7 @@ export const PromotionDetailForm = ({
             name="slug"
             control={form.control}
             label="Slug"
-            placeholder="Ej: promo-fin-de-semana"
+            placeholder="Ej: combo-hamburguesa-papas-gaseosa"
             autoComplete="off"
           />
 
@@ -91,6 +85,35 @@ export const PromotionDetailForm = ({
             label="Descripción"
             placeholder="Descripción opcional de la promoción"
           />
+        </section>
+
+        <section className="grid min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
+          <div className="border-b border-border pb-3">
+            <h2 className="m-0 font-heading text-xl font-black text-foreground sm:text-2xl">
+              Precio y descuento
+            </h2>
+            <p className="mt-1 text-xs font-bold text-muted-foreground">
+              Define el precio final que pagará el cliente y, opcionalmente, un
+              precio de referencia para mostrar el descuento.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CurrencyField
+              name="promotion_price"
+              control={form.control}
+              label="Precio de promoción"
+              placeholder="Ej: 25.000"
+              description="Precio final que paga el cliente."
+            />
+            <CurrencyField
+              name="original_price"
+              control={form.control}
+              label="Precio original (opcional)"
+              placeholder="Ej: 30.000"
+              description="Precio de referencia para mostrar el descuento."
+            />
+          </div>
         </section>
 
         <section className="grid min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
@@ -150,42 +173,6 @@ export const PromotionDetailForm = ({
               })}
             </div>
           </AdminField>
-        </section>
-
-        <section className="grid min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
-          <div className="border-b border-border pb-3">
-            <h2 className="m-0 font-heading text-xl font-black text-foreground sm:text-2xl">
-              Relaciones
-            </h2>
-            <p className="mt-1 text-xs font-bold text-muted-foreground">
-              Vincula la promoción con una categoría o producto específico.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SelectField
-              name="category_id"
-              control={form.control}
-              label="Categoría relacionada"
-              placeholder="Sin categoría"
-              nullable
-              options={categories.map((category) => ({
-                value: category.id,
-                label: category.name,
-              }))}
-            />
-            <SelectField
-              name="product_id"
-              control={form.control}
-              label="Producto relacionado"
-              placeholder="Sin producto"
-              nullable
-              options={products.map((product) => ({
-                value: product.id,
-                label: product.name,
-              }))}
-            />
-          </div>
         </section>
 
         <section className="grid min-w-0 content-start gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated sm:p-5">
