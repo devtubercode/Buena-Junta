@@ -13,6 +13,10 @@ type PromotionCardProps = {
   onDelete: (promotion: AdminPromotionListRow) => void;
 };
 
+function formatPrice(price: number): string {
+  return `$${price.toLocaleString("es-CO")}`;
+}
+
 export const PromotionCard = ({ promotion, onDelete }: PromotionCardProps) => {
   const promotionDetailPath = `${appRoutes.adminPromotions}/${promotion.slug}`;
   const imageUrl = promotion.image_path
@@ -22,11 +26,19 @@ export const PromotionCard = ({ promotion, onDelete }: PromotionCardProps) => {
       )
     : null;
 
-  const categoryName = promotion.category?.name;
-  const productName = promotion.product?.name;
   const status = getPromotionStatus(promotion);
 
-  const relationLabel = [categoryName, productName].filter(Boolean).join(" · ");
+  const hasDiscount =
+    promotion.original_price !== null &&
+    promotion.original_price > promotion.promotion_price;
+
+  const discountPercentage = hasDiscount
+    ? Math.round(
+        ((promotion.original_price! - promotion.promotion_price) /
+          promotion.original_price!) *
+          100,
+      )
+    : null;
 
   return (
     <article className="group flex min-w-0 flex-row gap-3 rounded-xl border border-border bg-surface p-3 shadow-elevated transition hover:border-primary/30 hover:shadow-lg sm:flex-col">
@@ -60,17 +72,16 @@ export const PromotionCard = ({ promotion, onDelete }: PromotionCardProps) => {
               {promotion.title}
             </Link>
             <p className="mt-0.5 text-xs font-bold text-muted-foreground">
-              {relationLabel ? ` · ${relationLabel}` : ""}
+              {formatPrice(promotion.promotion_price)}
+              {hasDiscount && discountPercentage !== null ? (
+                <span className="ml-1.5 text-success">
+                  -{discountPercentage}%
+                </span>
+              ) : null}
             </p>
           </div>
           <PromotionStatusBadge status={status} />
         </div>
-
-        {promotion.description ? (
-          <p className="mt-1.5 line-clamp-2 text-xs font-medium leading-relaxed text-muted-foreground sm:text-sm">
-            {promotion.description}
-          </p>
-        ) : null}
 
         <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-2.5 sm:pt-3">
           <Link
