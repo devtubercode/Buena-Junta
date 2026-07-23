@@ -11,6 +11,10 @@ type AdminProductCardProps = {
   onDelete: (product: AdminProductListRow) => void;
 };
 
+function formatPrice(price: number): string {
+  return `$${price.toLocaleString("es-CO")}`;
+}
+
 type StatusBadgeProps = {
   isAvailable: boolean;
 };
@@ -71,10 +75,21 @@ export const AdminProductCard = ({
   const hasVariants = quantityVariants > 0;
   const hasOptionGroups = quantityGroups > 0;
 
+  const hasDiscount =
+    product.sale_price !== null &&
+    product.price !== null &&
+    product.sale_price < product.price;
+
+  const discountPercentage = hasDiscount
+    ? Math.round(
+        ((product.price! - product.sale_price!) / product.price!) * 100,
+      )
+    : null;
+
   return (
     <article className="group flex min-w-0 flex-row gap-3 rounded-xl border border-border bg-surface p-3 shadow-elevated transition hover:border-primary/30 hover:shadow-lg sm:flex-col">
       <Link to={productDetailPath} className="shrink-0 sm:block">
-        <div className="flex size-18 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-muted text-muted-foreground transition group-hover:border-primary/30 sm:aspect-video sm:h-auto sm:w-full">
+        <div className="relative flex size-18 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-muted text-muted-foreground transition group-hover:border-primary/30 sm:aspect-video sm:h-auto sm:w-full">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -85,6 +100,11 @@ export const AdminProductCard = ({
           ) : (
             <ImageIcon className="size-7" />
           )}
+          {hasDiscount && discountPercentage !== null ? (
+            <span className="absolute left-0 top-0 rounded-br-lg rounded-tl-lg bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-elevated sm:px-2 sm:py-1 sm:text-xs">
+              -{discountPercentage}%
+            </span>
+          ) : null}
         </div>
       </Link>
 
@@ -101,9 +121,20 @@ export const AdminProductCard = ({
           <StatusBadge isAvailable={product.is_available} />
         </div>
 
-        {product.price && (
-          <p className="mt-1.5 text-sm font-black text-primary">{`$${product.price.toLocaleString("es-CO")}`}</p>
-        )}
+        {hasDiscount && discountPercentage !== null ? (
+          <div className="mt-1.5 flex items-baseline gap-1.5">
+            <p className="text-sm font-black text-primary">
+              {formatPrice(product.sale_price!)}
+            </p>
+            <p className="text-xs font-bold leading-none text-muted-foreground line-through">
+              {formatPrice(product.price!)}
+            </p>
+          </div>
+        ) : product.price ? (
+          <p className="mt-1.5 text-sm font-black text-primary">
+            {formatPrice(product.price)}
+          </p>
+        ) : null}
         {hasVariants ||
           (hasOptionGroups && (
             <div className="my-2 flex flex-wrap gap-1.5">

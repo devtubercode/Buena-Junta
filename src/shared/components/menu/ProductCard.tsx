@@ -1,7 +1,11 @@
 import { useState } from "react";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
-import { getProductCardPriceLabel } from "@/features/menu/utils/productHelpers";
+import {
+  getProductCardPriceLabel,
+  getProductDiscountInfo,
+} from "@/features/menu/utils/productHelpers";
+import { formatCOP } from "@/features/cart/utils/money";
 import { cn } from "@/shared/utils/cn";
 
 type ProductCardProps = {
@@ -31,6 +35,7 @@ export function ProductCard({
     : (product.urlImage ?? getProductImage(product));
   const isPlaceholder = !product.urlImage || imageError;
   const priceLabel = getProductCardPriceLabel(product);
+  const discountInfo = getProductDiscountInfo(product);
   const isInCart = quantityInCart > 0;
   const hasDescription = product.description.trim().length > 0;
 
@@ -82,6 +87,12 @@ export function ProductCard({
           </div>
         ) : null}
 
+        {discountInfo ? (
+          <span className="absolute left-1 top-1 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-elevated sm:left-2 sm:top-2 sm:px-2 sm:py-1 sm:text-xs">
+            -{discountInfo.discountPercent}%
+          </span>
+        ) : null}
+
         {isInCart ? (
           <span className="absolute right-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-primary px-1 text-[10px] font-black text-primary-foreground shadow-elevated sm:right-2 sm:top-2 sm:h-7 sm:min-w-7 sm:px-1.5 sm:text-xs">
             {quantityInCart}
@@ -102,7 +113,16 @@ export function ProductCard({
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-2 sm:pt-3">
           <div className="min-w-0">
-            {priceLabel ? (
+            {discountInfo ? (
+              <div className="flex items-baseline gap-1.5">
+                <p className="font-heading text-base font-black leading-none text-primary sm:text-xl md:text-2xl">
+                  {formatCOP(discountInfo.salePrice)}
+                </p>
+                <p className="text-xs font-bold leading-none text-muted-foreground line-through sm:text-sm">
+                  {formatCOP(discountInfo.originalPrice)}
+                </p>
+              </div>
+            ) : priceLabel ? (
               <p className="font-heading text-base font-black leading-none text-primary sm:text-xl md:text-2xl">
                 {priceLabel}
               </p>

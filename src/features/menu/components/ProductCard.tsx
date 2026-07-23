@@ -1,7 +1,11 @@
 import { useState } from "react";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
-import { getProductCardPriceLabel } from "@/features/menu/utils/productHelpers";
+import {
+  getProductCardPriceLabel,
+  getProductDiscountInfo,
+} from "@/features/menu/utils/productHelpers";
+import { formatCOP } from "@/features/cart/utils/money";
 import { cn } from "@/shared/utils/cn";
 
 type ProductCardProps = {
@@ -20,6 +24,7 @@ export const ProductCard = ({
   const productImage = product.urlImage;
   const isPlaceholder = !product.urlImage || imageError;
   const priceLabel = getProductCardPriceLabel(product);
+  const discountInfo = getProductDiscountInfo(product);
   const isInOrder = quantityInOrder > 0;
   const hasDescription = product.description.trim().length > 0;
 
@@ -68,6 +73,12 @@ export const ProductCard = ({
           </div>
         ) : null}
 
+        {discountInfo ? (
+          <span className="absolute left-1 top-1 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-elevated sm:px-2 sm:py-1 sm:text-xs">
+            -{discountInfo.discountPercent}%
+          </span>
+        ) : null}
+
         {isInOrder ? (
           <span className="absolute right-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-primary px-1 text-[10px] font-black text-primary-foreground shadow-elevated">
             {quantityInOrder}
@@ -81,7 +92,16 @@ export const ProductCard = ({
             <h3 className="line-clamp-1 flex-1 font-heading text-sm font-black leading-tight text-foreground sm:text-base">
               {product.name}
             </h3>
-            {priceLabel ? (
+            {discountInfo ? (
+              <div className="shrink-0 text-right">
+                <p className="font-heading text-sm font-black leading-none text-primary sm:text-base">
+                  {formatCOP(discountInfo.salePrice)}
+                </p>
+                <p className="text-[10px] font-bold leading-none text-muted-foreground line-through sm:text-xs">
+                  {formatCOP(discountInfo.originalPrice)}
+                </p>
+              </div>
+            ) : priceLabel ? (
               <p className="shrink-0 font-heading text-sm font-black leading-none text-primary sm:text-base">
                 {priceLabel}
               </p>
