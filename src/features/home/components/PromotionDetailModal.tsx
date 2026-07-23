@@ -8,14 +8,14 @@ type PromotionDetailModalProps = {
   promotion: Promotion;
   isOpen: boolean;
   onClose: () => void;
-  onAddToOrder?: () => void;
+  onAddToCart?: () => void;
 };
 
 export function PromotionDetailModal({
   promotion,
   isOpen,
   onClose,
-  onAddToOrder,
+  onAddToCart,
 }: PromotionDetailModalProps) {
   const image = promotion.image
     ? { src: promotion.image, alt: promotion.imageAlt }
@@ -34,15 +34,15 @@ export function PromotionDetailModal({
       )
     : null;
 
-  const handleAddToOrder = () => {
-    onAddToOrder?.();
+  const handleAddToCart = () => {
+    onAddToCart?.();
     onClose();
   };
 
   const content = (
     <div className="grid gap-5 sm:pt-1">
       {/* Image */}
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-surface-muted sm:aspect-auto sm:max-h-52">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-surface-muted sm:aspect-auto sm:max-h-36">
         {hasImage ? (
           <img
             src={image?.src}
@@ -58,26 +58,24 @@ export function PromotionDetailModal({
         )}
       </div>
 
-      {/* Badge + Title + Label */}
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          {promotion.isTodayPromotion ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-success-foreground shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75 motion-reduce:animate-none" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-              </span>
-              Hoy
+      {/* Badge + Label */}
+      <div className="flex flex-wrap items-center gap-2">
+        {promotion.isTodayPromotion ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-success px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-success-foreground shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75 motion-reduce:animate-none" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
             </span>
-          ) : (
-            <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-primary-foreground shadow-sm">
-              {promotion.dayLabel}
-            </span>
-          )}
-          <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary-soft px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-primary">
-            Oferta
+            Hoy
           </span>
-        </div>
+        ) : (
+          <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-primary-foreground shadow-sm">
+            {promotion.dayLabel}
+          </span>
+        )}
+        <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary-soft px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-primary">
+          Oferta
+        </span>
       </div>
 
       {/* Price section */}
@@ -113,15 +111,15 @@ export function PromotionDetailModal({
         </p>
       </div>
 
-      {/* Add to order button */}
-      {onAddToOrder ? (
+      {/* Add to cart button */}
+      {onAddToCart ? (
         <button
           type="button"
-          onClick={handleAddToOrder}
+          onClick={handleAddToCart}
           className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-black uppercase tracking-wide text-primary-foreground shadow-elevated transition-all duration-200 hover:scale-[1.02] hover:opacity-95 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100"
         >
           <ShoppingCart className="size-4" aria-hidden="true" />
-          Agregar al pedido
+          Agregar al carrito
         </button>
       ) : null}
     </div>
@@ -133,7 +131,7 @@ export function PromotionDetailModal({
         <CustomModal
           isOpen={isOpen}
           title={promotion.title}
-          description={`Oferta especial - ${promotion.description}`}
+          description={promotion.description ?? "Oferta especial"}
           contentClassName="max-w-lg"
           onClose={onClose}
         >
@@ -144,7 +142,7 @@ export function PromotionDetailModal({
         <ButtonSheetModal
           isOpen={isOpen}
           title={promotion.title}
-          description={`Oferta especial - ${promotion.description}`}
+          description={promotion.description ?? "Oferta especial"}
           contentClassName="max-w-lg"
           onClose={onClose}
         >

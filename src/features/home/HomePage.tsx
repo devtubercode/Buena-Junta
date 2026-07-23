@@ -1,4 +1,9 @@
+import { useState } from "react";
 import { Link } from "react-router";
+import { notify } from "@/shared/notifications/notify";
+import { useCartStore } from "@/store/cart/useCartStore";
+import { PromotionDetailModal } from "@/features/home/components/PromotionDetailModal";
+import type { Promotion } from "@/features/home/types/promotion.types";
 import { PromotionsCarousel } from "@/features/home/components/PromotionsCarousel";
 import { useProductCatalog } from "@/shared/hooks/useProductCatalog";
 import { CategoryChipsSkeleton } from "@/shared/components/menu/skeletons/CategoryChipsSkeleton";
@@ -14,6 +19,9 @@ import { useCatalogData } from "@/shared/hooks/useCatalogData";
 
 export const HomePage = () => {
   const { categories, products, isLoading, error } = useCatalogData();
+  const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(
+    null,
+  );
 
   const {
     filteredProducts,
@@ -26,10 +34,23 @@ export const HomePage = () => {
     handleAddCustomized,
   } = useProductCatalog({ products: products });
 
+  const handleAddPromotionToCart = (promotion: Promotion) => {
+    useCartStore.getState().addItem({
+      productId: `promo-${promotion.slug}`,
+      name: promotion.title,
+      unitPrice: promotion.promotionPrice,
+      quantity: 1,
+      baseName: promotion.title,
+      displayName: promotion.title,
+    });
+    notify.whatsapp(`Agregaste ${promotion.title} al carrito.`);
+    setSelectedPromotion(null);
+  };
+
   return (
     <main id="inicio">
       <section className="mx-auto flex w-full max-w-6xl flex-col px-4 pb-5 pt-0 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
-        <PromotionsCarousel />
+        <PromotionsCarousel onOpenDetail={setSelectedPromotion} />
       </section>
 
       <section
@@ -128,6 +149,15 @@ export const HomePage = () => {
               </ButtonSheetModal>
             </div>
           </>
+        ) : null}
+
+        {selectedPromotion ? (
+          <PromotionDetailModal
+            promotion={selectedPromotion}
+            isOpen={Boolean(selectedPromotion)}
+            onClose={() => setSelectedPromotion(null)}
+            onAddToCart={() => handleAddPromotionToCart(selectedPromotion)}
+          />
         ) : null}
       </section>
     </main>

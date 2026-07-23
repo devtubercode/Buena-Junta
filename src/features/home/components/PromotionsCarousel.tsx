@@ -1,42 +1,24 @@
 import { BlossomCarousel } from "@blossom-carousel/react";
 import "@blossom-carousel/core/style.css";
+import { formatCOP } from "@/features/cart/utils/money";
 import { usePromotionsCarousel } from "@/features/home/hooks/usePromotionCarousel";
 import { usePromotionData } from "@/features/home/hooks/usePromotionData";
-import { useMenuFilterStore } from "@/store/menu-filter/useMenuFilterStore";
 
 import type { Promotion } from "@/features/home/types/promotion.types";
 import { PromotionsCarouselSkeleton } from "./PromotionsCarouselSkeleton";
 
-export const PromotionsCarousel = () => {
+type PromotionsCarouselProps = {
+  onOpenDetail: (promotion: Promotion) => void;
+};
+
+export const PromotionsCarousel = ({ onOpenDetail }: PromotionsCarouselProps) => {
   const { promotions, isLoading, error } = usePromotionData();
-  const { applyPromotionFilter } = useMenuFilterStore((state) => state);
 
   const { activePromotion, carouselRef, pauseTemporarily } =
     usePromotionsCarousel({ itemCount: promotions.length });
 
   const handlePromotionAction = (promotion: Promotion) => {
-    applyPromotionFilter({
-      categorySlug: promotion.categorySlug,
-      promotionSlug: promotion.slug,
-    });
-
-    window.setTimeout(() => {
-      const menuSection = document.getElementById("menu");
-      const headerHeight =
-        document.querySelector("header")?.getBoundingClientRect().height ?? 0;
-
-      if (!menuSection) {
-        return;
-      }
-
-      window.scrollTo({
-        top:
-          menuSection.getBoundingClientRect().top +
-          window.scrollY -
-          headerHeight,
-        behavior: "smooth",
-      });
-    }, 0);
+    onOpenDetail(promotion);
   };
 
   const goToSlide = (index: number) => {
@@ -105,7 +87,7 @@ export const PromotionsCarousel = () => {
                     ) : null}
 
                     <span className="rounded-full border border-(--promotion-text)/25 bg-(--promotion-text)/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-(--promotion-text) sm:px-3 sm:py-1 sm:text-xs">
-                      {promotion.categoryName}
+                      Oferta
                     </span>
                   </div>
 
@@ -113,19 +95,40 @@ export const PromotionsCarousel = () => {
                     <h3 className="font-heading text-xl font-black uppercase leading-tight tracking-tight text-(--promotion-text) text-balance sm:text-2xl md:text-3xl lg:text-[2.75rem]">
                       {promotion.title}
                     </h3>
-                    <p className="mt-2 line-clamp-3 text-xs font-medium leading-relaxed text-(--promotion-text)/80 sm:line-clamp-4 sm:text-sm sm:leading-6 md:line-clamp-none md:text-base md:leading-6">
-                      {promotion.description}
-                    </p>
                   </div>
                 </div>
 
+                <div className="flex items-baseline gap-2">
+                  <span className="font-heading text-xl font-black leading-none text-(--promotion-text) sm:text-2xl">
+                    {formatCOP(promotion.promotionPrice)}
+                  </span>
+                  {promotion.originalPrice !== null &&
+                  promotion.originalPrice > promotion.promotionPrice ? (
+                    <>
+                      <span className="text-sm font-bold leading-none text-(--promotion-text)/70 line-through">
+                        {formatCOP(promotion.originalPrice)}
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-elevated sm:px-2 sm:py-1 sm:text-xs">
+                        -
+                        {Math.round(
+                          ((promotion.originalPrice -
+                            promotion.promotionPrice) /
+                            promotion.originalPrice) *
+                            100,
+                          )}
+                        %
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+
                 <div className="mt-3 pt-1 sm:mt-5 sm:pt-2">
-                  <button
+                    <button
                     type="button"
                     className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-black uppercase tracking-wide text-primary-foreground shadow-elevated transition-all duration-200 hover:scale-[1.02] hover:opacity-95 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98] motion-reduce:transition-none sm:w-auto sm:min-w-48"
                     onClick={() => handlePromotionAction(promotion)}
                   >
-                    Ver promociones
+                    Ver promoción
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"

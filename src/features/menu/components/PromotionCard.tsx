@@ -1,5 +1,6 @@
 import type { Promotion } from "@/features/home/types/promotion.types";
 import { CalendarDays, Tag } from "lucide-react";
+import { formatCOP } from "@/features/cart/utils/money";
 import { cn } from "@/shared/utils/cn";
 
 type PromotionCardProps = {
@@ -12,6 +13,18 @@ export function PromotionCard({ promotion, onOpenDetail }: PromotionCardProps) {
     ? { src: promotion.image, alt: promotion.imageAlt }
     : undefined;
   const hasImage = Boolean(image?.src);
+
+  const hasDiscount =
+    promotion.originalPrice !== null &&
+    promotion.originalPrice > promotion.promotionPrice;
+
+  const discountPercentage = hasDiscount
+    ? Math.round(
+        ((promotion.originalPrice! - promotion.promotionPrice) /
+          promotion.originalPrice!) *
+          100,
+      )
+    : null;
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated transition hover:shadow-lg">
@@ -45,7 +58,7 @@ export function PromotionCard({ promotion, onOpenDetail }: PromotionCardProps) {
 
       <div className="p-4">
         <p className="text-xs font-black uppercase tracking-[0.12em] text-muted-foreground">
-          {promotion.categoryName ?? "Promoción"}
+          Oferta
         </p>
         <h3 className="mt-1 font-heading text-xl font-black leading-tight text-foreground">
           {promotion.title}
@@ -54,6 +67,22 @@ export function PromotionCard({ promotion, onOpenDetail }: PromotionCardProps) {
           <CalendarDays className="size-3.5" />
           {promotion.dayLabel}
         </p>
+
+        <div className="mt-3 flex items-baseline gap-1.5">
+          <span className="font-heading text-xl font-black leading-none text-primary">
+            {formatCOP(promotion.promotionPrice)}
+          </span>
+          {hasDiscount && discountPercentage !== null ? (
+            <>
+              <span className="text-xs font-bold leading-none text-muted-foreground line-through">
+                {formatCOP(promotion.originalPrice!)}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white">
+                -{discountPercentage}%
+              </span>
+            </>
+          ) : null}
+        </div>
 
         <button
           type="button"

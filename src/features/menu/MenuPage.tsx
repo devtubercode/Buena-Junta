@@ -180,6 +180,21 @@ export function MenuPage() {
           promotion={selectedPromotion}
           isOpen={Boolean(selectedPromotion)}
           onClose={() => setSelectedPromotion(null)}
+          onAddToOrder={() => {
+            order.actions.addItem({
+              id: selectedPromotion.slug,
+              name: selectedPromotion.title,
+              price: selectedPromotion.promotionPrice,
+              quantity: 1,
+              urlImage: selectedPromotion.image
+                ? { src: selectedPromotion.image, alt: selectedPromotion.imageAlt }
+                : undefined,
+            });
+            notify.whatsapp(
+              `Agregaste ${selectedPromotion.title} al pedido.`,
+            );
+            setSelectedPromotion(null);
+          }}
         />
       )}
 
