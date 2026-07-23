@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
 import { appRoutes } from "@/app/routes";
-import { Button } from "@/shared/components/Button";
+
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
 import { ProductsSkeleton } from "@/features/admin/shared/state/AdminSkeletons";
 import { SearchInput } from "@/shared/components/SearchInput";
@@ -42,7 +42,6 @@ export const ProductsPage = () => {
     selectedCategoryId,
     setSelectedCategoryId,
     filteredProducts,
-    activeFiltersCount,
   } = useAdminProductsFilters(products);
 
   const { confirmDelete, ConfirmDialog: ConfirmProductDeleteDialog } =
@@ -107,16 +106,6 @@ export const ProductsPage = () => {
                 label="Buscar producto"
               />
             </div>
-            {activeFiltersCount > 0 ? (
-              <Button
-                type="button"
-                variant="outline"
-                radius="full"
-                onClick={clearFilters}
-              >
-                Limpiar filtros
-              </Button>
-            ) : null}
           </div>
 
           <AdminProductCategoryFilter

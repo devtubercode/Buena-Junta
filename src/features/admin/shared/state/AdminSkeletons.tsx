@@ -168,21 +168,19 @@ export const CategoriesSkeleton = () => {
         </div>
       </div>
 
-      {/* Lista de categorías */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-        {Array.from({ length: 8 }).map((_, index) => (
+        {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-elevated"
+            className="flex min-w-0 items-center gap-4 rounded-xl border border-border bg-surface p-3 shadow-elevated"
           >
             <SkeletonBlock className="size-12 shrink-0 rounded-xl" />
-            <div className="grid min-w-0 flex-1 gap-2">
-              <SkeletonBlock className="h-5 w-36 max-w-full rounded-md" />
-              <SkeletonBlock className="h-3 w-24 max-w-full rounded-md" />
+            <div className="min-w-0 flex-1">
+              <SkeletonBlock className="h-5 w-44 max-w-full rounded-md" />
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <SkeletonBlock className="size-9 rounded-full" />
-              <SkeletonBlock className="size-9 rounded-full" />
+              <SkeletonBlock className="size-11 rounded-full" />
+              <SkeletonBlock className="size-11 rounded-full" />
             </div>
           </div>
         ))}

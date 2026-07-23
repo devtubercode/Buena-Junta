@@ -8,7 +8,6 @@ type UseAdminProductsFiltersResult = {
   selectedCategoryId: string | null;
   setSelectedCategoryId: (value: string | null) => void;
   filteredProducts: AdminProductListRow[];
-  activeFiltersCount: number;
 };
 
 export function useAdminProductsFilters(
@@ -30,15 +29,11 @@ export function useAdminProductsFilters(
     });
   }, [products, searchQuery, selectedCategoryId]);
 
-  const activeFiltersCount =
-    (searchQuery.trim() ? 1 : 0) + (selectedCategoryId ? 1 : 0);
-
   return {
     searchQuery,
     setSearchQuery,
     selectedCategoryId,
     setSelectedCategoryId,
     filteredProducts,
-    activeFiltersCount,
   };
 }
