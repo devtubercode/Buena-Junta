@@ -92,6 +92,7 @@ export function App() {
           <Route path="carrito" element={<CartPage />} />
           <Route path="cart" element={<Navigate to={appRoutes.cart} replace />} />
         </Route>
+        <Route path="*" element={<Navigate to={appRoutes.home} replace />} />
       </Routes>
     </Suspense>
   );

@@ -26,11 +26,11 @@ export const CartPage = () => {
     <main className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8 lg:py-8">
       <div className="mb-4 flex items-center gap-3 lg:mb-6">
         <Link
-          to={appRoutes.menu}
+          to={appRoutes.home}
           className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           <ChevronLeft className="size-5" />
-          <span className="sr-only">Volver al menú</span>
+          <span className="sr-only">Volver al inicio</span>
         </Link>
         <div>
           <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">

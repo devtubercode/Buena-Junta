@@ -3,18 +3,59 @@ import { Link, NavLink } from "react-router";
 import { Info, MapPin } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { publicLocation } from "@/features/menu/content/menuContent";
+import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { CustomModal } from "@/shared/components/CustomModal";
 import logoImage from "@/assets/buenajunta-logo.webp";
 import { CartButton } from "@/shared/components/CartButton";
 // import { ThemeSwitch } from "@/shared/components/ThemeSwitch";
 import { cn } from "@/shared/utils/cn";
 
-const primaryNavItems = [
-  { label: "Nosotros", to: appRoutes.about, end: true, Icon: Info },
-] as const;
+const actionClass =
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-border bg-surface px-3 text-sm font-bold text-foreground shadow-sm transition hover:border-primary hover:bg-surface-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+
+const mobileActionClass =
+  "inline-flex size-10 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm transition hover:border-primary hover:bg-surface-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
 export function SiteHeader() {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+  const locationContent = (
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-xl border border-border bg-surface-raised shadow-sm">
+        <iframe
+          title="Mapa de ubicación BuenaJunta"
+          src={publicLocation.mapEmbedUrl}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          className="block h-56 w-full border-0 sm:h-72"
+        />
+      </div>
+
+      <a
+        href={publicLocation.mapsUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        <MapPin className="size-4" />
+        Abrir en Google Maps
+      </a>
+
+      <div className="rounded-xl border border-border bg-surface-muted p-3 text-center">
+        <p className="text-xs font-medium text-muted-foreground">
+          ¿Ya nos visitaste?{" "}
+          <a
+            href={publicLocation.mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-black text-primary underline transition hover:opacity-80"
+          >
+            Deja una reseña
+          </a>
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -33,39 +74,46 @@ export function SiteHeader() {
             />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav
-            className="hidden items-center gap-1 rounded-full border border-border bg-surface-muted/50 p-1 shadow-sm backdrop-blur-sm lg:flex"
-            aria-label="Navegación principal"
-          >
-            {primaryNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  cn(
-                    "inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-black transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                    isActive
-                      ? "bg-primary-soft text-primary shadow-sm"
-                      : "text-muted-foreground hover:bg-surface-muted hover:text-foreground",
-                  )
-                }
-              >
-                <item.Icon className="size-4" />
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
           {/* Actions */}
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            {/* About — desktop */}
+            <NavLink
+              to={appRoutes.about}
+              end
+              className={({ isActive }) =>
+                cn(
+                  actionClass,
+                  "hidden sm:inline-flex",
+                  isActive && "bg-primary-soft text-primary",
+                )
+              }
+            >
+              <Info className="size-4" />
+              Nosotros
+            </NavLink>
+
+            {/* About — mobile */}
+            <NavLink
+              to={appRoutes.about}
+              end
+              aria-label="Sobre nosotros"
+              className={({ isActive }) =>
+                cn(
+                  mobileActionClass,
+                  "sm:hidden",
+                  isActive && "bg-primary-soft text-primary",
+                )
+              }
+            >
+              <Info className="size-5" />
+            </NavLink>
+
             {/* Location — desktop */}
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
               aria-label="Ver ubicación de Buena Junta"
-              className="hidden min-h-10 items-center gap-2 rounded-full border border-border bg-surface px-3 text-sm font-bold text-foreground shadow-sm transition hover:border-primary hover:bg-surface-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:inline-flex"
+              className={cn(actionClass, "hidden sm:inline-flex")}
             >
               <MapPin className="size-4 text-primary" />
               <span className="max-w-30 truncate">
@@ -78,7 +126,7 @@ export function SiteHeader() {
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
               aria-label="Ver ubicación de Buena Junta"
-              className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm transition hover:border-primary hover:bg-surface-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:hidden"
+              className={cn(mobileActionClass, "sm:hidden")}
             >
               <MapPin className="size-5 text-primary" />
             </button>
@@ -97,51 +145,30 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <CustomModal
-        isOpen={isLocationModalOpen}
-        title={publicLocation.shortLabel}
-        description={publicLocation.address}
-        icon={<MapPin className="size-5" />}
-        contentClassName="max-w-3xl"
-        onClose={() => setIsLocationModalOpen(false)}
-      >
-        <div className="space-y-4">
-          <p>{publicLocation.reference}</p>
-          <div className="overflow-hidden rounded-lg border border-border bg-surface-raised">
-            <iframe
-              title="Mapa de ubicación BuenaJunta"
-              src={publicLocation.mapEmbedUrl}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="location-map-frame block h-72 w-full border-0"
-            />
-          </div>
-          <div className="rounded-lg border border-primary-border bg-primary-soft p-4 text-sm leading-6 text-foreground">
-            <p className="font-bold">¿Ya nos visitaste?</p>
-            <p className="mt-1 text-muted-foreground">
-              Si tu experiencia fue buena, déjanos una reseña en Google Maps.
-              Nos ayuda a que más personas encuentren BuenaJunta.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              onClick={() => setIsLocationModalOpen(false)}
-            >
-              Cerrar
-            </button>
-            <a
-              href={publicLocation.mapsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              Abrir mapa completo
-            </a>
-          </div>
-        </div>
-      </CustomModal>
+      <div className="hidden sm:block">
+        <CustomModal
+          isOpen={isLocationModalOpen}
+          title={publicLocation.shortLabel}
+          description={publicLocation.address}
+          icon={<MapPin className="size-5" />}
+          contentClassName="max-w-3xl"
+          onClose={() => setIsLocationModalOpen(false)}
+        >
+          {locationContent}
+        </CustomModal>
+      </div>
+      <div className="sm:hidden">
+        <ButtonSheetModal
+          isOpen={isLocationModalOpen}
+          title={publicLocation.shortLabel}
+          description={publicLocation.address}
+          icon={<MapPin className="size-5" />}
+          contentClassName="max-w-3xl"
+          onClose={() => setIsLocationModalOpen(false)}
+        >
+          {locationContent}
+        </ButtonSheetModal>
+      </div>
     </>
   );
 }

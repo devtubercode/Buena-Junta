@@ -13,11 +13,13 @@ export const contactInfo: ContactInfo = {
 };
 
 export const publicLocation: PublicLocation = {
-  shortLabel: "Ubicación",
-  address: "Encuéntranos y llega fácil a BuenaJunta.",
-  reference: "Abre el mapa para ver la sede, la ruta y el punto exacto.",
-  mapEmbedUrl: "https://www.google.com/maps?q=BuenaJunta&z=16&output=embed",
-  mapsUrl: "https://www.google.com/maps?q=BuenaJunta",
+  shortLabel: "Buena Junta",
+  address: "Av. 5 Oe. #19A-36, Terron Colorado, Cali, Valle del Cauca, Colombia",
+  reference: "",
+  mapEmbedUrl:
+    "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d19332.08247766391!2d-76.55972!3d3.453009!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e30a59410708505%3A0x438fd207e2fc2a74!2sBuena%20Junta!5e1!3m2!1ses!2sus!4v1784804175065!5m2!1ses!2sus",
+  mapsUrl:
+    "https://www.google.com/maps/place/Buena+Junta/@3.4530086,-76.5622951,1110m/data=!3m2!1e3!4b1!4m6!3m5!1s0x8e30a59410708505:0x438fd207e2fc2a74!8m2!3d3.4530086!4d-76.5597202!16s%2Fg%2F11z9bw06r0?hl=es&entry=ttu&g_ep=EgoyMDI2MDcyMC4wIKXMDSoASAFQAw%3D%3D",
 };
 
 export const publicServices: PublicService[] = [
