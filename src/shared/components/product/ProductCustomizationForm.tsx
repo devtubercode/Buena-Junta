@@ -62,7 +62,7 @@ export function ProductCustomizationForm({
           <img
             src={productImage.src}
             alt={productImage.alt}
-            className="aspect-square w-16 shrink-0 rounded-lg border border-border object-cover sm:w-20"
+            className="aspect-square w-28 shrink-0 rounded-lg border border-border object-cover sm:w-32"
             loading="lazy"
             decoding="async"
           />
@@ -71,7 +71,7 @@ export function ProductCustomizationForm({
               {product.name}
             </h2>
             {product.description ? (
-              <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-5 text-muted-foreground">
+              <p className="mt-0.5 text-sm font-medium leading-5 text-muted-foreground">
                 {product.description}
               </p>
             ) : null}
@@ -106,38 +106,33 @@ export function ProductCustomizationForm({
             </>
           ) : null}
 
-          <section className="flex flex-col gap-2">
-            <span className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
-              Cantidad
-            </span>
-            <div>
-              <QuantityStepper
-                quantity={quantity}
-                onIncrement={handleIncrement}
-                onDecrement={handleDecrement}
-                onChange={handleSetQuantity}
-              />
-            </div>
-          </section>
         </div>
       </div>
 
-      <footer className="border-t border-border pt-3">
-        <button
-          type="button"
-          disabled={!isValid || totalPrice === null}
-          onClick={handleSubmit}
-          className={cn(
-            "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black shadow-elevated transition",
-            "focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary",
-            isValid && totalPrice !== null
-              ? "bg-primary text-primary-foreground hover:opacity-90"
-              : "cursor-not-allowed bg-muted-foreground/30 text-muted-foreground",
-          )}
-        >
-          {submitLabel}
-          {totalPrice !== null ? <span>· {formatCOP(totalPrice)}</span> : null}
-        </button>
+      <footer className="pt-3">
+        <div className="flex items-center gap-3">
+          <QuantityStepper
+            quantity={quantity}
+            onIncrement={handleIncrement}
+            onDecrement={handleDecrement}
+            onChange={handleSetQuantity}
+          />
+          <button
+            type="button"
+            disabled={!isValid || totalPrice === null}
+            onClick={handleSubmit}
+            className={cn(
+              "flex-1 inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-black shadow-elevated transition",
+              "focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary",
+              isValid && totalPrice !== null
+                ? "bg-primary text-primary-foreground hover:opacity-90"
+                : "cursor-not-allowed bg-muted-foreground/30 text-muted-foreground",
+            )}
+          >
+            {submitLabel}
+            {totalPrice !== null ? <span>· {formatCOP(totalPrice)}</span> : null}
+          </button>
+        </div>
       </footer>
     </div>
   );

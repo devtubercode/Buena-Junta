@@ -6,8 +6,8 @@ import { MenuOrderForm } from "@/features/menu/components/MenuOrderForm";
 import { MenuOrderSummary } from "@/features/menu/components/MenuOrderSummary";
 import { cn } from "@/shared/utils/cn";
 import type {
-  MenuOrderAddition,
   MenuOrderItem,
+  MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
 import type { UseMenuOrderResult } from "@/features/menu/hooks/useMenuOrder";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
@@ -140,13 +140,13 @@ function OrderItemRow({
   );
 }
 
-function AdditionRow({
-  addition,
+function ToppingRow({
+  topping,
   onIncrement,
   onDecrement,
   onRemove,
 }: {
-  addition: MenuOrderAddition;
+  topping: MenuOrderTopping;
   onIncrement: () => void;
   onDecrement: () => void;
   onRemove: () => void;
@@ -155,23 +155,23 @@ function AdditionRow({
     <li className="flex items-center justify-between gap-3 py-3">
       <div className="min-w-0">
         <h3 className="truncate text-sm font-bold leading-tight text-foreground sm:text-base">
-          {addition.name}
+          {topping.name}
         </h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {formatCOP(addition.price)} c/u
+          {formatCOP(topping.price)} c/u
         </p>
       </div>
       <QuantityControl
-        quantity={addition.quantity}
+        quantity={topping.quantity}
         onIncrement={onIncrement}
         onDecrementOrRemove={() => {
-          if (addition.quantity > 1) {
+          if (topping.quantity > 1) {
             onDecrement();
           } else {
             onRemove();
           }
         }}
-        itemName={addition.name}
+        itemName={topping.name}
       />
     </li>
   );
@@ -184,7 +184,7 @@ export function MenuOrderDrawer({
 }: MenuOrderDrawerProps) {
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const hasLines = order.items.length > 0 || order.additions.length > 0;
+  const hasLines = order.items.length > 0 || order.toppings.length > 0;
 
   const handleSend = () => {
     setShowConfirm(false);
@@ -264,24 +264,24 @@ export function MenuOrderDrawer({
                 </section>
               )}
 
-              {order.additions.length > 0 && (
-                <section className="mt-4" aria-label="Adiciones en el carrito">
+              {order.toppings.length > 0 && (
+                <section className="mt-4" aria-label="Toppings en el carrito">
                   <h3 className="mb-1 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Adiciones
+                    Toppings
                   </h3>
                   <ul className="divide-y divide-border">
-                    {order.additions.map((addition) => (
-                      <AdditionRow
-                        key={addition.lineId}
-                        addition={addition}
+                    {order.toppings.map((topping) => (
+                      <ToppingRow
+                        key={topping.id}
+                        topping={topping}
                         onIncrement={() =>
-                          order.actions.incrementAddition(addition.lineId)
+                          order.actions.incrementTopping(topping.id)
                         }
                         onDecrement={() =>
-                          order.actions.decrementAddition(addition.lineId)
+                          order.actions.decrementTopping(topping.id)
                         }
                         onRemove={() =>
-                          order.actions.removeAddition(addition.lineId)
+                          order.actions.removeTopping(topping.id)
                         }
                       />
                     ))}

@@ -10,7 +10,7 @@ type MenuTabsProps = {
 
 const tabs: { id: Tab; label: string; icon: typeof Hamburger }[] = [
   { id: "products", label: "Productos", icon: Hamburger },
-  { id: "additions", label: "Adiciones", icon: PlusCircle },
+  { id: "additions", label: "Toppings", icon: PlusCircle },
   { id: "promotions", label: "Promociones", icon: Tag },
 ];
 

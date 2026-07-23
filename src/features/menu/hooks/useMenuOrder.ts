@@ -2,39 +2,9 @@ import { useCallback, useMemo } from "react";
 import { useMenuOrderStore } from "@/store/menu-order/useMenuOrderStore";
 import { useWhatsAppOrderSender } from "@/features/menu/hooks/useWhatsAppOrderSender";
 import type {
-  AddMenuOrderAdditionInput,
   AddMenuOrderItemInput,
-  MenuOrderAddition,
-  MenuOrderItem,
+  MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
-
-export type UseMenuOrderResult = {
-  items: MenuOrderItem[];
-  additions: MenuOrderAddition[];
-  total: number;
-  totalQuantity: number;
-  customerName: string;
-  generalObservation: string;
-  canSendOrder: boolean;
-  validationError: string | null;
-  actions: {
-    addItem: (input: AddMenuOrderItemInput) => void;
-    addAddition: (input: AddMenuOrderAdditionInput) => void;
-    removeItem: (lineId: string) => void;
-    removeAddition: (lineId: string) => void;
-    incrementItem: (lineId: string) => void;
-    incrementAddition: (lineId: string) => void;
-    decrementItem: (lineId: string) => void;
-    decrementAddition: (lineId: string) => void;
-    updateItemQuantity: (lineId: string, quantity: number) => void;
-    updateAdditionQuantity: (lineId: string, quantity: number) => void;
-    updateCustomerName: (name: string) => void;
-    updateGeneralObservation: (observation: string) => void;
-    clearOrder: () => void;
-  };
-  /** Envío por WhatsApp (canal final, no parte del estado del pedido). */
-  sendOrder: () => void;
-};
 
 /**
  * Hook que expone el pedido del menú junto con utilidades de UI.
@@ -46,11 +16,13 @@ export type UseMenuOrderResult = {
  * - Composición del envío por WhatsApp (la lógica de envío vive en
  *   `useWhatsAppOrderSender`).
  */
-export function useMenuOrder(): UseMenuOrderResult {
+export function useMenuOrder() {
   const items = useMenuOrderStore((state) => state.items);
-  const additions = useMenuOrderStore((state) => state.additions);
+  const toppings = useMenuOrderStore((state) => state.toppings);
   const customerName = useMenuOrderStore((state) => state.customerName);
-  const generalObservation = useMenuOrderStore((state) => state.generalObservation);
+  const generalObservation = useMenuOrderStore(
+    (state) => state.generalObservation,
+  );
 
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -63,16 +35,12 @@ export function useMenuOrder(): UseMenuOrderResult {
   );
 
   const validationError = useMemo(() => {
-    if (items.length === 0) {
-      return "Agrega al menos un producto al pedido.";
-    }
-
     if (!customerName.trim()) {
       return "Escribe el nombre del responsable del pedido.";
     }
 
     return null;
-  }, [items.length, customerName]);
+  }, [customerName]);
 
   const canSendOrder = validationError === null;
 
@@ -80,41 +48,41 @@ export function useMenuOrder(): UseMenuOrderResult {
     useMenuOrderStore.getState().addItem(input);
   }, []);
 
-  const addAddition = useCallback((input: AddMenuOrderAdditionInput) => {
-    useMenuOrderStore.getState().addAddition(input);
+  const addTopping = useCallback((input: MenuOrderTopping) => {
+    useMenuOrderStore.getState().addTopping(input);
   }, []);
 
   const removeItem = useCallback((lineId: string) => {
     useMenuOrderStore.getState().removeItem(lineId);
   }, []);
 
-  const removeAddition = useCallback((lineId: string) => {
-    useMenuOrderStore.getState().removeAddition(lineId);
+  const removeTopping = useCallback((id: string) => {
+    useMenuOrderStore.getState().removeTopping(id);
   }, []);
 
   const incrementItem = useCallback((lineId: string) => {
     useMenuOrderStore.getState().incrementItem(lineId);
   }, []);
 
-  const incrementAddition = useCallback((lineId: string) => {
-    useMenuOrderStore.getState().incrementAddition(lineId);
+  const incrementTopping = useCallback((id: string) => {
+    useMenuOrderStore.getState().incrementTopping(id);
   }, []);
 
   const decrementItem = useCallback((lineId: string) => {
     useMenuOrderStore.getState().decrementItem(lineId);
   }, []);
 
-  const decrementAddition = useCallback((lineId: string) => {
-    useMenuOrderStore.getState().decrementAddition(lineId);
+  const decrementTopping = useCallback((id: string) => {
+    useMenuOrderStore.getState().decrementTopping(id);
   }, []);
 
   const updateItemQuantity = useCallback((lineId: string, quantity: number) => {
     useMenuOrderStore.getState().updateItemQuantity(lineId, quantity);
   }, []);
 
-  const updateAdditionQuantity = useCallback(
-    (lineId: string, quantity: number) => {
-      useMenuOrderStore.getState().updateAdditionQuantity(lineId, quantity);
+  const updateToppingQuantity = useCallback(
+    (id: string, quantity: number) => {
+      useMenuOrderStore.getState().updateToppingQuantity(id, quantity);
     },
     [],
   );
@@ -129,39 +97,39 @@ export function useMenuOrder(): UseMenuOrderResult {
 
   const clearOrder = useCallback(() => {
     useMenuOrderStore.getState().clearOrder();
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("buenajunta-menu-order");
+    }
   }, []);
 
   const { sendOrder } = useWhatsAppOrderSender({
     items,
-    additions,
+    toppings,
     customerName,
     generalObservation,
     total,
     clearOrder,
-    canSendOrder,
-    validationError,
   });
 
   return {
     items,
-    additions,
+    toppings,
     total,
     totalQuantity,
     customerName,
     generalObservation,
     canSendOrder,
-    validationError,
     actions: {
       addItem,
-      addAddition,
+      addTopping,
       removeItem,
-      removeAddition,
+      removeTopping,
       incrementItem,
-      incrementAddition,
+      incrementTopping,
       decrementItem,
-      decrementAddition,
+      decrementTopping,
       updateItemQuantity,
-      updateAdditionQuantity,
+      updateToppingQuantity,
       updateCustomerName,
       updateGeneralObservation,
       clearOrder,

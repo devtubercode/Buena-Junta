@@ -60,34 +60,29 @@ export function MenuPage() {
       .reduce((sum, item) => sum + item.quantity, 0);
   };
 
-  const getAdditionQuantity = (additionId: string) => {
-    return order.additions
-      .filter((addition) => addition.id === additionId)
-      .reduce((sum, addition) => sum + addition.quantity, 0);
+  const getToppingQuantity = (toppingId: string) => {
+    return order.toppings
+      .filter((topping) => topping.id === toppingId)
+      .reduce((sum, topping) => sum + topping.quantity, 0);
   };
 
   const handleAddItem = (output: ProductCustomizationOutput) => {
     order.actions.addItem(output);
   };
 
-  const handleAddGlobalAddition = (addition: AdditionRow) => {
-    const existingAddition = order.additions.find(
+  const handleAddGlobalTopping = (addition: AdditionRow) => {
+    const existingTopping = order.toppings.find(
       (a) => a.id === addition.id,
     );
 
-    order.actions.addAddition(additionToAddAdditionInput(addition));
+    order.actions.addTopping(additionToAddAdditionInput(addition));
 
-    if (!existingAddition) {
+    if (!existingTopping) {
       notify.whatsapp(`Agregaste ${addition.name} al pedido.`);
     }
   };
 
-  const handleDecrementGlobalAddition = (addition: AdditionRow) => {
-    const existingAddition = order.additions.find((a) => a.id === addition.id);
-    if (existingAddition) {
-      order.actions.decrementAddition(existingAddition.lineId);
-    }
-  };
+
 
   return (
     <main className="mx-auto w-full max-w-6xl overflow-x-hidden py-4 lg:py-8">
@@ -120,10 +115,8 @@ export function MenuPage() {
         {activeTab === "additions" && (
           <AdditionsTab
             additions={additions}
-            onAddToOrder={handleAddGlobalAddition}
-            getQuantityInOrder={getAdditionQuantity}
-            onIncrementAddition={handleAddGlobalAddition}
-            onDecrementAddition={handleDecrementGlobalAddition}
+            onAddTopping={handleAddGlobalTopping}
+            getToppingQuantity={getToppingQuantity}
           />
         )}
 

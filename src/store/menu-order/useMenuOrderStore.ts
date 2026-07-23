@@ -1,27 +1,26 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type {
-  AddMenuOrderAdditionInput,
   AddMenuOrderItemInput,
-  MenuOrderAddition,
   MenuOrderItem,
+  MenuOrderTopping,
 } from "./types/menu-order.types";
 
 type MenuOrderStore = {
   items: MenuOrderItem[];
-  additions: MenuOrderAddition[];
+  toppings: MenuOrderTopping[];
   customerName: string;
   generalObservation: string;
   addItem: (input: AddMenuOrderItemInput) => void;
-  addAddition: (input: AddMenuOrderAdditionInput) => void;
+  addTopping: (input: MenuOrderTopping) => void;
   removeItem: (lineId: string) => void;
-  removeAddition: (lineId: string) => void;
+  removeTopping: (id: string) => void;
   incrementItem: (lineId: string) => void;
-  incrementAddition: (lineId: string) => void;
+  incrementTopping: (id: string) => void;
   decrementItem: (lineId: string) => void;
-  decrementAddition: (lineId: string) => void;
+  decrementTopping: (id: string) => void;
   updateItemQuantity: (lineId: string, quantity: number) => void;
-  updateAdditionQuantity: (lineId: string, quantity: number) => void;
+  updateToppingQuantity: (id: string, quantity: number) => void;
   updateCustomerName: (name: string) => void;
   updateGeneralObservation: (observation: string) => void;
   clearOrder: () => void;
@@ -33,7 +32,7 @@ const STORAGE_KEY = "buenajunta-menu-order";
 
 const emptyState = {
   items: [],
-  additions: [],
+  toppings: [],
   customerName: "",
   generalObservation: "",
 };
@@ -68,25 +67,7 @@ function buildItemLineId(item: AddMenuOrderItemInput) {
   ].join("::");
 }
 
-function buildAdditionLineId(addition: AddMenuOrderAdditionInput) {
-  return addition.id;
-}
-
-function sanitizeQuantity(quantity: number) {
-  if (!Number.isFinite(quantity)) {
-    return 1;
-  }
-
-  return Math.max(1, Math.floor(quantity));
-}
-
-function removeStorage() {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem(STORAGE_KEY);
-  }
-}
-
-function addOrUpdateLine<T extends { lineId: string; quantity: number }>(
+function addOrUpdateItem<T extends { lineId: string; quantity: number }>(
   lines: T[],
   lineId: string,
   newLine: T,
@@ -105,11 +86,35 @@ function addOrUpdateLine<T extends { lineId: string; quantity: number }>(
   return [...lines, newLine];
 }
 
-function removeLine<T extends { lineId: string }>(
+function addOrUpdateTopping<T extends { id: string; quantity: number }>(
+  toppings: T[],
+  id: string,
+  newTopping: T,
+  quantity: number,
+): T[] {
+  const existingTopping = toppings.find((t) => t.id === id);
+
+  if (existingTopping) {
+    return toppings.map((t) =>
+      t.id === id ? { ...t, quantity: t.quantity + quantity } : t,
+    );
+  }
+
+  return [...toppings, newTopping];
+}
+
+function removeLineItem<T extends { lineId: string }>(
   lines: T[],
   lineId: string,
 ): T[] {
   return lines.filter((line) => line.lineId !== lineId);
+}
+
+function removeTopping<T extends { id: string }>(
+  toppings: T[],
+  id: string,
+): T[] {
+  return toppings.filter((t) => t.id !== id);
 }
 
 function incrementLine<T extends { lineId: string; quantity: number }>(
@@ -118,6 +123,15 @@ function incrementLine<T extends { lineId: string; quantity: number }>(
 ): T[] {
   return lines.map((line) =>
     line.lineId === lineId ? { ...line, quantity: line.quantity + 1 } : line,
+  );
+}
+
+function incrementToppingById<T extends { id: string; quantity: number }>(
+  toppings: T[],
+  id: string,
+): T[] {
+  return toppings.map((t) =>
+    t.id === id ? { ...t, quantity: t.quantity + 1 } : t,
   );
 }
 
@@ -132,6 +146,15 @@ function decrementLine<T extends { lineId: string; quantity: number }>(
     .filter((line) => line.quantity >= 1);
 }
 
+function decrementToppingById<T extends { id: string; quantity: number }>(
+  toppings: T[],
+  id: string,
+): T[] {
+  return toppings
+    .map((t) => (t.id === id ? { ...t, quantity: t.quantity - 1 } : t))
+    .filter((t) => t.quantity >= 1);
+}
+
 function updateLineQuantity<T extends { lineId: string; quantity: number }>(
   lines: T[],
   lineId: string,
@@ -139,8 +162,18 @@ function updateLineQuantity<T extends { lineId: string; quantity: number }>(
 ): T[] {
   return lines.map((line) =>
     line.lineId === lineId
-      ? { ...line, quantity: sanitizeQuantity(quantity) }
+      ? { ...line, quantity: Math.max(1, Math.floor(quantity)) }
       : line,
+  );
+}
+
+function updateToppingQuantity<T extends { id: string; quantity: number }>(
+  toppings: T[],
+  id: string,
+  quantity: number,
+): T[] {
+  return toppings.map((t) =>
+    t.id === id ? { ...t, quantity: Math.max(1, Math.floor(quantity)) } : t,
   );
 }
 
@@ -150,7 +183,7 @@ function updateLineQuantity<T extends { lineId: string; quantity: number }>(
  * Mantiene el estado del pedido independiente del carrito principal, con
  * persistencia en `localStorage` bajo la clave `buenajunta-menu-order`.
  *
- * Separa productos (`items`) de adiciones globales (`additions`) para mantener
+ * Separa productos (`items`) de toppings globales (`toppings`) para mantener
  * responsabilidades claras.
  */
 export const useMenuOrderStore = create<MenuOrderStore>()(
@@ -158,11 +191,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
     (set, get) => ({
       ...emptyState,
       addItem: (input) => {
-        const quantity = sanitizeQuantity(input.quantity);
+        const quantity = Math.max(1, Math.floor(input.quantity));
         const lineId = buildItemLineId(input);
 
         set((state) => ({
-          items: addOrUpdateLine(
+          items: addOrUpdateItem(
             state.items,
             lineId,
             {
@@ -180,16 +213,14 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           ),
         }));
       },
-      addAddition: (input) => {
-        const quantity = sanitizeQuantity(input.quantity);
-        const lineId = buildAdditionLineId(input);
+      addTopping: (input) => {
+        const quantity = Math.max(1, Math.floor(input.quantity));
 
         set((state) => ({
-          additions: addOrUpdateLine(
-            state.additions,
-            lineId,
+          toppings: addOrUpdateTopping(
+            state.toppings,
+            input.id,
             {
-              lineId,
               id: input.id,
               name: input.name,
               price: input.price,
@@ -200,31 +231,35 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
         }));
       },
       removeItem: (lineId) => {
-        set((state) => ({ items: removeLine(state.items, lineId) }));
+        set((state) => ({ items: removeLineItem(state.items, lineId) }));
       },
-      removeAddition: (lineId) => {
-        set((state) => ({ additions: removeLine(state.additions, lineId) }));
+      removeTopping: (id) => {
+        set((state) => ({ toppings: removeTopping(state.toppings, id) }));
       },
       incrementItem: (lineId) => {
         set((state) => ({ items: incrementLine(state.items, lineId) }));
       },
-      incrementAddition: (lineId) => {
-        set((state) => ({ additions: incrementLine(state.additions, lineId) }));
+      incrementTopping: (id) => {
+        set((state) => ({
+          toppings: incrementToppingById(state.toppings, id),
+        }));
       },
       decrementItem: (lineId) => {
         set((state) => ({ items: decrementLine(state.items, lineId) }));
       },
-      decrementAddition: (lineId) => {
-        set((state) => ({ additions: decrementLine(state.additions, lineId) }));
+      decrementTopping: (id) => {
+        set((state) => ({
+          toppings: decrementToppingById(state.toppings, id),
+        }));
       },
       updateItemQuantity: (lineId, quantity) => {
         set((state) => ({
           items: updateLineQuantity(state.items, lineId, quantity),
         }));
       },
-      updateAdditionQuantity: (lineId, quantity) => {
+      updateToppingQuantity: (id, quantity) => {
         set((state) => ({
-          additions: updateLineQuantity(state.additions, lineId, quantity),
+          toppings: updateToppingQuantity(state.toppings, id, quantity),
         }));
       },
       updateCustomerName: (name) => {
@@ -235,7 +270,7 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
       },
       clearOrder: () => {
         set({ ...emptyState });
-        removeStorage();
+        useMenuOrderStore.persist.clearStorage();
       },
       getTotal: () => {
         const state = get();
@@ -243,11 +278,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           (total, item) => total + item.price * item.quantity,
           0,
         );
-        const additionsTotal = state.additions.reduce(
-          (total, addition) => total + addition.price * addition.quantity,
+        const toppingsTotal = state.toppings.reduce(
+          (total, topping) => total + topping.price * topping.quantity,
           0,
         );
-        return itemsTotal + additionsTotal;
+        return itemsTotal + toppingsTotal;
       },
       getTotalQuantity: () => {
         const state = get();
@@ -255,11 +290,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           (total, item) => total + item.quantity,
           0,
         );
-        const additionsQuantity = state.additions.reduce(
-          (total, addition) => total + addition.quantity,
+        const toppingsQuantity = state.toppings.reduce(
+          (total, topping) => total + topping.quantity,
           0,
         );
-        return itemsQuantity + additionsQuantity;
+        return itemsQuantity + toppingsQuantity;
       },
     }),
     {
@@ -267,7 +302,7 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
       version: 2,
       partialize: (state) => ({
         items: state.items,
-        additions: state.additions,
+        toppings: state.toppings,
         customerName: state.customerName,
         generalObservation: state.generalObservation,
       }),

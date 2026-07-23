@@ -31,12 +31,10 @@ export type MenuOrderItem = {
 
 export type AddMenuOrderItemInput = Omit<MenuOrderItem, "lineId">;
 
-export type MenuOrderAddition = {
-  /** Identificador único de la línea. */
-  lineId: string;
-  /** ID de la adición en el catálogo. */
+export type MenuOrderTopping = {
+  /** ID del topping en el catálogo. */
   id: string;
-  /** Nombre de la adición. */
+  /** Nombre del topping. */
   name: string;
   /** Precio unitario. */
   price: number;
@@ -44,13 +42,12 @@ export type MenuOrderAddition = {
   quantity: number;
 };
 
-export type AddMenuOrderAdditionInput = Omit<MenuOrderAddition, "lineId">;
 
 export type MenuOrderState = {
   /** Productos del pedido. */
   items: MenuOrderItem[];
-  /** Adiciones globales del pedido. */
-  additions: MenuOrderAddition[];
+  /** Toppings globales del pedido. */
+  toppings: MenuOrderTopping[];
   /** Nombre del cliente que realiza el pedido. */
   customerName: string;
   /** Observaciones generales del pedido. */

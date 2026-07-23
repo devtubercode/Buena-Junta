@@ -5,28 +5,24 @@ import {
 } from "@/shared/utils/whatsappMessage";
 import { notify } from "@/shared/notifications/notify";
 import type {
-  MenuOrderAddition,
   MenuOrderItem,
+  MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
 
 type UseWhatsAppOrderSenderInput = {
   items: MenuOrderItem[];
-  additions: MenuOrderAddition[];
+  toppings: MenuOrderTopping[];
   customerName: string;
   generalObservation: string;
   total: number;
   clearOrder: () => void;
-  canSendOrder: boolean;
-  validationError: string | null;
 };
 
 type UseWhatsAppOrderSenderResult = {
   sendOrder: () => void;
 };
 
-function additionToMessageItem(
-  addition: MenuOrderAddition,
-): {
+function toppingToMessageItem(topping: MenuOrderTopping): {
   name: string;
   price: number;
   quantity: number;
@@ -35,9 +31,9 @@ function additionToMessageItem(
   additionOptions?: Array<{ key: string; label: string; unitPrice: number }>;
 } {
   return {
-    name: addition.name,
-    price: addition.price,
-    quantity: addition.quantity,
+    name: topping.name,
+    price: topping.price,
+    quantity: topping.quantity,
   };
 }
 
@@ -50,23 +46,16 @@ function additionToMessageItem(
  */
 export function useWhatsAppOrderSender({
   items,
-  additions,
+  toppings,
   customerName,
   generalObservation,
   total,
   clearOrder,
-  canSendOrder,
-  validationError,
 }: UseWhatsAppOrderSenderInput): UseWhatsAppOrderSenderResult {
   const sendOrder = useCallback(() => {
-    if (!canSendOrder) {
-      notify.error(validationError ?? "No se puede enviar el pedido.");
-      return;
-    }
-
     try {
       const message = buildWhatsAppOrderMessage({
-        items: [...items, ...additions.map(additionToMessageItem)],
+        items: [...items, ...toppings.map(toppingToMessageItem)],
         orderDraft: {
           customerName,
           table: "",
@@ -74,6 +63,8 @@ export function useWhatsAppOrderSender({
         },
         total,
       });
+
+      clearOrder();
 
       const openedWindow = window.open(
         buildWhatsAppUrl(message),
@@ -89,22 +80,12 @@ export function useWhatsAppOrderSender({
       }
 
       notify.whatsapp("Pedido preparado para WhatsApp.");
-      clearOrder();
     } catch {
       notify.error(
         "No pudimos preparar el mensaje de WhatsApp. Intenta de nuevo.",
       );
     }
-  }, [
-    canSendOrder,
-    items,
-    additions,
-    customerName,
-    generalObservation,
-    total,
-    validationError,
-    clearOrder,
-  ]);
+  }, [items, toppings, customerName, generalObservation, total, clearOrder]);
 
   return { sendOrder };
 }
