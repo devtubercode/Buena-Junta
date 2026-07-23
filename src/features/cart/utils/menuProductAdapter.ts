@@ -38,6 +38,7 @@ export function cartItemToMenuProduct({
     name: baseName,
     description: "",
     price: item.variantOptions?.length ? null : item.unitPrice,
+    sale_price: null,
     image_path: item.image?.src ?? null,
     is_available: true,
     tags: null,
