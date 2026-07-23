@@ -30,8 +30,10 @@ export function useMenuOrder() {
   );
 
   const totalQuantity = useMemo(
-    () => items.reduce((sum, item) => sum + item.quantity, 0),
-    [items],
+    () =>
+      items.reduce((sum, item) => sum + item.quantity, 0) +
+      toppings.reduce((sum, topping) => sum + topping.quantity, 0),
+    [items, toppings],
   );
 
   const validationError = useMemo(() => {
@@ -137,3 +139,5 @@ export function useMenuOrder() {
     sendOrder,
   };
 }
+
+export type UseMenuOrderResult = ReturnType<typeof useMenuOrder>;
