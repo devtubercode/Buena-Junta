@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
@@ -13,7 +13,7 @@ type ButtonSheetModalProps = {
   children?: ReactNode;
 };
 
-export function ButtonSheetModal({
+export const ButtonSheetModal = ({
   isOpen,
   title,
   description,
@@ -22,64 +22,51 @@ export function ButtonSheetModal({
   scrollable = true,
   onClose,
   children,
-}: ButtonSheetModalProps) {
+}: ButtonSheetModalProps) => {
   const titleId = useId();
   const descriptionId = useId();
-  const [isVisible, setIsVisible] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (isOpen) {
+      dialog.show();
+    } else {
+      dialog.close();
     }
-
-    const frameId = requestAnimationFrame(() => setIsVisible(true));
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
   }, [isOpen, onClose]);
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div
-      className="fixed inset-0 z-70 flex items-end justify-center bg-foreground/45 px-0 py-0 backdrop-blur-sm sm:items-center sm:px-4 sm:py-4"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-1000 bg-foreground/45 backdrop-blur-sm animate-fade-in"
+          onClick={onClose}
+        />
+      )}
+      <dialog
+        ref={dialogRef}
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         className={cn(
-          "w-full max-w-md rounded-t-2xl border border-border bg-surface p-4 shadow-elevated transition-transform duration-300 ease-out sm:rounded-2xl sm:p-5",
-          isVisible ? "translate-y-0" : "translate-y-full",
+          "fixed bottom-0 left-0 right-0 z-1001 m-0 w-full max-w-full rounded-t-2xl border border-border bg-surface p-4 shadow-elevated pb-[calc(1rem+env(safe-area-inset-bottom))] sm:inset-0 sm:m-auto sm:w-auto sm:max-w-md sm:rounded-2xl sm:p-5",
           contentClassName,
         )}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) onClose();
+        }}
       >
         <div className="relative flex items-center justify-center px-3 pb-2 pt-3 sm:px-0 sm:pb-0 sm:pt-0">
           <div className="h-1.5 w-12 rounded-full bg-border sm:hidden" />
           <button
             type="button"
-            className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary sm:right-0 sm:top-0 sm:size-9"
+            className="absolute right-1 top-1 inline-flex size-11 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary sm:right-3 sm:top-3 sm:size-9 sm:border sm:border-border sm:hover:border-primary sm:hover:text-primary"
             aria-label="Cerrar modal"
             onClick={onClose}
           >
-            <X className="size-4" />
+            <X className="size-5 sm:size-4" />
           </button>
         </div>
 
@@ -135,7 +122,7 @@ export function ButtonSheetModal({
             {children}
           </div>
         ) : null}
-      </section>
-    </div>
+      </dialog>
+    </>
   );
-}
+};

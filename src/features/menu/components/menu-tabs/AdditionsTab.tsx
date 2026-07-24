@@ -1,16 +1,21 @@
 import { AdditionCard } from "@/features/menu/components/AdditionCard";
 import { EmptyState } from "@/shared/components/EmptyState";
+import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductGridSkeleton";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
-import { PlusCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 type AdditionsTabProps = {
   additions: AdditionRow[];
+  isLoading?: boolean;
+  error?: Error | null;
   onAddTopping: (addition: AdditionRow) => void;
   getToppingQuantity?: (toppingId: string) => number;
 };
 
 export const AdditionsTab = ({
   additions,
+  isLoading = false,
+  error = null,
   onAddTopping,
   getToppingQuantity,
 }: AdditionsTabProps) => {
@@ -33,11 +38,18 @@ export const AdditionsTab = ({
         </p>
       </div>
 
-      {additions.length === 0 ? (
+      {isLoading ? (
+        <ProductGridSkeleton count={3} />
+      ) : error ? (
+        <EmptyState
+          title="Error al cargar toppings"
+          description="No pudimos cargar los toppings. Intenta de nuevo más tarde."
+          icon={<AlertCircle className="size-8" />}
+        />
+      ) : additions.length === 0 ? (
         <EmptyState
           title="No hay toppings disponibles"
           description="Por ahora no tenemos toppings para mostrarte."
-          icon={<PlusCircle className="size-8" />}
         />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

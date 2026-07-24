@@ -17,18 +17,19 @@ export const useCatalogData = () => {
   const [additions, setAdditions] = useState<AdditionRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [additionsError, setAdditionsError] = useState<Error | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
+      setIsLoading(true);
+
       try {
-        const [categoriesData, productsResult, additionsData] =
-          await Promise.all([
-            fetchCategories(),
-            fetchProducts(),
-            fetchAdditions(),
-          ]);
+        const [categoriesData, productsResult] = await Promise.all([
+          fetchCategories(),
+          fetchProducts(),
+        ]);
 
         if (!isMounted) return;
 
@@ -40,7 +41,6 @@ export const useCatalogData = () => {
             availableAdditions: productsResult.availableAdditions,
           }),
         );
-        setAdditions(additionsData);
         setError(null);
       } catch (err) {
         if (!isMounted) return;
@@ -50,6 +50,22 @@ export const useCatalogData = () => {
           err instanceof Error
             ? err
             : new Error("No pudimos cargar los datos del catálogo."),
+        );
+      }
+
+      try {
+        const additionsData = await fetchAdditions();
+        if (!isMounted) return;
+        setAdditions(additionsData);
+        setAdditionsError(null);
+      } catch (err) {
+        if (!isMounted) return;
+
+        console.error("Could not load additions.", err);
+        setAdditionsError(
+          err instanceof Error
+            ? err
+            : new Error("No pudimos cargar los toppings."),
         );
       } finally {
         if (isMounted) {
@@ -71,5 +87,6 @@ export const useCatalogData = () => {
     additions,
     isLoading,
     error,
+    additionsError,
   };
 };

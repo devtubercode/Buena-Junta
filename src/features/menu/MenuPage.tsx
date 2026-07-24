@@ -23,22 +23,6 @@ import { ProductCustomizationForm } from "@/shared/components/product/ProductCus
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 
-function additionToAddAdditionInput(
-  addition: AdditionRow,
-): {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-} {
-  return {
-    id: addition.id,
-    name: addition.name,
-    price: addition.price,
-    quantity: 1,
-  };
-}
-
 export function MenuPage() {
   const [activeTab, setActiveTab] = useState<Tab>("products");
   const [selectedProduct, setSelectedProduct] = useState<MenuProduct | null>(
@@ -48,7 +32,8 @@ export function MenuPage() {
     null,
   );
 
-  const { categories, products, additions, isLoading } = useCatalogData();
+  const { categories, products, additions, isLoading, additionsError } =
+    useCatalogData();
 
   const { promotions, isLoading: isLoadingPromotions } = useMenuPromotions();
   const order = useMenuOrder();
@@ -71,21 +56,37 @@ export function MenuPage() {
   };
 
   const handleAddGlobalTopping = (addition: AdditionRow) => {
-    const existingTopping = order.toppings.find(
-      (a) => a.id === addition.id,
-    );
-
-    order.actions.addTopping(additionToAddAdditionInput(addition));
-
-    if (!existingTopping) {
-      notify.whatsapp(`Agregaste ${addition.name} al pedido.`);
-    }
+    order.actions.addTopping({
+      id: addition.id,
+      name: addition.name,
+      price: addition.price,
+      quantity: 1,
+    });
+    notify.whatsapp(`Agregaste el topping ${addition.name} al pedido.`);
   };
 
-
+  const onAddPromotion = () => {
+    if (!selectedPromotion) return;
+    order.actions.addItem({
+      id: selectedPromotion.slug,
+      name: selectedPromotion.title,
+      price: selectedPromotion.promotionPrice,
+      quantity: 1,
+      urlImage: selectedPromotion.image
+        ? {
+            src: selectedPromotion.image,
+            alt: selectedPromotion.imageAlt,
+          }
+        : undefined,
+    });
+    notify.whatsapp(
+      `Agregaste la promción ${selectedPromotion.title} al pedido.`,
+    );
+    setSelectedPromotion(null);
+  };
 
   return (
-    <main className="mx-auto w-full max-w-6xl overflow-x-hidden py-4 lg:py-8">
+    <main className="mx-auto w-full max-w-6xl py-4 lg:py-8">
       <div className="px-4 pb-4 sm:px-6 lg:px-8 lg:pb-6">
         <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">
           Menú digital
@@ -115,6 +116,8 @@ export function MenuPage() {
         {activeTab === "additions" && (
           <AdditionsTab
             additions={additions}
+            isLoading={isLoading}
+            error={additionsError}
             onAddTopping={handleAddGlobalTopping}
             getToppingQuantity={getToppingQuantity}
           />
@@ -129,76 +132,63 @@ export function MenuPage() {
         )}
       </div>
 
-      {selectedProduct && (
-        <>
-          <div className="hidden sm:block">
-            <CustomModal
-              isOpen={Boolean(selectedProduct)}
-              contentClassName="max-w-lg p-0 sm:p-1"
+      <div className="hidden sm:block">
+        <CustomModal
+          isOpen={Boolean(selectedProduct)}
+          contentClassName="max-w-lg overflow-hidden p-0"
+          onClose={() => setSelectedProduct(null)}
+        >
+          {selectedProduct && (
+            <ProductCustomizationForm
+              key={selectedProduct.id}
+              product={selectedProduct}
+              onSubmit={(output) => {
+                handleAddItem(output);
+                notify.whatsapp(`Agregaste ${output.name} al pedido.`);
+                setSelectedProduct(null);
+              }}
               onClose={() => setSelectedProduct(null)}
-            >
-              <div className="p-3 sm:p-4">
-                <ProductCustomizationForm
-                  product={selectedProduct}
-                  submitLabel="Agregar al pedido"
-                  onSubmit={(output) => {
-                    handleAddItem(output);
-                    notify.whatsapp(`Agregaste ${output.name} al pedido.`);
-                    setSelectedProduct(null);
-                  }}
-                  onClose={() => setSelectedProduct(null)}
-                />
-              </div>
-            </CustomModal>
-          </div>
-          <div className="sm:hidden">
-            <ButtonSheetModal
-              isOpen={Boolean(selectedProduct)}
-              title={""}
-              contentClassName="max-w-lg p-0 sm:p-1"
+            />
+          )}
+        </CustomModal>
+      </div>
+      <div className="sm:hidden">
+        <ButtonSheetModal
+          isOpen={Boolean(selectedProduct)}
+          title={""}
+          scrollable={false}
+          contentClassName="max-w-lg overflow-hidden p-0"
+          onClose={() => setSelectedProduct(null)}
+        >
+          {selectedProduct && (
+            <ProductCustomizationForm
+              key={selectedProduct.id}
+              product={selectedProduct}
+              onSubmit={(output) => {
+                handleAddItem(output);
+                notify.whatsapp(`Agregaste ${output.name} al pedido.`);
+                setSelectedProduct(null);
+              }}
               onClose={() => setSelectedProduct(null)}
-            >
-              <div className="p-3">
-                <ProductCustomizationForm
-                  product={selectedProduct}
-                  submitLabel="Agregar al pedido"
-                  onSubmit={(output) => {
-                    handleAddItem(output);
-                    notify.whatsapp(`Agregaste ${output.name} al pedido.`);
-                    setSelectedProduct(null);
-                  }}
-                  onClose={() => setSelectedProduct(null)}
-                />
-              </div>
-            </ButtonSheetModal>
-          </div>
-        </>
-      )}
+            />
+          )}
+        </ButtonSheetModal>
+      </div>
 
       {selectedPromotion && (
         <PromotionDetailModal
           promotion={selectedPromotion}
           isOpen={Boolean(selectedPromotion)}
           onClose={() => setSelectedPromotion(null)}
-          onAddToOrder={() => {
-            order.actions.addItem({
-              id: selectedPromotion.slug,
-              name: selectedPromotion.title,
-              price: selectedPromotion.promotionPrice,
-              quantity: 1,
-              urlImage: selectedPromotion.image
-                ? { src: selectedPromotion.image, alt: selectedPromotion.imageAlt }
-                : undefined,
-            });
-            notify.whatsapp(
-              `Agregaste ${selectedPromotion.title} al pedido.`,
-            );
-            setSelectedPromotion(null);
-          }}
+          onAddToOrder={onAddPromotion}
         />
       )}
 
-      <MenuOrderButton itemCount={order.totalQuantity} onClick={open} />
+      <MenuOrderButton
+        itemCount={order.totalQuantity}
+        total={order.total}
+        onClick={open}
+      />
 
       <MenuOrderDrawer isOpen={isOpen} onClose={close} order={order} />
     </main>

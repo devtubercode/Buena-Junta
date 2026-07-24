@@ -18,7 +18,7 @@ export function MenuTabs({ activeTab, onChange }: MenuTabsProps) {
   return (
     <nav
       aria-label="Secciones del menú"
-      className="sticky top-0 z-20 border-b border-border bg-background/95 py-2 backdrop-blur"
+      className="sticky z-999 border-b border-border bg-background/95 py-2 backdrop-blur top-[env(safe-area-inset-top,0px)]"
     >
       <div
         role="tablist"

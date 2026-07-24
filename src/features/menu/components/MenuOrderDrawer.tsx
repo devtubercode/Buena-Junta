@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
+import { X, ShoppingBag } from "lucide-react";
 import { CustomModal } from "@/shared/components/CustomModal";
+import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
 import { MenuOrderForm } from "@/features/menu/components/MenuOrderForm";
 import { MenuOrderSummary } from "@/features/menu/components/MenuOrderSummary";
@@ -35,49 +36,6 @@ function formatItemDetails(item: MenuOrderItem): string {
   }
 
   return parts.join(" · ");
-}
-
-function QuantityControl({
-  quantity,
-  onIncrement,
-  onDecrementOrRemove,
-  itemName,
-}: {
-  quantity: number;
-  onIncrement: () => void;
-  onDecrementOrRemove: () => void;
-  itemName: string;
-}) {
-  const isSingle = quantity <= 1;
-  const Icon = isSingle ? Trash2 : Minus;
-
-  return (
-    <div className="inline-flex items-center rounded-full border border-border bg-surface shadow-sm">
-      <button
-        type="button"
-        onClick={onDecrementOrRemove}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-l-full text-muted-foreground transition hover:bg-black/5 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        aria-label={
-          isSingle
-            ? `Eliminar ${itemName}`
-            : `Disminuir cantidad de ${itemName}`
-        }
-      >
-        <Icon className="size-5" />
-      </button>
-      <span className="flex h-10 min-w-[2.5rem] items-center justify-center px-1 text-xs font-black tabular-nums text-foreground">
-        {quantity}U
-      </span>
-      <button
-        type="button"
-        onClick={onIncrement}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-r-full text-primary transition hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        aria-label={`Aumentar cantidad de ${itemName}`}
-      >
-        <Plus className="size-5" />
-      </button>
-    </div>
-  );
 }
 
 function OrderItemRow({
@@ -123,16 +81,11 @@ function OrderItemRow({
           </span>
         </div>
         <div className="mt-2 flex justify-end">
-          <QuantityControl
+          <QuantityStepper
             quantity={item.quantity}
             onIncrement={onIncrement}
-            onDecrementOrRemove={() => {
-              if (item.quantity > 1) {
-                onDecrement();
-              } else {
-                onRemove();
-              }
-            }}
+            onDecrement={onDecrement}
+            onRemove={onRemove}
             itemName={item.name}
           />
         </div>
@@ -162,16 +115,11 @@ function ToppingRow({
           {formatCOP(topping.price)} c/u
         </p>
       </div>
-      <QuantityControl
+      <QuantityStepper
         quantity={topping.quantity}
         onIncrement={onIncrement}
-        onDecrementOrRemove={() => {
-          if (topping.quantity > 1) {
-            onDecrement();
-          } else {
-            onRemove();
-          }
-        }}
+        onDecrement={onDecrement}
+        onRemove={onRemove}
         itemName={topping.name}
       />
     </li>
@@ -198,7 +146,7 @@ export function MenuOrderDrawer({
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 z-50 bg-black/50 transition-opacity duration-300",
+          "fixed inset-0 z-1000 bg-black/50 transition-opacity duration-300",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         onClick={onClose}
@@ -208,7 +156,7 @@ export function MenuOrderDrawer({
       {/* Drawer panel */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-background shadow-elevated transition-transform duration-300 ease-out sm:max-w-md",
+          "fixed inset-y-0 right-0 z-1001 flex w-full flex-col bg-background shadow-elevated transition-transform duration-300 ease-out sm:max-w-md",
           isOpen ? "translate-x-0" : "translate-x-full",
         )}
         aria-label="Carrito"

@@ -61,7 +61,7 @@ export function ProductsTab({
         label="Buscar productos"
       />
 
-      <div className="sticky top-18 z-10 -mx-4 overflow-x-hidden bg-background/95 py-2 backdrop-blur sm:-mx-6 lg:-mx-8">
+      <div className="overflow-x-hidden bg-background/95 py-2 backdrop-blur sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8">
           {isLoading ? (
             <div className="h-10 animate-pulse rounded-full bg-surface-muted sm:h-11" />

@@ -25,8 +25,10 @@ export function useMenuOrder() {
   );
 
   const total = useMemo(
-    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [items],
+    () =>
+      items.reduce((sum, item) => sum + item.price * item.quantity, 0) +
+      toppings.reduce((sum, topping) => sum + topping.price * topping.quantity, 0),
+    [items, toppings],
   );
 
   const totalQuantity = useMemo(

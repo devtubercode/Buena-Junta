@@ -1,4 +1,4 @@
-import { useEffect, useId, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
@@ -13,7 +13,7 @@ type CustomModalProps = {
   children?: ReactNode;
 };
 
-export function CustomModal({
+export const CustomModal = ({
   isOpen,
   title,
   description,
@@ -22,49 +22,43 @@ export function CustomModal({
   scrollable = true,
   onClose,
   children,
-}: CustomModalProps) {
+}: CustomModalProps) => {
   const titleId = useId();
   const descriptionId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (isOpen) {
+      dialog.show();
+    } else {
+      dialog.close();
     }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) {
-    return null;
-  }
+  }, [isOpen]);
 
   return (
-    <div
-      className="fixed inset-0 z-70 flex items-end justify-center bg-foreground/45 px-4 py-4 backdrop-blur-sm sm:items-center"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-1000 bg-foreground/45 backdrop-blur-sm animate-fade-in"
+          onClick={onClose}
+        />
+      )}
+      <dialog
+        ref={dialogRef}
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         className={cn(
-          "w-full max-w-md relative rounded-t-2xl border border-border bg-surface p-5 shadow-elevated sm:rounded-2xl sm:p-6",
+          "fixed bottom-0 left-0 right-0 z-1001 m-0 w-full max-w-full rounded-t-2xl border border-border bg-surface p-5 shadow-elevated sm:inset-0 sm:m-auto sm:w-auto sm:max-w-md sm:rounded-2xl sm:p-6",
           contentClassName,
         )}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            onClose();
+          }
+        }}
       >
         <div className="mb-4 flex items-start gap-3">
           {icon ? (
@@ -111,7 +105,7 @@ export function CustomModal({
             {children}
           </div>
         ) : null}
-      </section>
-    </div>
+      </dialog>
+    </>
   );
-}
+};

@@ -58,28 +58,6 @@ export function PromotionDetailModal({
         )}
       </div>
 
-      {/* Badge + Title + Label */}
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          {promotion.isTodayPromotion ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-success-foreground shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75 motion-reduce:animate-none" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-              </span>
-              Hoy
-            </span>
-          ) : (
-            <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-primary-foreground shadow-sm">
-              {promotion.dayLabel}
-            </span>
-          )}
-          <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary-soft px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-primary">
-            Oferta
-          </span>
-        </div>
-      </div>
-
       {/* Price section */}
       <div className="rounded-xl border border-border bg-surface p-4">
         <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">

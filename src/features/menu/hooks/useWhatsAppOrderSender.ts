@@ -37,12 +37,23 @@ function toppingToMessageItem(topping: MenuOrderTopping): {
   };
 }
 
+function isMobileDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  );
+}
+
 /**
  * Hook encargado del canal final de envío por WhatsApp.
  *
  * No gestiona el estado del pedido: solo recibe los datos necesarios,
  * construye el mensaje y abre WhatsApp. La lógica de orden permanece en
  * `useMenuOrder`.
+ *
+ * En dispositivos móviles (especialmente Safari iOS) window.open puede
+ * retornar null aunque se abra correctamente. Por eso en mobile usamos
+ * window.location.href como fallback y no mostramos error si retorna null.
  */
 export function useWhatsAppOrderSender({
   items,
@@ -54,31 +65,34 @@ export function useWhatsAppOrderSender({
 }: UseWhatsAppOrderSenderInput): UseWhatsAppOrderSenderResult {
   const sendOrder = useCallback(() => {
     try {
-      const message = buildWhatsAppOrderMessage({
-        items: [...items, ...toppings.map(toppingToMessageItem)],
-        orderDraft: {
-          customerName,
-          table: "",
-          generalObservation,
-        },
-        total,
-      });
-
-      clearOrder();
-
-      const openedWindow = window.open(
-        buildWhatsAppUrl(message),
-        "_blank",
-        "noopener,noreferrer",
+      const url = buildWhatsAppUrl(
+        buildWhatsAppOrderMessage({
+          items: [...items, ...toppings.map(toppingToMessageItem)],
+          orderDraft: {
+            customerName,
+            table: "",
+            generalObservation,
+          },
+          total,
+        }),
       );
 
-      if (!openedWindow) {
-        notify.error(
-          "No pudimos abrir WhatsApp. Verifica que las ventanas emergentes estén permitidas.",
-        );
-        return;
+      const isMobile = isMobileDevice();
+
+      if (isMobile) {
+        window.location.href = url;
+      } else {
+        const openedWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+        if (!openedWindow) {
+          notify.error(
+            "No pudimos abrir WhatsApp. Verifica que las ventanas emergentes estén permitidas.",
+          );
+          return;
+        }
       }
 
+      clearOrder();
       notify.whatsapp("Pedido preparado para WhatsApp.");
     } catch {
       notify.error(

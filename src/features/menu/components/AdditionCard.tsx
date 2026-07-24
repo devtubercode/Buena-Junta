@@ -21,11 +21,9 @@ export function AdditionCard({
 
   return (
     <article
-      tabIndex={isInOrder ? 0 : undefined}
-      onClick={isInOrder ? onAddTopping : undefined}
       className={`relative flex h-full min-h-32 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated transition ${
         isInOrder
-          ? "cursor-pointer border-primary/30 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-xl hover:ring-1 hover:ring-primary/10 focus-visible:border-primary focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary"
+          ? "border-primary/30 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-xl hover:ring-1 hover:ring-primary/10"
           : "border-border hover:shadow-lg"
       }`}
     >

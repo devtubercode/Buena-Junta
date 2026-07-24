@@ -124,7 +124,6 @@ export const HomePage = () => {
                 <div className="p-3 sm:p-4">
                   <ProductCustomizationForm
                     product={customizingProduct}
-                    submitLabel={"Agregar al carrito"}
                     onSubmit={handleAddCustomized}
                     onClose={handleCloseCustomization}
                   />
