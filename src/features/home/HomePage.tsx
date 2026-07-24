@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router";
+
+import { AlertCircle, Pizza } from "lucide-react";
 import { notify } from "@/shared/notifications/notify";
 import { useCartStore } from "@/store/cart/useCartStore";
 import { PromotionDetailModal } from "@/features/home/components/PromotionDetailModal";
@@ -9,16 +10,21 @@ import { useProductCatalog } from "@/shared/hooks/useProductCatalog";
 import { CategoryChipsSkeleton } from "@/shared/components/menu/skeletons/CategoryChipsSkeleton";
 import { CategoryChips } from "@/shared/components/menu/CategoryChips";
 import { ProductGridSkeleton } from "@/shared/components/menu/skeletons/ProductGridSkeleton";
-import { appRoutes } from "@/app/routes";
+
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { ProductCustomizationForm } from "@/shared/components/product/ProductCustomizationForm";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { ProductCard } from "@/shared/components/menu/ProductCard";
 import { CustomModal } from "@/shared/components/CustomModal";
 import { useCatalogData } from "@/shared/hooks/useCatalogData";
+import { AdditionCard } from "@/features/menu/components/AdditionCard";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
+
+const TOPPINGS_SLUG = "__toppings__";
 
 export const HomePage = () => {
-  const { categories, products, isLoading, error } = useCatalogData();
+  const { categories, products, additions, isLoading, error, additionsError } =
+    useCatalogData();
   const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(
     null,
   );
@@ -33,6 +39,27 @@ export const HomePage = () => {
     handleCloseCustomization,
     handleAddCustomized,
   } = useProductCatalog({ products: products });
+
+  const isToppingsMode = selectedCategorySlug === TOPPINGS_SLUG;
+  const cartItems = useCartStore((state) => state.items);
+
+  const getToppingQuantity = (toppingId: string) => {
+    return cartItems
+      .filter((item) => item.productId === `topping-${toppingId}`)
+      .reduce((sum, item) => sum + item.quantity, 0);
+  };
+
+  const handleAddTopping = (addition: AdditionRow) => {
+    useCartStore.getState().addItem({
+      productId: `topping-${addition.id}`,
+      name: addition.name,
+      unitPrice: addition.price,
+      quantity: 1,
+      baseName: addition.name,
+      displayName: addition.name,
+    });
+    notify.whatsapp(`Agregaste el topping ${addition.name} al carrito.`);
+  };
 
   const handleAddPromotionToCart = (promotion: Promotion) => {
     useCartStore.getState().addItem({
@@ -66,8 +93,13 @@ export const HomePage = () => {
             id="menu-heading"
             className="m-0 font-heading text-4xl font-black leading-none tracking-normal text-foreground"
           >
-            Lo más pedido
+            {isToppingsMode ? "Toppings" : "Lo más pedido"}
           </h2>
+          {isToppingsMode ? (
+            <p className="mt-2 text-sm font-medium text-muted-foreground">
+              Agrega toppings extra a tu pedido.
+            </p>
+          ) : null}
         </div>
 
         <div className="sticky top-17.5 z-10 -mx-4 my-5  bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
@@ -78,13 +110,46 @@ export const HomePage = () => {
               categories={categories}
               activeCategorySlug={selectedCategorySlug}
               onChange={setSelectedCategorySlug}
+              extraChips={[
+                {
+                  slug: TOPPINGS_SLUG,
+                  label: "Toppings",
+                  icon: Pizza,
+                },
+              ]}
             />
           )}
         </div>
 
-        <section aria-label="Productos del menú">
+        <section
+          aria-label={isToppingsMode ? "Toppings" : "Productos del menú"}
+        >
           {isLoading ? (
             <ProductGridSkeleton />
+          ) : isToppingsMode ? (
+            additionsError ? (
+              <EmptyState
+                title="Error al cargar toppings"
+                description="No pudimos cargar los toppings. Intenta de nuevo más tarde."
+                icon={<AlertCircle className="size-8" />}
+              />
+            ) : additions.length === 0 ? (
+              <EmptyState
+                title="No hay toppings disponibles"
+                description="Por ahora no tenemos toppings para mostrarte."
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {additions.map((addition) => (
+                  <AdditionCard
+                    key={addition.id}
+                    topping={addition}
+                    quantityInOrder={getToppingQuantity(addition.id)}
+                    onAddTopping={() => handleAddTopping(addition)}
+                  />
+                ))}
+              </div>
+            )
           ) : filteredProducts.length > 0 && !error ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredProducts.map((product) => (
@@ -103,15 +168,6 @@ export const HomePage = () => {
             />
           )}
         </section>
-
-        <div className="mt-8 flex justify-center">
-          <Link
-            to={appRoutes.menu}
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-primary bg-primary px-6 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            Ver menú completo
-          </Link>
-        </div>
 
         {customizingProduct ? (
           <>

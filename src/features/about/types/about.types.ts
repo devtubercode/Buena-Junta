@@ -23,3 +23,17 @@ export type SocialLink = {
   label: string;
   href: string;
 };
+
+export type PublicHighlight = {
+  id: string;
+  title: string;
+  description: string;
+};
+
+export type AboutContent = {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  story: string[];
+  ctaLabel: string;
+};

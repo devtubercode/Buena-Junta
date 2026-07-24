@@ -5,7 +5,7 @@ import type {
   PublicLocation,
   PublicService,
   SocialLink,
-} from "@/features/menu/types/menu.types";
+} from "@/features/about/types/about.types";
 
 export const contactInfo: ContactInfo = {
   primaryPhone: "317 426 3716",
@@ -14,7 +14,8 @@ export const contactInfo: ContactInfo = {
 
 export const publicLocation: PublicLocation = {
   shortLabel: "Buena Junta",
-  address: "Av. 5 Oe. #19A-36, Terron Colorado, Cali, Valle del Cauca, Colombia",
+  address:
+    "Av. 5 Oe. #19A-36, Terron Colorado, Cali, Valle del Cauca, Colombia",
   reference: "",
   mapEmbedUrl:
     "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d19332.08247766391!2d-76.55972!3d3.453009!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e30a59410708505%3A0x438fd207e2fc2a74!2sBuena%20Junta!5e1!3m2!1ses!2sus!4v1784804175065!5m2!1ses!2sus",

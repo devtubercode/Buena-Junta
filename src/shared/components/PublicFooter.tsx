@@ -2,7 +2,7 @@ import {
   contactInfo,
   publicServices,
   socialLinks,
-} from "@/features/menu/content/menuContent";
+} from "@/features/about/content/aboutContent";
 import { FacebookIcon, InstagramIcon, WhatsappIcon } from "@/shared/icons";
 
 const socialIconById = {

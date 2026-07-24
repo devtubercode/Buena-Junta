@@ -7,7 +7,7 @@ import {
   contactInfo,
   publicLocation,
   publicServices,
-} from "@/features/menu/content/menuContent";
+} from "@/features/about/content/aboutContent";
 
 export function AboutPage() {
   return (
@@ -25,7 +25,7 @@ export function AboutPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              to={appRoutes.menu}
+              to={appRoutes.home}
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <UtensilsCrossed className="mr-2 size-4" />

@@ -14,11 +14,18 @@ import { HotDogIcon } from "@/shared/icons";
 import type { IconProps } from "@/shared/icons/types";
 import type { MenuCategory } from "@/features/menu/types/menu.types";
 
+export type ExtraChip = {
+  slug: string;
+  label: string;
+  icon: ComponentType<IconProps>;
+};
+
 type CategoryChipsProps = {
   categories: MenuCategory[];
   activeCategorySlug: string | null;
   onChange: (categorySlug: string | null) => void;
   includeAll?: boolean;
+  extraChips?: ExtraChip[];
 };
 
 const categoryIcons: Record<string, ComponentType<IconProps>> = {
@@ -62,6 +69,7 @@ export function CategoryChips({
   categories,
   activeCategorySlug,
   onChange,
+  extraChips,
 }: CategoryChipsProps) {
   return (
     <nav aria-label="Categorías del menú" className="relative -mx-4 sm:mx-0">
@@ -88,6 +96,17 @@ export function CategoryChips({
             </CategoryChip>
           );
         })}
+
+        {extraChips?.map((chip) => (
+          <CategoryChip
+            key={chip.slug}
+            active={activeCategorySlug === chip.slug}
+            onClick={() => onChange(chip.slug)}
+            icon={chip.icon}
+          >
+            {chip.label}
+          </CategoryChip>
+        ))}
       </div>
 
       <div

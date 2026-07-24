@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router";
 import { Info, MapPin } from "lucide-react";
 import { appRoutes } from "@/app/routes";
-import { publicLocation } from "@/features/menu/content/menuContent";
+import { publicLocation } from "@/features/about/content/aboutContent";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { CustomModal } from "@/shared/components/CustomModal";
 import logoImage from "@/assets/buenajunta-logo.webp";
