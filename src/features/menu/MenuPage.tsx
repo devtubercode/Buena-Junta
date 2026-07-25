@@ -35,6 +35,8 @@ export function MenuPage() {
   const { categories, products, additions, isLoading, additionsError } =
     useCatalogData();
 
+  console.log("additions", additions);
+
   const { promotions, isLoading: isLoadingPromotions } = useMenuPromotions();
   const order = useMenuOrder();
   const { isOpen, open, close } = useMenuOrderDrawer();
@@ -103,7 +105,7 @@ export function MenuPage() {
       <MenuTabs activeTab={activeTab} onChange={setActiveTab} />
 
       <div className="mt-4 px-4 sm:px-6 lg:px-8">
-        {activeTab === "products" && (
+        <div hidden={activeTab !== "products"}>
           <ProductsTab
             products={products}
             categories={categories}
@@ -111,9 +113,8 @@ export function MenuPage() {
             onOpenProductDetail={setSelectedProduct}
             getQuantityInOrder={getProductQuantity}
           />
-        )}
-
-        {activeTab === "additions" && (
+        </div>
+        <div hidden={activeTab !== "additions"}>
           <AdditionsTab
             additions={additions}
             isLoading={isLoading}
@@ -121,15 +122,15 @@ export function MenuPage() {
             onAddTopping={handleAddGlobalTopping}
             getToppingQuantity={getToppingQuantity}
           />
-        )}
+        </div>
 
-        {activeTab === "promotions" && (
+        <div hidden={activeTab !== "promotions"}>
           <PromotionsTab
             promotions={promotions}
             isLoading={isLoadingPromotions}
             onOpenPromotionDetail={setSelectedPromotion}
           />
-        )}
+        </div>
       </div>
 
       <div className="hidden sm:block">

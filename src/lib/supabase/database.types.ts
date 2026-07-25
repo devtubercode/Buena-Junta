@@ -22,6 +22,7 @@ export type Database = {
     };
     Views: {
       product_available_additions: GenericTable;
+      public_global_additions: GenericTable;
     };
     Functions: Record<string, never>;
     Enums: Record<string, string>;
