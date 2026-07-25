@@ -86,7 +86,7 @@ export function ProductCustomizationForm({
           <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-background to-transparent" />
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start ">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start px-4 pt-4 sm:px-6 lg:px-8">
           <div className="hidden sm:relative sm:block sm:shrink-0">
             <img
               src={productImage.src}
@@ -151,7 +151,7 @@ export function ProductCustomizationForm({
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-border pt-3 px-1">
+      <footer className="shrink-0 border-t border-border py-3 px-2">
         <div className="flex items-center gap-3">
           <QuantityStepper
             quantity={quantity}

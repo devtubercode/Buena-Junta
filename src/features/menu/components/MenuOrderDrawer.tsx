@@ -20,7 +20,7 @@ type MenuOrderDrawerProps = {
   order: UseMenuOrderResult;
 };
 
-function formatItemDetails(item: MenuOrderItem): string {
+const formatItemDetails = (item: MenuOrderItem): string => {
   const parts: string[] = [];
 
   if (item.variantKey) {
@@ -36,9 +36,9 @@ function formatItemDetails(item: MenuOrderItem): string {
   }
 
   return parts.join(" · ");
-}
+};
 
-function OrderItemRow({
+const OrderItemRow = ({
   item,
   onIncrement,
   onDecrement,
@@ -48,7 +48,7 @@ function OrderItemRow({
   onIncrement: () => void;
   onDecrement: () => void;
   onRemove: () => void;
-}) {
+}) => {
   const image = item.urlImage ?? {
     src: productPlaceholderImage,
     alt: item.name,
@@ -92,7 +92,7 @@ function OrderItemRow({
       </div>
     </li>
   );
-}
+};
 
 function ToppingRow({
   topping,
@@ -159,7 +159,7 @@ export function MenuOrderDrawer({
           "fixed inset-y-0 right-0 z-1001 flex w-full flex-col bg-background shadow-elevated transition-transform duration-300 ease-out sm:max-w-md",
           isOpen ? "translate-x-0" : "translate-x-full",
         )}
-        aria-label="Carrito"
+        aria-label="Pedido"
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
@@ -167,7 +167,7 @@ export function MenuOrderDrawer({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Cerrar carrito"
+            aria-label="Cerrar pedido"
             className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-black/5 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <X className="size-5" />
@@ -185,7 +185,7 @@ export function MenuOrderDrawer({
                 />
               </div>
               <h3 className="text-lg font-black text-foreground">
-                Tu carrito está vacío
+                Tu pedido está vacío
               </h3>
               <p className="mt-1 max-w-48 text-sm text-muted-foreground">
                 Agrega productos del menú para armar tu pedido
@@ -252,7 +252,7 @@ export function MenuOrderDrawer({
                 onChangeObservation={(generalObservation) =>
                   order.actions.updateGeneralObservation(generalObservation)
                 }
-                compact
+                compact={false}
               />
               <button
                 type="button"
@@ -260,7 +260,7 @@ export function MenuOrderDrawer({
                 onClick={() => setShowConfirm(true)}
                 className="inline-flex min-h-12 w-full items-center justify-between gap-2 rounded-xl bg-green-600 px-4 text-sm font-black text-white shadow-md transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:cursor-not-allowed disabled:bg-muted-foreground/30 disabled:text-muted-foreground disabled:shadow-none"
               >
-                <span>Enviar pedido por WhatsApp</span>
+                <span>Enviar pedido</span>
                 <span className="rounded-lg bg-white/20 px-2 py-1 text-base">
                   {formatCOP(order.total)}
                 </span>
