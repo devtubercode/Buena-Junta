@@ -9,6 +9,11 @@ export const SUPABASE_TABLES = {
   PROMOTIONS: "promotions",
 } as const;
 
+export const SUPABASE_VIEWS = {
+  PRODUCT_AVAILABLE_ADDITIONS: "product_available_additions",
+  PUBLIC_GLOBAL_ADDITIONS: "public_global_additions",
+} as const;
+
 // All image aliases point to the same Supabase storage bucket.
 // Folder paths (SUPABASE_STORAGE_PATHS) provide separation by resource type.
 export const SUPABASE_BUCKETS = {

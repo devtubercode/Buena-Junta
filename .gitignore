@@ -15,6 +15,7 @@ dist-ssr
 .codegraph
 .claude
 .agents
+supabase/.temp
 
 # Editor directories and files
 .vscode/*
