@@ -2,6 +2,7 @@ import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 import { useProductCustomization } from "@/shared/hooks/useProductCustomization";
 import { AdditionSelector } from "@/shared/components/product/AdditionSelector";
 import { OptionGroupSelector } from "@/shared/components/product/OptionGroupSelector";
@@ -15,6 +16,12 @@ import { Button } from "@/shared/components/Button";
 type ProductCustomizationFormProps = {
   product: MenuProduct;
   submitLabel?: string;
+  initial?: {
+    variantKey?: string;
+    selectedOptions?: Record<string, string>;
+    selectedAdditions?: AdditionRow[];
+    quantity?: number;
+  };
   onSubmit: (output: ProductCustomizationOutput) => void;
   onClose: () => void;
 };
@@ -22,6 +29,7 @@ type ProductCustomizationFormProps = {
 export function ProductCustomizationForm({
   product,
   submitLabel = "Agregar",
+  initial,
   onSubmit,
   onClose,
 }: ProductCustomizationFormProps) {
@@ -42,7 +50,7 @@ export function ProductCustomizationForm({
     handleDecrement,
     handleSetQuantity,
     buildOutput,
-  } = useProductCustomization(product);
+  } = useProductCustomization(product, initial);
 
   const productImage = getProductImage(product);
   const discountInfo = getProductDiscountInfo(product);

@@ -7,16 +7,33 @@ import type {
 import { buildCartProductName } from "@/features/menu/utils/productCopy";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
-export function useProductCustomization(product: MenuProduct) {
+export function useProductCustomization(
+  product: MenuProduct,
+  initial?: {
+    variantKey?: string;
+    selectedOptions?: Record<string, string>;
+    selectedAdditions?: AdditionRow[];
+    quantity?: number;
+  },
+) {
   const [selectedVariant, setSelectedVariant] =
-    useState<MenuPriceVariant | null>(() => product.priceVariants[0] ?? null);
+    useState<MenuPriceVariant | null>(() => {
+      if (initial?.variantKey) {
+        return (
+          product.priceVariants.find(
+            (v) => v.label === initial.variantKey,
+          ) ?? null
+        );
+      }
+      return product.priceVariants[0] ?? null;
+    });
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
-  >(() => ({}));
+  >(() => initial?.selectedOptions ?? {});
   const [selectedAdditions, setSelectedAdditions] = useState<AdditionRow[]>(
-    () => [],
+    () => initial?.selectedAdditions ?? [],
   );
-  const [quantity, setQuantity] = useState(() => 1);
+  const [quantity, setQuantity] = useState(() => initial?.quantity ?? 1);
 
   const basePrice = useMemo(() => {
     if (product.priceVariants.length > 0) {
