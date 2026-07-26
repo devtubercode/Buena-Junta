@@ -125,7 +125,7 @@ export const ProductForm = ({
           onRemove={removeImage}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 flex-wrap items-start">
           <CurrencyField
             name="price"
             control={form.control}
