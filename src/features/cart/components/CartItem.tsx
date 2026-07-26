@@ -1,7 +1,7 @@
 import type { CartItem as CartItemType } from "@/features/cart/types/cart.types";
-import { formatCartItemName } from "@/features/cart/utils/cartCopy";
 import { formatCOP } from "@/features/cart/utils/money";
 import { QuantityStepper } from "@/shared/components/QuantityStepper";
+import { formatProductName } from "@/shared/utils/formatProductName";
 import { Trash2 } from "lucide-react";
 import { CartItemDetails } from "./CartItemDetails";
 import { cn } from "@/shared/utils/cn";
@@ -14,10 +14,6 @@ type CartItemProps = {
   onRemove: () => void;
 };
 
-function getCartItemTitle(item: CartItemType) {
-  return formatCartItemName(item.baseName ?? item.name);
-}
-
 export function CartItem({
   item,
   onIncrement,
@@ -25,7 +21,7 @@ export function CartItem({
   onQuantityChange,
   onRemove,
 }: CartItemProps) {
-  const title = getCartItemTitle(item);
+  const title = formatProductName(item.baseName ?? item.name);
   const subtotal = item.unitPrice * item.quantity;
 
   return (

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import {
   buildWhatsAppOrderMessage,
   buildWhatsAppUrl,
-} from "@/shared/utils/whatsappMessage";
+} from "@/features/menu/utils/whatsappMessage";
 import { notify } from "@/shared/notifications/notify";
 import type {
   MenuOrderItem,

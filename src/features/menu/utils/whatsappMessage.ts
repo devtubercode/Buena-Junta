@@ -1,5 +1,5 @@
-import { formatCartItemName } from "@/features/cart/utils/cartCopy";
 import { formatCOP } from "@/features/cart/utils/money";
+import { formatProductName } from "@/shared/utils/formatProductName";
 
 const WHATSAPP_PHONE = "573174263716";
 
@@ -55,12 +55,14 @@ function formatAdditions(item: WhatsAppMessageItem): string | false {
 }
 
 function formatProductLine(item: WhatsAppMessageItem, index: number): string {
-  const productName = formatCartItemName(item.name);
+  const productName = formatProductName(item.name);
   const subtotal = item.price * item.quantity;
 
   return compactLines([
     `${index + 1}. ${productName}`,
-    item.variantKey?.trim() ? `   Presentación: ${item.variantKey.trim()}` : false,
+    item.variantKey?.trim()
+      ? `   Presentación: ${item.variantKey.trim()}`
+      : false,
     formatSelectedOptions(item),
     `   Cantidad: ${item.quantity}`,
     `   Precio unitario: ${formatCOP(item.price)}`,
@@ -79,13 +81,6 @@ function formatOrderNotes(orderDraft: WhatsAppMessageDraft): CompactLine[] {
   return ["", "Observaciones del pedido:", observation];
 }
 
-/**
- * Construye el mensaje de texto listo para enviar por WhatsApp.
- * Incluye datos del responsable, productos con variantes/opciones/adiciones,
- * subtotales por línea y total general.
- *
- * @throws {Error} Si el carrito está vacío o el total no es un número finito.
- */
 export function buildWhatsAppOrderMessage({
   items,
   orderDraft,
@@ -117,9 +112,6 @@ export function buildWhatsAppOrderMessage({
   ]);
 }
 
-/**
- * Construye la URL de WhatsApp con el mensaje codificado.
- */
 export function buildWhatsAppUrl(message: string): string {
   return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
 }

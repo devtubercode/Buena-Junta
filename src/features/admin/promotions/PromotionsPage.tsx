@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Plus } from "lucide-react";
+import { Plus, SearchX, TicketPercent } from "lucide-react";
 import { appRoutes } from "@/app/routes";
 import { Button } from "@/shared/components/Button";
 import { AdminSection } from "@/features/admin/shared/components/AdminSection";
@@ -8,7 +8,7 @@ import { useAdminResource } from "@/features/admin/shared/hooks/useAdminResource
 import { useAdminDeleteConfirm } from "@/features/admin/shared/hooks/useAdminDeleteConfirm";
 import { PromotionStatusFilter } from "@/features/admin/promotions/components/PromotionStatusFilter";
 import { PromotionCard } from "@/features/admin/promotions/components/PromotionCard";
-import { PromotionEmptyState } from "@/features/admin/promotions/components/PromotionEmptyState";
+
 import {
   deletePromotion,
   fetchAdminPromotionsList,
@@ -74,7 +74,7 @@ export const PromotionsPage = () => {
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90"
         >
           <Plus className="size-4" />
-          Nuevo
+          Crear promoción
         </Link>
       }
     >
@@ -100,9 +100,17 @@ export const PromotionsPage = () => {
       ) : null}
 
       {!hasPromotions ? (
-        <PromotionEmptyState type="empty" />
+        <EmptyState
+          title="No hay promociones"
+          description="Crea la primera promoción para empezar a ofrecer ofertas."
+          icon={<TicketPercent className="size-8" />}
+        />
       ) : !hasFilteredPromotions ? (
-        <PromotionEmptyState type="no-results" />
+        <EmptyState
+          title="Sin resultados"
+          description="No encontramos promociones que coincidan con el filtro seleccionado."
+          icon={<SearchX className="size-8" />}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
           {filteredPromotions.map((promotion) => (

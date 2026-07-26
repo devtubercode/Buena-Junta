@@ -7,20 +7,10 @@ import { CartCheckout } from "@/features/cart/components/CartCheckout";
 import { CartEmpty } from "@/features/cart/components/CartEmpty";
 import { useCartPage } from "@/features/cart/hooks/useCartPage";
 
-import { CustomModal } from "@/shared/components/CustomModal";
 import { ChevronLeft } from "lucide-react";
-import { WhatsappIcon } from "@/shared/icons";
 
 export const CartPage = () => {
-  const {
-    items,
-    orderDraft,
-    total,
-    totalQuantity,
-    isConfirmationOpen,
-    canSendOrder,
-    actions,
-  } = useCartPage();
+  const { items, orderDraft, total, totalQuantity, actions } = useCartPage();
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8 lg:py-8">
@@ -70,50 +60,10 @@ export const CartPage = () => {
               draft={orderDraft}
               onChange={actions.updateOrderDraft}
             />
-            <CartCheckout
-              canSendOrder={canSendOrder}
-              onSendOrder={actions.sendOrder}
-              onClearCart={actions.clearCart}
-            />
+            <CartCheckout onClearCart={actions.clearCart} />
           </aside>
         </div>
       )}
-
-      <CustomModal
-        isOpen={isConfirmationOpen}
-        title="¿Ya enviaste tu pedido?"
-        description="Se abrió WhatsApp con tu pedido preparado. Para que podamos empezar a elaborarlo, debes presionar Enviar dentro de WhatsApp."
-        icon={<WhatsappIcon className="size-6" />}
-        contentClassName="max-w-lg"
-        onClose={actions.dismissConfirmation}
-      >
-        <div className="grid gap-2">
-          <p>
-            Cuando hayas enviado el mensaje, toca “Ya envié el pedido” para
-            limpiar tu carrito y empezar un nuevo pedido.
-          </p>
-          <p>
-            Si ya lo enviaste y olvidaste agregar algo, crea un nuevo pedido con
-            el mismo responsable y mesa para que podamos identificarlo.
-          </p>
-        </div>
-        <div className="mt-5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
-          <button
-            type="button"
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-elevated transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            onClick={actions.confirmOrderSent}
-          >
-            Ya envié el pedido
-          </button>
-          <button
-            type="button"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-surface px-5 text-sm font-black text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            onClick={actions.dismissConfirmation}
-          >
-            Volver al carrito
-          </button>
-        </div>
-      </CustomModal>
     </main>
   );
 };
