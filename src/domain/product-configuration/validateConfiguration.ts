@@ -9,7 +9,7 @@ export type ConfigurationValidation = {
 export function validateConfiguration(
   variants: MenuPriceVariant[],
   optionGroups: OptionGroup[],
-  hasAdditions: boolean,
+  _hasAdditions: boolean,
   config: {
     variantKey?: string;
     selectedOptions?: Record<string, string>;

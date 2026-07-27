@@ -40,13 +40,13 @@ function normalizeSelectedOptions(
 
 export function buildLineId(
   productId: string,
-  variantKey: string | undefined,
+  variantId: string | undefined,
   additionOptions: Array<{ key: string }>,
   selectedOptions: Record<string, string>,
 ): string {
   return [
     productId,
-    variantKey ?? "base",
+    variantId ?? "base",
     normalizeAdditionKeys(additionOptions),
     normalizeSelectedOptions(selectedOptions),
   ].join("::");
@@ -66,9 +66,9 @@ type ProductSelection = {
   isShared: boolean;
 };
 
-function getFirstAvailableVariantKey(product: MenuProduct): string | undefined {
+function getFirstAvailableVariantId(product: MenuProduct): string | undefined {
   const firstVariant = product.priceVariants[0];
-  return firstVariant?.label;
+  return firstVariant?.id;
 }
 
 function getDefaultOptions(
@@ -90,9 +90,7 @@ function getDefaultOptions(
   return options;
 }
 
-function buildPromotionItem(
-  promotion: Promotion,
-): SuggestedOrderItem {
+function buildPromotionItem(promotion: Promotion): SuggestedOrderItem {
   const lineId = `promo-${promotion.slug}`;
   return {
     lineId,
@@ -101,7 +99,8 @@ function buildPromotionItem(
     urlImage: promotion.image
       ? { src: promotion.image, alt: promotion.imageAlt }
       : undefined,
-    variantKey: undefined,
+    variantId: undefined,
+    variantLabel: undefined,
     selectedOptions: {},
     additionOptions: [],
     quantity: 1,
@@ -117,22 +116,23 @@ function buildSuggestedItem(
   quantity: number,
   exclusions: string[],
 ): SuggestedOrderItem {
-  const variantKey = getFirstAvailableVariantKey(product);
+  const variantId = getFirstAvailableVariantId(product);
   const selectedOptions = getDefaultOptions(product, exclusions);
   const additionOptions: SuggestedOrderItem["additionOptions"] = [];
+  const selectedVariant = variantId
+    ? (product.priceVariants.find((v) => v.id === variantId) ?? null)
+    : null;
 
   const basePrice = resolveBasePrice(
     product.priceVariants,
     product.sale_price ?? product.price,
-    variantKey,
+    variantId,
   );
   const additionsTotal = calculateAdditionsTotal(additionOptions);
   const unitPrice =
     calculateUnitPrice({
       basePrice,
-      selectedVariant: variantKey
-        ? (product.priceVariants.find((v) => v.label === variantKey) ?? null)
-        : null,
+      selectedVariant,
       variants: product.priceVariants,
       additionsTotal,
     }) ?? 0;
@@ -143,12 +143,12 @@ function buildSuggestedItem(
     product.priceVariants,
     product.groups,
     product.additions.length > 0,
-    { variantKey, selectedOptions, additionOptions },
+    { variantKey: selectedVariant?.label, selectedOptions, additionOptions },
   );
 
   const lineId = buildLineId(
     product.id,
-    variantKey,
+    variantId,
     additionOptions,
     selectedOptions,
   );
@@ -158,7 +158,8 @@ function buildSuggestedItem(
     productId: product.id,
     productName: product.name,
     urlImage: product.urlImage,
-    variantKey,
+    variantId,
+    variantLabel: selectedVariant?.label,
     selectedOptions,
     additionOptions,
     quantity,
@@ -170,11 +171,7 @@ function buildSuggestedItem(
 }
 
 function isLikelyShared(product: MenuProduct): boolean {
-  const hints = [
-    product.name,
-    product.description,
-    ...(product.tags ?? []),
-  ]
+  const hints = [product.name, product.description, ...(product.tags ?? [])]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -287,7 +284,9 @@ function buildExplanation(
   items: SuggestedOrderItem[],
   selections: ProductSelection[],
   formData: SuggestionFormData,
+  products: MenuProduct[],
 ): SuggestedOrder["explanation"] {
+  const productMap = new Map(products.map((p) => [p.id, p]));
   const warnings: string[] = [];
   const perItem: Record<string, string> = {};
 
@@ -298,8 +297,14 @@ function buildExplanation(
       continue;
     }
     const parts: string[] = [];
-    if (item.variantKey) {
-      parts.push(`presentación ${item.variantKey}`);
+    if (item.variantId) {
+      const product = productMap.get(item.productId);
+      const variantLabel = product?.priceVariants.find(
+        (v) => v.id === item.variantId,
+      )?.label;
+      if (variantLabel) {
+        parts.push(`presentación ${variantLabel}`);
+      }
     }
     const optionValues = Object.values(item.selectedOptions);
     if (optionValues.length > 0) {
@@ -365,14 +370,7 @@ export function buildSuggestion(
     const terms = formData.exclusions.map((e) => e.toLowerCase().trim());
 
     available = available.filter((p) => {
-      const searchableText = [
-        p.name,
-        p.description,
-        ...(p.tags ?? []),
-        p.category?.name ?? "",
-        ...p.groups.flatMap((g) => [g.name, ...g.options.map((o) => o.name)]),
-        ...p.additions.map((a) => a.name),
-      ]
+      const searchableText = [p.name, p.description, ...(p.tags ?? [])]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -416,7 +414,7 @@ export function buildSuggestion(
   const incompleteItemCount = items.filter((i) => !i.isValid).length;
   const isComplete = incompleteItemCount === 0;
 
-  const explanation = buildExplanation(items, selections, formData);
+  const explanation = buildExplanation(items, selections, formData, products);
 
   return {
     items,

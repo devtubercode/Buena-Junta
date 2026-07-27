@@ -101,7 +101,7 @@ function normalizeSelectedOptions(selectedOptions?: Record<string, string>) {
 function buildItemLineId(item: AddMenuOrderItemInput) {
   return [
     item.id,
-    item.variantKey ?? "base",
+    item.variantId ?? "base",
     normalizeAdditionKeys(item.additionOptions),
     normalizeSelectedOptions(item.selectedOptions),
   ].join("::");
@@ -245,7 +245,7 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
               price: input.price,
               quantity,
               urlImage: input.urlImage,
-              variantKey: input.variantKey,
+              variantId: input.variantId,
               selectedOptions: input.selectedOptions,
               additionOptions: input.additionOptions,
             },

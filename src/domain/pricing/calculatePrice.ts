@@ -36,11 +36,11 @@ export function calculateAdditionsTotal(
 export function resolveBasePrice(
   variants: MenuPriceVariant[],
   fallbackPrice: number | null,
-  variantKey?: string,
+  variantId?: string,
 ): number | null {
   if (variants.length > 0) {
-    const variant = variantKey
-      ? variants.find((v) => v.label === variantKey)
+    const variant = variantId
+      ? variants.find((v) => v.id === variantId)
       : variants[0];
 
     return variant?.price ?? null;

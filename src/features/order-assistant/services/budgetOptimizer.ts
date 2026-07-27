@@ -31,7 +31,6 @@ export function optimizeForBudget(
     const newCheck = checkBudget(newTotal, budget);
 
     if (newCheck.withinBudget) {
-      const remainingItems = current.items.length;
       const incompleteCount = current.items.filter((i) => !i.isValid).length;
 
       return {

@@ -17,7 +17,7 @@ type CartState = {
   updateQuantity: (lineId: string, quantity: number) => void;
   updateItemVariant: (
     lineId: string,
-    variantKey: string,
+    variantId: string,
   ) => UpdateCartItemVariantResult;
   updateOrderDetail: <K extends keyof CartOrderDetails>(
     key: K,
@@ -55,7 +55,7 @@ function normalizeSelectedOptions(selectedOptions?: Record<string, string>) {
 function buildLineId(item: AddCartItemInput) {
   return [
     item.productId,
-    item.variantKey ?? "base",
+    item.variantId ?? "base",
     normalizeAdditionKeys(item.additionOptions),
     normalizeSelectedOptions(item.selectedOptions),
   ].join("::");
@@ -63,13 +63,13 @@ function buildLineId(item: AddCartItemInput) {
 
 function buildLineIdFromParts(
   productId: string,
-  variantKey?: string,
+  variantId?: string,
   additionOptions?: AddCartItemInput["additionOptions"],
   selectedOptions?: Record<string, string>,
 ) {
   return [
     productId,
-    variantKey ?? "base",
+    variantId ?? "base",
     normalizeAdditionKeys(additionOptions),
     normalizeSelectedOptions(selectedOptions),
   ].join("::");
@@ -119,7 +119,7 @@ export const useCartStore = create<CartState>()(
                 lineId,
                 productId: item.productId,
                 image: item.image,
-                variantKey: item.variantKey,
+                variantId: item.variantId,
                 baseName: item.baseName,
                 displayName: item.displayName,
                 name: item.name,
@@ -169,7 +169,7 @@ export const useCartStore = create<CartState>()(
           ),
         }));
       },
-      updateItemVariant: (lineId, variantKey) => {
+      updateItemVariant: (lineId, variantId) => {
         const state = get();
         const currentItem = state.items.find((item) => item.lineId === lineId);
 
@@ -178,7 +178,7 @@ export const useCartStore = create<CartState>()(
         }
 
         const selectedOption = currentItem.variantOptions?.find(
-          (option) => option.key === variantKey,
+          (option) => option.key === variantId,
         );
 
         if (!selectedOption) {
@@ -205,7 +205,7 @@ export const useCartStore = create<CartState>()(
               ? {
                   ...item,
                   lineId: nextLineId,
-                  variantKey: selectedOption.key,
+                  variantId: selectedOption.key,
                   name:
                     selectedOption.itemName ??
                     `${item.baseName ?? item.displayName ?? item.name} (${selectedOption.label})`,

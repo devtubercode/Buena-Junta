@@ -12,15 +12,16 @@ const VISIBLE_ADDITIONS = 3;
 export function CartItemDetails({ item }: CartItemDetailsProps) {
   const [showAllAdditions, setShowAllAdditions] = useState(false);
 
-  const variantKey = item.variantKey;
+  const variantLabel = item.variantId
+    ? item.variantOptions?.find((v) => v.key === item.variantId)?.label
+    : undefined;
   const selectedOptions = item.selectedOptions;
   const additions = item.additionOptions ?? [];
 
-  const hasVariant = Boolean(variantKey);
   const hasOptions = selectedOptions && Object.keys(selectedOptions).length > 0;
   const hasAdditions = additions.length > 0;
 
-  if (!hasVariant && !hasOptions && !hasAdditions) {
+  if (!variantLabel && !hasOptions && !hasAdditions) {
     return null;
   }
 
@@ -31,11 +32,11 @@ export function CartItemDetails({ item }: CartItemDetailsProps) {
 
   return (
     <div className={cn("mt-2 flex flex-col gap-2")}>
-      {(hasVariant || hasOptions) && (
+      {(variantLabel || hasOptions) && (
         <div className="flex flex-wrap items-center gap-1.5">
-          {hasVariant && (
+          {variantLabel && (
             <span className="inline-flex items-center rounded-full border border-primary-border bg-primary-soft px-2.5 py-1 text-xs font-black text-primary">
-              {variantKey}
+              {variantLabel}
             </span>
           )}
 

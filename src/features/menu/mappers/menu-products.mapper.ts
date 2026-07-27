@@ -17,6 +17,7 @@ const getPriceVariants = (product: MenuProductRow) => {
   return [...(product.variants ?? [])]
     .filter((variant) => variant.is_active)
     .map((variant) => ({
+      id: variant.id,
       label: variant.name,
       price: Number(variant.price),
     }));

@@ -1,4 +1,3 @@
-import type { AdditionRow } from "@/features/admin/types/additions.types";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
 export type SuggestionFormData = {
@@ -21,7 +20,8 @@ export type SuggestedOrderItem = {
   productId: string;
   productName: string;
   urlImage: { src: string; alt: string } | undefined;
-  variantKey: string | undefined;
+  variantId: string | undefined;
+  variantLabel: string | undefined;
   selectedOptions: Record<string, string>;
   additionOptions: Array<{ key: string; label: string; unitPrice: number }>;
   quantity: number;

@@ -8,6 +8,7 @@ export function useOrderAssistant(): UseOrderAssistantResult {
   const formData = useOrderAssistantStore((s) => s.formData);
   const suggestion = useOrderAssistantStore((s) => s.suggestion);
   const error = useOrderAssistantStore((s) => s.error);
+  const regenerationCount = useOrderAssistantStore((s) => s.regenerationCount);
 
   const actions = useMemo(() => {
     const state = useOrderAssistantStore.getState();
@@ -17,6 +18,7 @@ export function useOrderAssistant(): UseOrderAssistantResult {
       updateFormData: state.updateFormData,
       generateSuggestion: state.generateSuggestion,
       updateItemQuantity: state.updateItemQuantity,
+      updateItemConfiguration: state.updateItemConfiguration,
       removeItem: state.removeItem,
       addAllToCart: state.addAllToCart,
       reset: state.reset,
@@ -29,6 +31,7 @@ export function useOrderAssistant(): UseOrderAssistantResult {
     formData,
     suggestion,
     error,
+    regenerationCount,
     actions,
   };
 }

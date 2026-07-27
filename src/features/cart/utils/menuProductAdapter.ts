@@ -17,6 +17,7 @@ function buildPriceVariants(
 ): MenuPriceVariant[] {
   return (
     variantOptions?.map((option) => ({
+      id: option.key,
       label: option.label,
       price: option.unitPrice,
     })) ?? []

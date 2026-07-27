@@ -1,6 +1,4 @@
 import { create } from "zustand";
-import type { MenuProduct, MenuCategory } from "@/features/menu/types/menu.types";
-import type { Promotion } from "@/features/home/types/promotion.types";
 import type {
   OrderAssistantActions,
   OrderAssistantState,
@@ -9,9 +7,7 @@ import type {
   SuggestedOrderItem,
 } from "@/features/order-assistant/types/order-assistant.types";
 import type { AddMenuOrderItemInput } from "@/store/menu-order/types/menu-order.types";
-import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import { buildSuggestion, buildLineId } from "@/features/order-assistant/services/suggestionBuilder";
-import { validateConfiguration } from "@/domain/product-configuration/validateConfiguration";
 import { useMenuOrderStore } from "@/store/menu-order/useMenuOrderStore";
 import { notify } from "@/shared/notifications/notify";
 
@@ -47,9 +43,11 @@ export const useOrderAssistantStore = create<OrderAssistantStore>((set, get) => 
     }));
   },
 
-  generateSuggestion: (products, categories, promotions) => {
+  generateSuggestion: async (products, _categories, promotions) => {
     const { formData, regenerationCount } = get();
     set({ step: "generating", error: null });
+
+    await new Promise((r) => setTimeout(r, 1200));
 
     try {
       const suggestion = buildSuggestion(
@@ -104,7 +102,7 @@ export const useOrderAssistantStore = create<OrderAssistantStore>((set, get) => 
         if (item.lineId !== lineId) return item;
         const newLineId = buildLineId(
           output.id,
-          output.variantKey,
+          output.variantId,
           output.additionOptions,
           output.selectedOptions,
         );
@@ -112,7 +110,8 @@ export const useOrderAssistantStore = create<OrderAssistantStore>((set, get) => 
           ...item,
           lineId: newLineId,
           productName: output.name,
-          variantKey: output.variantKey,
+          variantId: output.variantId,
+          variantLabel: output.variantLabel,
           selectedOptions: output.selectedOptions,
           additionOptions: output.additionOptions,
           quantity: output.quantity,
@@ -148,13 +147,13 @@ export const useOrderAssistantStore = create<OrderAssistantStore>((set, get) => 
     for (const item of validItems) {
       const input: AddMenuOrderItemInput = {
         id: item.productId,
-        name: item.variantKey
-          ? `${item.productName} (${item.variantKey})`
+        name: item.variantLabel
+          ? `${item.productName} (${item.variantLabel})`
           : item.productName,
         price: item.unitPrice,
         quantity: item.quantity,
         urlImage: item.urlImage,
-        variantKey: item.variantKey,
+        variantId: item.variantId,
         selectedOptions: item.selectedOptions,
         additionOptions: item.additionOptions,
       };

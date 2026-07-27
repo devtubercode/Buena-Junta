@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { Trash2, AlertTriangle, Settings2 } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Trash2, AlertTriangle, Settings2, PlusCircle } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
 import { ProductCustomizationForm } from "@/shared/components/product/ProductCustomizationForm";
 import { CustomModal } from "@/shared/components/CustomModal";
+import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
+import { useIsMobile } from "@/shared/hooks/useIsMobile";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
 import type { SuggestedOrderItem as SuggestedOrderItemType } from "@/features/order-assistant/types/order-assistant.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
@@ -15,7 +17,10 @@ type SuggestedOrderItemProps = {
   product: MenuProduct;
   onUpdateQuantity: (lineId: string, quantity: number) => void;
   onRemove: (lineId: string) => void;
-  onUpdateConfiguration: (lineId: string, output: ProductCustomizationOutput) => void;
+  onUpdateConfiguration: (
+    lineId: string,
+    output: ProductCustomizationOutput,
+  ) => void;
   explanation?: string;
 };
 
@@ -24,22 +29,41 @@ const hasCustomizations = (product: MenuProduct) =>
   product.groups.some((g) => g.is_active) ||
   product.additions.length > 0;
 
-const statusConfig: Record<
-  string,
-  { label: string; className: string }
-> = {
-  complete: { label: "Listo", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  needs_variant: { label: "Elige variante", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  needs_options: { label: "Requiere opciones", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  needs_additions: { label: "Elige acompañantes", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  incomplete: { label: "Incompleto", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
+const statusConfig: Record<string, { label: string; className: string }> = {
+  complete: {
+    label: "Listo",
+    className:
+      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  },
+  needs_variant: {
+    label: "Elige variante",
+    className:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  },
+  needs_options: {
+    label: "Requiere opciones",
+    className:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  },
+  needs_additions: {
+    label: "Elige acompañantes",
+    className:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  },
+  incomplete: {
+    label: "Incompleto",
+    className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  },
 };
 
-function formatItemDetails(item: SuggestedOrderItem): string {
+function formatItemDetails(
+  item: SuggestedOrderItemType,
+  variantLabel?: string,
+): string {
   const parts: string[] = [];
 
-  if (item.variantKey) {
-    parts.push(item.variantKey);
+  if (variantLabel) {
+    parts.push(variantLabel);
   }
 
   if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
@@ -62,15 +86,46 @@ export function SuggestedOrderItem({
   explanation,
 }: SuggestedOrderItemProps) {
   const [showConfig, setShowConfig] = useState(false);
+  const isMobile = useIsMobile();
   const image = item.urlImage ?? {
     src: productPlaceholderImage,
     alt: item.productName,
   };
 
-  const details = formatItemDetails(item);
+  const variantLabel = item.variantId
+    ? product.priceVariants.find((v) => v.id === item.variantId)?.label
+    : undefined;
+  const details = formatItemDetails(item, variantLabel);
   const cfg = statusConfig[item.configurationStatus] ?? statusConfig.incomplete;
   const needsAttention = item.configurationStatus !== "complete";
   const canConfigure = hasCustomizations(product);
+  const hasOptionalAdditions =
+    product.additions.length > 0 &&
+    item.additionOptions.length === 0 &&
+    item.configurationStatus === "complete";
+
+  const renderForm = useCallback(
+    () => (
+      <ProductCustomizationForm
+        product={product}
+        submitLabel="Guardar"
+        initial={{
+          variantId: item.variantId,
+          selectedOptions: item.selectedOptions,
+          selectedAdditions: product.additions.filter((a) =>
+            item.additionOptions.some((o) => o.key === a.id),
+          ),
+          quantity: item.quantity,
+        }}
+        onSubmit={(output) => {
+          onUpdateConfiguration(item.lineId, output);
+          setShowConfig(false);
+        }}
+        onClose={() => setShowConfig(false)}
+      />
+    ),
+    [product, item, onUpdateConfiguration],
+  );
 
   return (
     <article className="rounded-2xl border border-border bg-surface p-3 shadow-elevated sm:p-4">
@@ -109,7 +164,7 @@ export function SuggestedOrderItem({
           </div>
 
           {/* Status badge + configure */}
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             {needsAttention ? (
               <div className="flex items-center gap-1.5">
                 <AlertTriangle className="size-3.5 shrink-0 text-yellow-600 dark:text-yellow-400" />
@@ -122,6 +177,12 @@ export function SuggestedOrderItem({
                   {cfg.label}
                 </span>
               </div>
+            ) : null}
+            {hasOptionalAdditions ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-primary/40 bg-primary/5 px-2.5 py-0.5 text-[10px] font-black text-primary">
+                <PlusCircle className="size-3" />
+                Acompañantes
+              </span>
             ) : null}
             {canConfigure ? (
               <button
@@ -167,31 +228,26 @@ export function SuggestedOrderItem({
         </button>
       </div>
 
-      {/* Customization modal */}
+      {/* Customization modal - responsive: ButtonSheetModal on mobile, CustomModal on desktop */}
       {showConfig ? (
-        <CustomModal
-          isOpen
-          title={item.productName}
-          onClose={() => setShowConfig(false)}
-        >
-          <ProductCustomizationForm
-            product={product}
-            submitLabel="Guardar cambios"
-            initial={{
-              variantKey: item.variantKey,
-              selectedOptions: item.selectedOptions,
-              selectedAdditions: product.additions.filter((a) =>
-                item.additionOptions.some((o) => o.key === a.id),
-              ),
-              quantity: item.quantity,
-            }}
-            onSubmit={(output) => {
-              onUpdateConfiguration(item.lineId, output);
-              setShowConfig(false);
-            }}
+        isMobile ? (
+          <ButtonSheetModal
+            isOpen
+            title={item.productName}
             onClose={() => setShowConfig(false)}
-          />
-        </CustomModal>
+          >
+            {renderForm()}
+          </ButtonSheetModal>
+        ) : (
+          <CustomModal
+            isOpen
+            title={item.productName}
+            onClose={() => setShowConfig(false)}
+            contentClassName="sm:max-w-xl sm:mx-4"
+          >
+            {renderForm()}
+          </CustomModal>
+        )
       ) : null}
     </article>
   );

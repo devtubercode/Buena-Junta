@@ -3,6 +3,7 @@ import { Minus, Plus, Search } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/Button";
 import { CurrencyInput } from "@/shared/components/CurrencyInput";
+import { getCategoryIcon } from "@/shared/constants/category-icons";
 import type { SuggestionFormData } from "@/features/order-assistant/types/order-assistant.types";
 import type { MenuCategory } from "@/features/menu/types/menu.types";
 
@@ -121,6 +122,7 @@ export function AssistantInput({
             const isSelected = formData.preferredCategorySlugs.includes(
               category.slug,
             );
+            const Icon = getCategoryIcon(category.slug);
             return (
               <button
                 key={category.id}
@@ -128,7 +130,7 @@ export function AssistantInput({
                 data-active={isSelected}
                 onClick={() => handleCategoryToggle(category.slug)}
                 className={cn(
-                  "inline-flex items-center rounded-full border px-3.5 py-2 text-xs font-black leading-none transition",
+                  "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-black leading-none transition",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
                   "active:scale-95",
                   isSelected
@@ -137,6 +139,7 @@ export function AssistantInput({
                 )}
                 aria-pressed={isSelected}
               >
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
                 {category.name}
               </button>
             );

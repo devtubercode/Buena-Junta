@@ -17,7 +17,7 @@ type ProductCustomizationFormProps = {
   product: MenuProduct;
   submitLabel?: string;
   initial?: {
-    variantKey?: string;
+    variantId?: string;
     selectedOptions?: Record<string, string>;
     selectedAdditions?: AdditionRow[];
     quantity?: number;
@@ -86,7 +86,7 @@ export function ProductCustomizationForm({
           <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-background to-transparent" />
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start  px-2">
           <div className="hidden sm:relative sm:block sm:shrink-0">
             <img
               src={productImage.src}
@@ -125,7 +125,7 @@ export function ProductCustomizationForm({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto  pb-2 px-1">
+      <div className="min-h-0 flex-1 overflow-y-auto  py-2 px-1">
         <div className="flex flex-col gap-4">
           {hasCustomizations && (
             <>
