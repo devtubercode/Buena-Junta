@@ -41,6 +41,7 @@ export type SuggestedOrder = {
   items: SuggestedOrderItem[];
   total: number;
   peopleCount: number;
+  budget: number | null;
   withinBudget: boolean;
   budgetMargin: number;
   explanation: SuggestedOrderExplanation;

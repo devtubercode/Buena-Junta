@@ -420,6 +420,7 @@ export function buildSuggestion(
     items,
     total,
     peopleCount: formData.peopleCount,
+    budget: formData.maximumBudget,
     withinBudget: budgetCheck.withinBudget,
     budgetMargin: budgetCheck.margin,
     explanation,

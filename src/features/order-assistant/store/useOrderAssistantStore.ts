@@ -10,6 +10,7 @@ import type { AddMenuOrderItemInput } from "@/store/menu-order/types/menu-order.
 import { buildSuggestion, buildLineId } from "@/features/order-assistant/services/suggestionBuilder";
 import { useMenuOrderStore } from "@/store/menu-order/useMenuOrderStore";
 import { notify } from "@/shared/notifications/notify";
+import { formatCOP } from "@/features/cart/utils/money";
 
 const emptyFormData: SuggestionFormData = {
   peopleCount: 1,
@@ -194,10 +195,18 @@ function recalculateSuggestion(
   const incompleteItemCount = items.filter((i) => !i.isValid).length;
   const isComplete = incompleteItemCount === 0;
 
-  const budget = prev.peopleCount > 0 ? prev.budgetMargin + prev.total : null;
+  const warnings = prev.explanation.warnings.filter(
+    (w) => !w.startsWith("El total de"),
+  );
 
-  if (budget !== null) {
-    const margin = budget - total;
+  if (prev.budget !== null) {
+    const margin = prev.budget - total;
+    if (margin < 0) {
+      warnings.push(
+        `El total de ${formatCOP(total)} excede el presupuesto de ${formatCOP(prev.budget)}. Puedes ajustar cantidades o quitar productos.`,
+      );
+    }
+
     return {
       ...prev,
       items,
@@ -206,6 +215,7 @@ function recalculateSuggestion(
       budgetMargin: margin,
       isComplete,
       incompleteItemCount,
+      explanation: { ...prev.explanation, warnings },
     };
   }
 
@@ -213,7 +223,10 @@ function recalculateSuggestion(
     ...prev,
     items,
     total,
+    withinBudget: true,
+    budgetMargin: 0,
     isComplete,
     incompleteItemCount,
+    explanation: { ...prev.explanation, warnings },
   };
 }
