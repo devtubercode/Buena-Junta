@@ -7,24 +7,46 @@ import type {
 import { buildCartProductName } from "@/features/menu/utils/productCopy";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
-export function useProductCustomization(product: MenuProduct) {
+type InitialValues = {
+  variantId?: string;
+  selectedOptions?: Record<string, string>;
+  selectedAdditions?: AdditionRow[];
+  quantity?: number;
+};
+
+export function useProductCustomization(
+  product: MenuProduct,
+  initial?: InitialValues,
+) {
+  const priceVariants = useMemo(
+    () => product.priceVariants ?? [],
+    [product.priceVariants],
+  );
+
+  const resolveInitialVariant = () => {
+    if (initial?.variantId) {
+      return priceVariants.find((v) => v.id === initial.variantId) ?? null;
+    }
+    return priceVariants[0] ?? null;
+  };
+
   const [selectedVariant, setSelectedVariant] =
-    useState<MenuPriceVariant | null>(() => product.priceVariants[0] ?? null);
+    useState<MenuPriceVariant | null>(resolveInitialVariant);
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
-  >(() => ({}));
+  >(initial?.selectedOptions ?? {});
   const [selectedAdditions, setSelectedAdditions] = useState<AdditionRow[]>(
-    () => [],
+    initial?.selectedAdditions ?? [],
   );
-  const [quantity, setQuantity] = useState(() => 1);
+  const [quantity, setQuantity] = useState(initial?.quantity ?? 1);
 
   const basePrice = useMemo(() => {
-    if (product.priceVariants.length > 0) {
+    if (priceVariants.length > 0) {
       return selectedVariant?.price ?? null;
     }
 
     return product.sale_price ?? product.price;
-  }, [product, selectedVariant]);
+  }, [priceVariants, product, selectedVariant]);
 
   const activeOptionGroups = useMemo(() => product.groups, [product.groups]);
 
@@ -127,7 +149,8 @@ export function useProductCustomization(product: MenuProduct) {
       name: buildCartProductName(product, variantLabel),
       price: unitPrice,
       quantity,
-      variantKey: variantLabel,
+      variantId: selectedVariant?.id,
+      variantLabel: selectedVariant?.label,
       selectedOptions,
       additionOptions: selectedAdditions.map((selectedAddition) => ({
         key: selectedAddition.id,

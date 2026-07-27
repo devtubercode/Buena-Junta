@@ -12,7 +12,7 @@ type WhatsAppMessageItem = {
   name: string;
   price: number;
   quantity: number;
-  variantKey?: string;
+  variantId?: string;
   selectedOptions?: Record<string, string>;
   additionOptions?: Array<{ key: string; label: string; unitPrice: number }>;
 };
@@ -62,9 +62,6 @@ function formatProductLine(item: WhatsAppMessageItem, index: number): string {
 
   return compactLines([
     `*${index + 1}. ${productName} x${item.quantity}*`,
-    item.variantKey?.trim()
-      ? `   *Presentación:* ${item.variantKey.trim()}`
-      : false,
     formatSelectedOptions(item),
     `   *Unit:* ${formatCOP(item.price)}`,
     `   *Subtotal:* ${formatCOP(subtotal)}`,

@@ -12,7 +12,6 @@ type MenuOrderFormProps = {
     key: K,
     value: MenuOrderDetails[K],
   ) => void;
-  compact?: boolean;
 };
 
 const inputClass =
@@ -24,7 +23,6 @@ const sectionLabelClass =
 export function MenuOrderForm({
   orderDetails,
   onChangeField,
-  compact = false,
 }: MenuOrderFormProps) {
   const {
     customerName,
@@ -37,39 +35,28 @@ export function MenuOrderForm({
   } = orderDetails;
 
   return (
-    <div className={cn("grid", compact ? "gap-2" : "gap-3")}>
+    <div className="grid gap-2">
       <label className="grid gap-1">
-        <span
-          className={cn(
-            "font-bold text-foreground",
-            compact ? "text-xs" : "text-sm",
-          )}
-        >
+        <span className="text-xs font-bold text-foreground">
           Nombre de quien hace pedido
         </span>
         <input
           type="text"
           value={customerName}
-          onChange={(event) => onChangeField("customerName", event.target.value)}
+          onChange={(event) =>
+            onChangeField("customerName", event.target.value)
+          }
           placeholder="Ej: Juan Pérez"
-          className={cn(
-            inputClass,
-            compact ? "min-h-9 text-xs" : "min-h-11 text-sm",
-          )}
+          className={cn(inputClass, "min-h-9 text-xs")}
         />
-        <span className={cn("text-muted-foreground", compact ? "text-[11px]" : "text-xs")}>
+        <span className="text-[11px] text-muted-foreground">
           Usaremos este nombre para identificar quién hizo pedido y coordinar
           entrega o pago.
         </span>
       </label>
 
       <label className="grid gap-1">
-        <span
-          className={cn(
-            sectionLabelClass,
-            compact ? "text-[11px]" : "text-xs",
-          )}
-        >
+        <span className={cn(sectionLabelClass, "text-[11px]")}>
           Tipo de entrega
         </span>
         <select
@@ -80,7 +67,7 @@ export function MenuOrderForm({
               event.target.value as MenuOrderFulfillmentType,
             )
           }
-          className={cn(inputClass, compact ? "min-h-9 text-xs" : "min-h-11 text-sm")}
+          className={cn(inputClass, "min-h-9 text-xs")}
         >
           <option value="pickup">Recoger</option>
           <option value="table">En mesa</option>
@@ -90,12 +77,7 @@ export function MenuOrderForm({
 
       {fulfillmentType === "table" ? (
         <label className="grid gap-1">
-          <span
-            className={cn(
-              sectionLabelClass,
-              compact ? "text-[11px]" : "text-xs",
-            )}
-          >
+          <span className={cn(sectionLabelClass, "text-[11px]")}>
             Mesa o punto de entrega
           </span>
           <input
@@ -103,7 +85,7 @@ export function MenuOrderForm({
             value={table}
             onChange={(event) => onChangeField("table", event.target.value)}
             placeholder="Ej: mesa 4"
-            className={cn(inputClass, compact ? "min-h-9 text-xs" : "min-h-11 text-sm")}
+            className={cn(inputClass, "min-h-9 text-xs")}
           />
         </label>
       ) : null}
@@ -111,12 +93,7 @@ export function MenuOrderForm({
       {fulfillmentType === "delivery" ? (
         <>
           <label className="grid gap-1">
-            <span
-              className={cn(
-                sectionLabelClass,
-                compact ? "text-[11px]" : "text-xs",
-              )}
-            >
+            <span className={cn(sectionLabelClass, "text-[11px]")}>
               Dirección de entrega
             </span>
             <input
@@ -126,17 +103,12 @@ export function MenuOrderForm({
                 onChangeField("deliveryAddress", event.target.value)
               }
               placeholder="Ej: Calle 10 # 12-34"
-              className={cn(inputClass, compact ? "min-h-9 text-xs" : "min-h-11 text-sm")}
+              className={cn(inputClass, "min-h-9 text-xs")}
             />
           </label>
 
           <label className="grid gap-1">
-            <span
-              className={cn(
-                sectionLabelClass,
-                compact ? "text-[11px]" : "text-xs",
-              )}
-            >
+            <span className={cn(sectionLabelClass, "text-[11px]")}>
               Referencia para entrega
             </span>
             <input
@@ -146,19 +118,14 @@ export function MenuOrderForm({
                 onChangeField("deliveryReference", event.target.value)
               }
               placeholder="Ej: portón negro, apto 201"
-              className={cn(inputClass, compact ? "min-h-9 text-xs" : "min-h-11 text-sm")}
+              className={cn(inputClass, "min-h-9 text-xs")}
             />
           </label>
         </>
       ) : null}
 
       <label className="grid gap-1">
-        <span
-          className={cn(
-            sectionLabelClass,
-            compact ? "text-[11px]" : "text-xs",
-          )}
-        >
+        <span className={cn(sectionLabelClass, "text-[11px]")}>
           Método de pago
         </span>
         <select
@@ -169,7 +136,7 @@ export function MenuOrderForm({
               event.target.value as MenuOrderPaymentMethod,
             )
           }
-          className={cn(inputClass, compact ? "min-h-9 text-xs" : "min-h-11 text-sm")}
+          className={cn(inputClass, "min-h-9 text-xs")}
         >
           <option value="cash">Pago físico</option>
           <option value="nequi">QR Nequi</option>
@@ -177,12 +144,7 @@ export function MenuOrderForm({
       </label>
 
       <label className="grid gap-1">
-        <span
-          className={cn(
-            "font-bold text-foreground",
-            compact ? "text-xs" : "text-sm",
-          )}
-        >
+        <span className="text-xs font-bold text-foreground">
           Observaciones generales
         </span>
         <TextArea
@@ -191,9 +153,9 @@ export function MenuOrderForm({
             onChangeField("generalObservation", event.target.value)
           }
           placeholder="Ej: sin cebolla, salsa aparte..."
-          rows={compact ? 1 : 2}
+          rows={2}
           maxLength={200}
-          className={cn(compact && "min-h-0")}
+          className="min-h-0"
         />
       </label>
     </div>

@@ -30,8 +30,8 @@ export function MenuOrderButton({
         "sm:bottom-[calc(2rem+env(safe-area-inset-bottom))]",
         "lg:bottom-[calc(2.5rem+env(safe-area-inset-bottom))]",
 
-        "left-1/2 -translate-x-1/2",
-        "sm:left-auto sm:right-6 sm:translate-x-0",
+        "right-4",
+        "sm:right-6",
         "lg:right-8",
 
         "inline-flex items-center rounded-full",
@@ -70,7 +70,7 @@ export function MenuOrderButton({
       {hasItems ? (
         <span
           key={total}
-          className="inline-flex items-center rounded-full bg-white/20 px-3 py-1.5 font-heading text-sm font-black leading-none backdrop-blur-[2px] sm:text-base animate-fade-slide-up"
+          className="hidden items-center rounded-full bg-white/20 px-3 py-1.5 font-heading text-sm font-black leading-none backdrop-blur-[2px] sm:inline-flex sm:text-base animate-fade-slide-up"
         >
           {formatCOP(total)}
         </span>

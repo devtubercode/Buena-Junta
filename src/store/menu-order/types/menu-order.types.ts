@@ -22,7 +22,7 @@ export type MenuOrderItem = {
   /** Imagen del producto. */
   urlImage?: MenuImage;
   /** Presentación / variante seleccionada. */
-  variantKey?: string;
+  variantId?: string;
   /** Opciones requeridas seleccionadas (grupo -> valor). */
   selectedOptions?: Record<string, string>;
   /** Adiciones seleccionadas. */

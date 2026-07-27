@@ -15,7 +15,7 @@ export function cartItemToProductCustomizationInitialSelection(
     name: item.name,
     price: item.unitPrice,
     quantity: item.quantity,
-    variantKey: item.variantKey,
+    variantId: item.variantId,
     selectedOptions: item.selectedOptions,
     additionOptions: item.additionOptions,
   };
@@ -32,7 +32,7 @@ export function customizationOutputToAddCartItemInput(
   const variantOptions = isCartItem(productSource)
     ? productSource.variantOptions
     : productSource.priceVariants.map((variant) => ({
-        key: variant.label,
+        key: variant.id,
         label: variant.label,
         itemName: buildCartProductName(productSource, variant.label),
         unitPrice: variant.price,
@@ -54,7 +54,7 @@ export function customizationOutputToAddCartItemInput(
     name: output.name,
     unitPrice: output.price,
     quantity: output.quantity,
-    variantKey: output.variantKey,
+    variantId: output.variantId,
     selectedOptions: output.selectedOptions,
     additionOptions: output.additionOptions,
     variantOptions,

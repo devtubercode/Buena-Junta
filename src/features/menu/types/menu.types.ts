@@ -6,6 +6,7 @@ export type MenuImage = {
 };
 
 export type MenuPriceVariant = {
+  id: string;
   label: string;
   price: number;
 };

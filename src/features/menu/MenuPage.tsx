@@ -3,6 +3,7 @@ import { useCatalogData } from "@/shared/hooks/useCatalogData";
 import { useMenuPromotions } from "@/features/menu/hooks/useMenuPromotions";
 import { useMenuOrder } from "@/features/menu/hooks/useMenuOrder";
 import { useMenuOrderDrawer } from "@/features/menu/hooks/useMenuOrderDrawer";
+import { useOrderAssistant } from "@/features/order-assistant/hooks/useOrderAssistant";
 import { notify } from "@/shared/notifications/notify";
 import {
   MenuTabs,
@@ -15,6 +16,8 @@ import { PromotionsTab } from "@/features/menu/components/menu-tabs/PromotionsTa
 import { PromotionDetailModal } from "@/features/menu/components/PromotionDetailModal";
 import { MenuOrderButton } from "@/features/menu/components/MenuOrderButton";
 import { MenuOrderDrawer } from "@/features/menu/components/MenuOrderDrawer";
+import { AssistantFab } from "@/features/order-assistant/components/AssistantFab";
+import { AssistantDrawer } from "@/features/order-assistant/components/AssistantDrawer";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
 import type { Promotion } from "@/features/home/types/promotion.types";
@@ -40,6 +43,7 @@ export function MenuPage() {
   const { promotions, isLoading: isLoadingPromotions } = useMenuPromotions();
   const order = useMenuOrder();
   const { isOpen, open, close } = useMenuOrderDrawer();
+  const assistant = useOrderAssistant();
 
   const getProductQuantity = (productId: string) => {
     return order.items
@@ -192,6 +196,21 @@ export function MenuPage() {
       />
 
       <MenuOrderDrawer isOpen={isOpen} onClose={close} order={order} />
+
+      <AssistantFab onClick={assistant.actions.open} />
+
+      <AssistantDrawer
+        isOpen={assistant.isOpen}
+        step={assistant.step}
+        formData={assistant.formData}
+        suggestion={assistant.suggestion}
+        error={assistant.error}
+        categories={categories}
+        products={products}
+        promotions={promotions}
+        actions={assistant.actions}
+        onClose={assistant.actions.close}
+      />
     </main>
   );
 }

@@ -19,7 +19,7 @@ export type CartItem = {
   lineId: string;
   productId: string;
   image?: MenuImage;
-  variantKey?: string;
+  variantId?: string;
   baseName?: string;
   displayName?: string;
   name: string;
@@ -43,7 +43,7 @@ export type CartOrderDetails = OrderDraft;
 export type AddCartItemInput = {
   productId: string;
   image?: MenuImage;
-  variantKey?: string;
+  variantId?: string;
   baseName?: string;
   displayName?: string;
   name: string;

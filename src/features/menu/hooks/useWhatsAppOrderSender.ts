@@ -27,7 +27,7 @@ function toppingToMessageItem(topping: MenuOrderTopping): {
   name: string;
   price: number;
   quantity: number;
-  variantKey?: string;
+  variantId?: string;
   selectedOptions?: Record<string, string>;
   additionOptions?: Array<{ key: string; label: string; unitPrice: number }>;
 } {

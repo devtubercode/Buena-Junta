@@ -2,6 +2,7 @@ import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 import { useProductCustomization } from "@/shared/hooks/useProductCustomization";
 import { AdditionSelector } from "@/shared/components/product/AdditionSelector";
 import { OptionGroupSelector } from "@/shared/components/product/OptionGroupSelector";
@@ -15,6 +16,12 @@ import { Button } from "@/shared/components/Button";
 type ProductCustomizationFormProps = {
   product: MenuProduct;
   submitLabel?: string;
+  initial?: {
+    variantId?: string;
+    selectedOptions?: Record<string, string>;
+    selectedAdditions?: AdditionRow[];
+    quantity?: number;
+  };
   onSubmit: (output: ProductCustomizationOutput) => void;
   onClose: () => void;
 };
@@ -22,6 +29,7 @@ type ProductCustomizationFormProps = {
 export function ProductCustomizationForm({
   product,
   submitLabel = "Agregar",
+  initial,
   onSubmit,
   onClose,
 }: ProductCustomizationFormProps) {
@@ -42,7 +50,7 @@ export function ProductCustomizationForm({
     handleDecrement,
     handleSetQuantity,
     buildOutput,
-  } = useProductCustomization(product);
+  } = useProductCustomization(product, initial);
 
   const productImage = getProductImage(product);
   const discountInfo = getProductDiscountInfo(product);
@@ -78,7 +86,7 @@ export function ProductCustomizationForm({
           <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-background to-transparent" />
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start  px-2">
           <div className="hidden sm:relative sm:block sm:shrink-0">
             <img
               src={productImage.src}
@@ -117,7 +125,7 @@ export function ProductCustomizationForm({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto  pb-2 px-1">
+      <div className="min-h-0 flex-1 overflow-y-auto  py-2 px-1">
         <div className="flex flex-col gap-4">
           {hasCustomizations && (
             <>

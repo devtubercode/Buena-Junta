@@ -9,8 +9,10 @@ export type ProductCustomizationOutput = {
   quantity: number;
   /** Imagen del producto. */
   urlImage?: { src: string; alt: string };
-  /** Presentación / variante seleccionada. */
-  variantKey?: string;
+  /** ID de la variante seleccionada. */
+  variantId?: string;
+  /** Nombre visible de la variante seleccionada. */
+  variantLabel?: string;
   /** Opciones requeridas seleccionadas (grupo -> valor). */
   selectedOptions: Record<string, string>;
   /** Adiciones seleccionadas. */

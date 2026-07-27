@@ -1,16 +1,7 @@
 import { type ComponentType } from "react";
-import {
-  ClipboardList,
-  Coffee,
-  Cookie,
-  CupSoda,
-  Hamburger,
-  Pizza,
-  Popcorn,
-  Sandwich,
-} from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
-import { HotDogIcon } from "@/shared/icons";
+import { getCategoryIcon } from "@/shared/constants/category-icons";
 import type { IconProps } from "@/shared/icons/types";
 import type { MenuCategory } from "@/features/menu/types/menu.types";
 
@@ -26,18 +17,6 @@ type CategoryChipsProps = {
   onChange: (categorySlug: string | null) => void;
   includeAll?: boolean;
   extraChips?: ExtraChip[];
-};
-
-const categoryIcons: Record<string, ComponentType<IconProps>> = {
-  hamburguesas: Hamburger,
-  perros: HotDogIcon,
-  bebidas: CupSoda,
-  arepas: Cookie,
-  choriperro: HotDogIcon,
-  entradas: Popcorn,
-  pizzas: Pizza,
-  sandwich: Sandwich,
-  "bebidas-calientes": Coffee,
 };
 
 function CategoryChip({
@@ -83,7 +62,7 @@ export function CategoryChips({
         </CategoryChip>
 
         {categories.map((category) => {
-          const Icon = categoryIcons[category.slug] ?? ClipboardList;
+          const Icon = getCategoryIcon(category.slug);
 
           return (
             <CategoryChip

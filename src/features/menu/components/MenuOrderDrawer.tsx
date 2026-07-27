@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { X, ShoppingBag } from "lucide-react";
+import { X, ShoppingBag, Pizza, ClipboardList, ChefHat } from "lucide-react";
 import { CustomModal } from "@/shared/components/CustomModal";
+import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
 import { MenuOrderForm } from "@/features/menu/components/MenuOrderForm";
 import { MenuOrderSummary } from "@/features/menu/components/MenuOrderSummary";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/Button";
+import { useIsMobile } from "@/shared/hooks/useIsMobile";
 import type {
   MenuOrderItem,
   MenuOrderTopping,
@@ -23,10 +25,6 @@ type MenuOrderDrawerProps = {
 const formatItemDetails = (item: MenuOrderItem): string => {
   const parts: string[] = [];
 
-  if (item.variantKey) {
-    parts.push(item.variantKey);
-  }
-
   if (item.selectedOptions) {
     parts.push(...Object.values(item.selectedOptions));
   }
@@ -38,6 +36,7 @@ const formatItemDetails = (item: MenuOrderItem): string => {
   return parts.join(" · ");
 };
 
+// ── Product item card ────────────────────────────────────────────────
 const OrderItemRow = ({
   item,
   onIncrement,
@@ -56,44 +55,47 @@ const OrderItemRow = ({
   const details = formatItemDetails(item);
 
   return (
-    <li className="flex gap-3 py-3">
-      <img
-        src={image.src}
-        alt={image.alt}
-        className="size-12 shrink-0 rounded-md object-cover sm:size-14"
-        loading="lazy"
-        decoding="async"
-      />
-      <div className="flex min-w-0 flex-1 flex-col justify-between">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="truncate text-sm font-bold leading-tight text-foreground sm:text-base">
-              {item.name}
-            </h3>
-            {details ? (
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {details}
-              </p>
-            ) : null}
+    <li className="rounded-2xl border border-border bg-surface p-3 shadow-sm transition hover:shadow-md sm:p-3">
+      <div className="flex gap-3">
+        <img
+          src={image.src}
+          alt={image.alt}
+          className="size-14 shrink-0 rounded-xl border border-border object-cover sm:size-16"
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h3 className="line-clamp-1 font-heading text-sm font-black leading-tight text-foreground sm:text-base">
+                {item.name}
+              </h3>
+              {details ? (
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {details}
+                </p>
+              ) : null}
+            </div>
+            <span className="shrink-0 pt-0.5 font-heading text-sm font-black leading-none text-primary sm:text-base">
+              {formatCOP(item.price * item.quantity)}
+            </span>
           </div>
-          <span className="shrink-0 text-sm font-black text-foreground sm:text-base">
-            {formatCOP(item.price * item.quantity)}
-          </span>
-        </div>
-        <div className="mt-2 flex justify-end">
-          <QuantityStepper
-            quantity={item.quantity}
-            onIncrement={onIncrement}
-            onDecrement={onDecrement}
-            onRemove={onRemove}
-            itemName={item.name}
-          />
+          <div className="flex justify-end">
+            <QuantityStepper
+              quantity={item.quantity}
+              onIncrement={onIncrement}
+              onDecrement={onDecrement}
+              onRemove={onRemove}
+              itemName={item.name}
+            />
+          </div>
         </div>
       </div>
     </li>
   );
 };
 
+// ── Topping row ─────────────────────────────────────────────────────
 function ToppingRow({
   topping,
   onIncrement,
@@ -106,14 +108,19 @@ function ToppingRow({
   onRemove: () => void;
 }) {
   return (
-    <li className="flex items-center justify-between gap-3 py-3">
-      <div className="min-w-0">
-        <h3 className="truncate text-sm font-bold leading-tight text-foreground sm:text-base">
-          {topping.name}
-        </h3>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {formatCOP(topping.price)} c/u
-        </p>
+    <li className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 shadow-sm">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+          <Pizza className="size-4" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-bold text-foreground">
+            {topping.name}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {formatCOP(topping.price)} c/u
+          </p>
+        </div>
       </div>
       <QuantityStepper
         quantity={topping.quantity}
@@ -121,19 +128,23 @@ function ToppingRow({
         onDecrement={onDecrement}
         onRemove={onRemove}
         itemName={topping.name}
+        size="sm"
       />
     </li>
   );
 }
 
+// ── Drawer component ────────────────────────────────────────────────
 export function MenuOrderDrawer({
   isOpen,
   onClose,
   order,
 }: MenuOrderDrawerProps) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const isMobile = useIsMobile();
 
   const hasLines = order.items.length > 0 || order.toppings.length > 0;
+  const totalQuantity = order.totalQuantity;
 
   const handleSend = () => {
     setShowConfirm(false);
@@ -141,12 +152,45 @@ export function MenuOrderDrawer({
     onClose();
   };
 
+  const modalContentConfirm = (
+    <div>
+      <MenuOrderSummary
+        items={order.items}
+        toppings={order.toppings}
+        total={order.total}
+        totalQuantity={order.totalQuantity}
+      />
+      <div className="pt-3 sm:pt-4">
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="secondary"
+            radius="full"
+            size="lg"
+            fullWidth
+            onClick={() => setShowConfirm(false)}
+          >
+            Volver
+          </Button>
+          <Button
+            variant="primary"
+            radius="full"
+            size="lg"
+            fullWidth
+            onClick={handleSend}
+          >
+            Enviar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 z-1000 bg-black/50 transition-opacity duration-300",
+          "fixed inset-0 z-1000 bg-black/50 backdrop-blur-sm transition-opacity duration-300",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         onClick={onClose}
@@ -156,46 +200,72 @@ export function MenuOrderDrawer({
       {/* Drawer panel */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 z-1001 flex w-full flex-col bg-background shadow-elevated transition-transform duration-300 ease-out sm:max-w-md",
+          "fixed inset-y-0 right-0 z-1001 flex w-full flex-col bg-gradient-to-b from-background to-surface shadow-elevated transition-transform duration-300 ease-out sm:max-w-md",
           isOpen ? "translate-x-0" : "translate-x-full",
         )}
-        aria-label="Pedido"
+        aria-label="Tu pedido"
       >
-        {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-lg font-black text-foreground">Tu pedido</h2>
+        {/* ── Header ─────────────────────────────────────── */}
+        <header className="flex shrink-0 items-center justify-between border-b border-border bg-surface/80 px-4 py-3 backdrop-blur-sm sm:px-5">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary-soft text-primary">
+              <ShoppingBag className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="font-heading text-xl font-black leading-none text-foreground">
+                Tu pedido
+              </h2>
+              {hasLines ? (
+                <p className="mt-0.5 text-xs font-bold text-muted-foreground">
+                  {totalQuantity}{" "}
+                  {totalQuantity === 1 ? "producto" : "productos"}
+                </p>
+              ) : null}
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar pedido"
-            className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-black/5 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            <X className="size-5" />
+            <X className="size-4" />
           </button>
-        </div>
+        </header>
 
-        {/* Content - scrollable */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4">
+        {/* ── Scrollable content ─────────────────────────── */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {!hasLines ? (
-            <div className="flex h-full flex-col items-center justify-center py-12 text-center">
-              <div className="mb-4 inline-flex rounded-full bg-surface p-4">
-                <ShoppingBag
-                  className="size-10 text-muted-foreground"
-                  aria-hidden="true"
-                />
+            /* ── Empty state ─────────────────────────────── */
+            <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
+              <div className="relative mx-auto mb-6 inline-flex size-20 items-center justify-center">
+                <div className="absolute inset-0 animate-[spin_8s_linear_infinite] rounded-full border-2 border-dashed border-primary/20" />
+                <span className="relative inline-flex size-16 items-center justify-center rounded-full bg-primary-soft text-primary">
+                  <ShoppingBag className="size-8" aria-hidden="true" />
+                </span>
               </div>
-              <h3 className="text-lg font-black text-foreground">
+
+              <h3 className="font-heading text-2xl font-black leading-tight text-foreground">
                 Tu pedido está vacío
               </h3>
-              <p className="mt-1 max-w-48 text-sm text-muted-foreground">
-                Agrega productos del menú para armar tu pedido
+              <p className="mt-2 max-w-56 text-sm leading-relaxed text-muted-foreground">
+                Agrega productos del menú para armar tu pedido. Te lo preparamos
+                con mucho cariño.
               </p>
+
+              <div className="mt-8 flex items-center justify-center gap-3 self-stretch text-muted-foreground/30">
+                <span className="h-px flex-1 bg-border" />
+                <ChefHat className="size-4" aria-hidden="true" />
+                <span className="h-px flex-1 bg-border" />
+              </div>
             </div>
           ) : (
-            <div className="py-2">
+            /* ── Order content ───────────────────────────── */
+            <div className="flex flex-col gap-4 p-4 sm:p-5">
+              {/* Products section */}
               {order.items.length > 0 && (
-                <section aria-label="Productos en el carrito" className="max-h-[50vh] overflow-y-auto">
-                  <ul className="divide-y divide-border">
+                <section aria-label="Productos en el carrito">
+                  <ul className="flex flex-col gap-2">
                     {order.items.map((item) => (
                       <OrderItemRow
                         key={item.lineId}
@@ -213,12 +283,17 @@ export function MenuOrderDrawer({
                 </section>
               )}
 
+              {/* Toppings section */}
               {order.toppings.length > 0 && (
-                <section className="mt-4" aria-label="Toppings en el carrito">
-                  <h3 className="mb-1 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Toppings
+                <section aria-label="Toppings en el carrito">
+                  <h3 className="mb-2 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                    <Pizza className="size-3.5" aria-hidden="true" />
+                    Toppings extra
+                    <span className="ml-auto rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-black text-primary">
+                      {order.toppings.length}
+                    </span>
                   </h3>
-                  <ul className="divide-y divide-border">
+                  <ul className="flex flex-col gap-2">
                     {order.toppings.map((topping) => (
                       <ToppingRow
                         key={topping.id}
@@ -236,66 +311,67 @@ export function MenuOrderDrawer({
                 </section>
               )}
 
-              <div className="mt-4 border-t border-border pt-4">
-                <div className="grid gap-3">
+              {/* Section divider */}
+              <hr className="border-border" />
+
+              {/* Order form section */}
+              <section aria-label="Datos del pedido">
+                <h3 className="mb-2 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  <ClipboardList className="size-3.5" aria-hidden="true" />
+                  Datos de entrega
+                </h3>
+                <div className="rounded-2xl border border-border bg-surface p-3 shadow-sm sm:p-4">
                   <MenuOrderForm
                     orderDetails={order.orderDetails}
                     onChangeField={order.actions.updateOrderDetail}
-                    compact={false}
                   />
-                  <button
-                    type="button"
-                    disabled={!order.canSendOrder}
-                    onClick={() => setShowConfirm(true)}
-                    className="inline-flex min-h-12 w-full items-center justify-between gap-2 rounded-xl bg-green-600 px-4 text-sm font-black text-white shadow-md transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:cursor-not-allowed disabled:bg-muted-foreground/30 disabled:text-muted-foreground disabled:shadow-none"
-                  >
-                    <span>Enviar pedido</span>
-                    <span className="rounded-lg bg-white/20 px-2 py-1 text-base">
-                      {formatCOP(order.total)}
-                    </span>
-                  </button>
                 </div>
-              </div>
+              </section>
+
+              {/* Send button */}
+              <Button
+                variant="primary"
+                radius="full"
+                size="lg"
+                fullWidth
+                disabled={!order.canSendOrder}
+                onClick={() => setShowConfirm(true)}
+                className="min-h-14 text-base shadow-elevated"
+              >
+                <span className="flex w-full items-center justify-between gap-2">
+                  <span>Enviar pedido</span>
+                  <span className="rounded-full bg-white/20 px-3 py-1 font-heading text-base font-black leading-none text-primary-foreground">
+                    {formatCOP(order.total)}
+                  </span>
+                </span>
+              </Button>
             </div>
           )}
         </div>
       </aside>
 
-      {/* Confirmation modal */}
-      <CustomModal
-        isOpen={showConfirm}
-        title="¿Enviar pedido por WhatsApp?"
-        description="Revisa productos, datos de entrega y pago antes de continuar. Se abrirá WhatsApp con mensaje listo."
-        onClose={() => setShowConfirm(false)}
-      >
-        <div className="grid gap-3 p-3 sm:p-4">
-          <MenuOrderSummary
-            total={order.total}
-            totalQuantity={order.totalQuantity}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="secondary"
-              radius="full"
-              size="lg"
-              fullWidth
-              onClick={() => setShowConfirm(false)}
-            >
-              Volver
-            </Button>
-            <Button
-              variant="primary"
-              radius="full"
-              size="lg"
-              fullWidth
-              onClick={handleSend}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              Enviar
-            </Button>
-          </div>
-        </div>
-      </CustomModal>
+      {/* ── Confirmation modal ──────────────────────────── */}
+      {isMobile ? (
+        <ButtonSheetModal
+          isOpen={showConfirm}
+          title="¿Enviar pedido por WhatsApp?"
+          description="Revisa productos, datos de entrega y pago antes de continuar. Se abrirá WhatsApp con mensaje listo."
+          onClose={() => setShowConfirm(false)}
+          scrollable={false}
+        >
+          {modalContentConfirm}
+        </ButtonSheetModal>
+      ) : (
+        <CustomModal
+          isOpen={showConfirm}
+          title="¿Enviar pedido por WhatsApp?"
+          description="Revisa productos, datos de entrega y pago antes de continuar. Se abrirá WhatsApp con mensaje listo."
+          onClose={() => setShowConfirm(false)}
+          scrollable={false}
+        >
+          {modalContentConfirm}
+        </CustomModal>
+      )}
     </>
   );
 }
