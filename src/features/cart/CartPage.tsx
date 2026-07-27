@@ -10,7 +10,7 @@ import { useCartPage } from "@/features/cart/hooks/useCartPage";
 import { ChevronLeft } from "lucide-react";
 
 export const CartPage = () => {
-  const { items, orderDraft, total, totalQuantity, actions } = useCartPage();
+  const { items, orderDetails, total, totalQuantity, actions } = useCartPage();
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8 lg:py-8">
@@ -37,7 +37,7 @@ export const CartPage = () => {
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1fr_420px] lg:items-start">
           <section
-            className="grid gap-3 sm:gap-4"
+            className="grid gap-3 sm:gap-4 max-h-[60vh] overflow-y-auto"
             aria-label="Productos en el carrito"
           >
             {items.map((item) => (
@@ -57,8 +57,8 @@ export const CartPage = () => {
           <aside className="grid gap-4 lg:sticky lg:top-24">
             <OrderSummary total={total} totalQuantity={totalQuantity} />
             <CustomerOrderForm
-              draft={orderDraft}
-              onChange={actions.updateOrderDraft}
+              orderDetails={orderDetails}
+              onChangeField={actions.updateOrderDetail}
             />
             <CartCheckout onClearCart={actions.clearCart} />
           </aside>

@@ -38,6 +38,8 @@ export type OrderDraft = {
   generalObservation: string;
 };
 
+export type CartOrderDetails = OrderDraft;
+
 export type AddCartItemInput = {
   productId: string;
   image?: MenuImage;

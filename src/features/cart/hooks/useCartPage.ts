@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useCartStore } from "@/store/cart/useCartStore";
 import { notify } from "@/shared/notifications/notify";
 import { formatProductName } from "@/shared/utils/formatProductName";
-import type { CartItem, OrderDraft } from "@/features/cart/types/cart.types";
+import type { CartItem, CartOrderDetails } from "@/features/cart/types/cart.types";
 
 export type CartItemHandler = (item: CartItem) => void;
 export type CartItemQuantityHandler = (
@@ -12,7 +12,7 @@ export type CartItemQuantityHandler = (
 
 export type CartPageState = {
   items: CartItem[];
-  orderDraft: OrderDraft;
+  orderDetails: CartOrderDetails;
   total: number;
   totalQuantity: number;
   actions: {
@@ -21,18 +21,21 @@ export type CartPageState = {
     updateQuantity: CartItemQuantityHandler;
     remove: CartItemHandler;
     clearCart: () => void;
-    updateOrderDraft: (draft: Partial<OrderDraft>) => void;
+    updateOrderDetail: <K extends keyof CartOrderDetails>(
+      key: K,
+      value: CartOrderDetails[K],
+    ) => void;
   };
 };
 
 export function useCartPage(): CartPageState {
   const items = useCartStore((state) => state.items);
-  const orderDraft = useCartStore((state) => state.orderDraft);
+  const orderDetails = useCartStore((state) => state.orderDetails);
   const removeItem = useCartStore((state) => state.removeItem);
   const incrementItem = useCartStore((state) => state.incrementItem);
   const decrementItem = useCartStore((state) => state.decrementItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const updateOrderDraft = useCartStore((state) => state.updateOrderDraft);
+  const updateOrderDetail = useCartStore((state) => state.updateOrderDetail);
   const clearCart = useCartStore((state) => state.clearCart);
   const total = useCartStore((state) => state.getTotal());
   const totalQuantity = useCartStore((state) => state.getTotalQuantity());
@@ -69,7 +72,7 @@ export function useCartPage(): CartPageState {
 
   return {
     items,
-    orderDraft,
+    orderDetails,
     total,
     totalQuantity,
     actions: {
@@ -78,7 +81,7 @@ export function useCartPage(): CartPageState {
       updateQuantity: updateItemQuantity,
       remove,
       clearCart: clear,
-      updateOrderDraft,
+      updateOrderDetail,
     },
   };
 }

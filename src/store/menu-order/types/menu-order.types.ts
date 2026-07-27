@@ -42,14 +42,32 @@ export type MenuOrderTopping = {
   quantity: number;
 };
 
+export type MenuOrderFulfillmentType = "pickup" | "table" | "delivery";
+
+export type MenuOrderPaymentMethod = "cash" | "nequi";
+
+export type MenuOrderDetails = {
+  /** Nombre del cliente que realiza el pedido. */
+  customerName: string;
+  /** Modalidad de entrega del pedido. */
+  fulfillmentType: MenuOrderFulfillmentType;
+  /** Número o referencia de mesa cuando aplica. */
+  table: string;
+  /** Dirección del domicilio cuando aplica. */
+  deliveryAddress: string;
+  /** Referencia adicional para encontrar domicilio. */
+  deliveryReference: string;
+  /** Método de pago elegido por cliente. */
+  paymentMethod: MenuOrderPaymentMethod;
+  /** Observaciones generales del pedido. */
+  generalObservation: string;
+};
 
 export type MenuOrderState = {
   /** Productos del pedido. */
   items: MenuOrderItem[];
   /** Toppings globales del pedido. */
   toppings: MenuOrderTopping[];
-  /** Nombre del cliente que realiza el pedido. */
-  customerName: string;
-  /** Observaciones generales del pedido. */
-  generalObservation: string;
+  /** Datos del formulario del pedido. */
+  orderDetails: MenuOrderDetails;
 };

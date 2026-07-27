@@ -3,6 +3,7 @@ import { useMenuOrderStore } from "@/store/menu-order/useMenuOrderStore";
 import { useWhatsAppOrderSender } from "@/features/menu/hooks/useWhatsAppOrderSender";
 import type {
   AddMenuOrderItemInput,
+  MenuOrderDetails,
   MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
 
@@ -19,10 +20,7 @@ import type {
 export function useMenuOrder() {
   const items = useMenuOrderStore((state) => state.items);
   const toppings = useMenuOrderStore((state) => state.toppings);
-  const customerName = useMenuOrderStore((state) => state.customerName);
-  const generalObservation = useMenuOrderStore(
-    (state) => state.generalObservation,
-  );
+  const orderDetails = useMenuOrderStore((state) => state.orderDetails);
 
   const total = useMemo(
     () =>
@@ -38,13 +36,23 @@ export function useMenuOrder() {
     [items, toppings],
   );
 
+  const { customerName, fulfillmentType, table, deliveryAddress } = orderDetails;
+
   const validationError = useMemo(() => {
     if (!customerName.trim()) {
-      return "Escribe el nombre del responsable del pedido.";
+      return "Escribe nombre de quien hace pedido.";
+    }
+
+    if (fulfillmentType === "table" && !table.trim()) {
+      return "Escribe número o referencia de mesa.";
+    }
+
+    if (fulfillmentType === "delivery" && !deliveryAddress.trim()) {
+      return "Escribe dirección de entrega para domicilio.";
     }
 
     return null;
-  }, [customerName]);
+  }, [customerName, deliveryAddress, fulfillmentType, table]);
 
   const canSendOrder = validationError === null;
 
@@ -91,13 +99,25 @@ export function useMenuOrder() {
     [],
   );
 
-  const updateCustomerName = useCallback((name: string) => {
-    useMenuOrderStore.getState().updateCustomerName(name);
-  }, []);
+  const updateOrderDetail = useCallback(
+    <K extends keyof MenuOrderDetails>(key: K, value: MenuOrderDetails[K]) => {
+      useMenuOrderStore.getState().updateOrderDetail(key, value);
+    },
+    [],
+  );
 
-  const updateGeneralObservation = useCallback((observation: string) => {
-    useMenuOrderStore.getState().updateGeneralObservation(observation);
-  }, []);
+  const updateOrderDetails = useCallback(
+    (draft: Partial<MenuOrderDetails>) => {
+      const store = useMenuOrderStore.getState();
+
+      for (const [key, value] of Object.entries(draft) as Array<
+        [keyof MenuOrderDetails, MenuOrderDetails[keyof MenuOrderDetails]]
+      >) {
+        store.updateOrderDetail(key, value);
+      }
+    },
+    [],
+  );
 
   const clearOrder = useCallback(() => {
     useMenuOrderStore.getState().clearOrder();
@@ -109,9 +129,9 @@ export function useMenuOrder() {
   const { sendOrder } = useWhatsAppOrderSender({
     items,
     toppings,
-    customerName,
-    generalObservation,
+    orderDetails,
     total,
+    totalQuantity,
     clearOrder,
   });
 
@@ -120,8 +140,7 @@ export function useMenuOrder() {
     toppings,
     total,
     totalQuantity,
-    customerName,
-    generalObservation,
+    orderDetails,
     canSendOrder,
     actions: {
       addItem,
@@ -134,8 +153,8 @@ export function useMenuOrder() {
       decrementTopping,
       updateItemQuantity,
       updateToppingQuantity,
-      updateCustomerName,
-      updateGeneralObservation,
+      updateOrderDetail,
+      updateOrderDetails,
       clearOrder,
     },
     sendOrder,

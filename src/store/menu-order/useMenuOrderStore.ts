@@ -2,15 +2,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type {
   AddMenuOrderItemInput,
-  MenuOrderItem,
+  MenuOrderDetails,
+  MenuOrderState,
   MenuOrderTopping,
 } from "./types/menu-order.types";
 
-type MenuOrderStore = {
-  items: MenuOrderItem[];
-  toppings: MenuOrderTopping[];
-  customerName: string;
-  generalObservation: string;
+type MenuOrderStore = MenuOrderState & {
   addItem: (input: AddMenuOrderItemInput) => void;
   addTopping: (input: MenuOrderTopping) => void;
   removeItem: (lineId: string) => void;
@@ -21,8 +18,10 @@ type MenuOrderStore = {
   decrementTopping: (id: string) => void;
   updateItemQuantity: (lineId: string, quantity: number) => void;
   updateToppingQuantity: (id: string, quantity: number) => void;
-  updateCustomerName: (name: string) => void;
-  updateGeneralObservation: (observation: string) => void;
+  updateOrderDetail: <K extends keyof MenuOrderDetails>(
+    key: K,
+    value: MenuOrderDetails[K],
+  ) => void;
   clearOrder: () => void;
   getTotal: () => number;
   getTotalQuantity: () => number;
@@ -30,12 +29,53 @@ type MenuOrderStore = {
 
 const STORAGE_KEY = "buenajunta-menu-order";
 
-const emptyState = {
-  items: [],
-  toppings: [],
+const emptyOrderDetails: MenuOrderDetails = {
   customerName: "",
+  fulfillmentType: "pickup",
+  table: "",
+  deliveryAddress: "",
+  deliveryReference: "",
+  paymentMethod: "cash",
   generalObservation: "",
 };
+
+const emptyState: MenuOrderState = {
+  items: [],
+  toppings: [],
+  orderDetails: emptyOrderDetails,
+};
+
+function normalizeOrderDetails(
+  details: MenuOrderDetails,
+  nextKey?: keyof MenuOrderDetails,
+): MenuOrderDetails {
+  if (nextKey !== "fulfillmentType") {
+    return details;
+  }
+
+  switch (details.fulfillmentType) {
+    case "pickup":
+      return {
+        ...details,
+        table: "",
+        deliveryAddress: "",
+        deliveryReference: "",
+      };
+    case "table":
+      return {
+        ...details,
+        deliveryAddress: "",
+        deliveryReference: "",
+      };
+    case "delivery":
+      return {
+        ...details,
+        table: "",
+      };
+    default:
+      return details;
+  }
+}
 
 function normalizeAdditionKeys(
   additionOptions?: AddMenuOrderItemInput["additionOptions"],
@@ -262,11 +302,16 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           toppings: updateToppingQuantity(state.toppings, id, quantity),
         }));
       },
-      updateCustomerName: (name) => {
-        set({ customerName: name });
-      },
-      updateGeneralObservation: (observation) => {
-        set({ generalObservation: observation });
+      updateOrderDetail: (key, value) => {
+        set((state) => ({
+          orderDetails: normalizeOrderDetails(
+            {
+              ...state.orderDetails,
+              [key]: value,
+            },
+            key,
+          ),
+        }));
       },
       clearOrder: () => {
         set({ ...emptyState });
@@ -299,12 +344,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 2,
+      version: 4,
       partialize: (state) => ({
         items: state.items,
         toppings: state.toppings,
-        customerName: state.customerName,
-        generalObservation: state.generalObservation,
+        orderDetails: state.orderDetails,
       }),
     },
   ),
