@@ -2,14 +2,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type {
   AddCartItemInput,
+  CartOrderDetails,
   CartItem,
-  OrderDraft,
   UpdateCartItemVariantResult,
 } from "@/features/cart/types/cart.types";
 
 type CartState = {
   items: CartItem[];
-  orderDraft: OrderDraft;
+  orderDetails: CartOrderDetails;
   addItem: (item: AddCartItemInput) => void;
   removeItem: (lineId: string) => void;
   incrementItem: (lineId: string) => void;
@@ -19,7 +19,10 @@ type CartState = {
     lineId: string,
     variantKey: string,
   ) => UpdateCartItemVariantResult;
-  updateOrderDraft: (draft: Partial<OrderDraft>) => void;
+  updateOrderDetail: <K extends keyof CartOrderDetails>(
+    key: K,
+    value: CartOrderDetails[K],
+  ) => void;
   clearCart: () => void;
   clearCurrentOrder: () => void;
   getItemSubtotal: (lineId: string) => number;
@@ -27,7 +30,7 @@ type CartState = {
   getTotalQuantity: () => number;
 };
 
-const emptyOrderDraft: OrderDraft = {
+const emptyOrderDetails: CartOrderDetails = {
   customerName: "",
   table: "",
   generalObservation: "",
@@ -88,7 +91,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      orderDraft: emptyOrderDraft,
+      orderDetails: emptyOrderDetails,
       addItem: (item) => {
         const quantity = sanitizeQuantity(item.quantity ?? 1);
         const lineId = buildLineId(item);
@@ -214,14 +217,19 @@ export const useCartStore = create<CartState>()(
 
         return { status: "updated" };
       },
-      updateOrderDraft: (draft) => {
-        set((state) => ({ orderDraft: { ...state.orderDraft, ...draft } }));
+      updateOrderDetail: (key, value) => {
+        set((state) => ({
+          orderDetails: {
+            ...state.orderDetails,
+            [key]: value,
+          },
+        }));
       },
       clearCart: () => {
         set({ items: [] });
       },
       clearCurrentOrder: () => {
-        set({ items: [], orderDraft: emptyOrderDraft });
+        set({ items: [], orderDetails: emptyOrderDetails });
       },
       getItemSubtotal: (lineId) => {
         const item = get().items.find((cartItem) => cartItem.lineId === lineId);
@@ -237,15 +245,15 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "buenajunta-cart",
-      version: 5,
+      version: 6,
       partialize: (state) => ({
         items: state.items,
-        orderDraft: state.orderDraft,
+        orderDetails: state.orderDetails,
       }),
       migrate: () => {
         return {
           items: [],
-          orderDraft: emptyOrderDraft,
+          orderDetails: emptyOrderDetails,
         } as unknown as CartState;
       },
     },

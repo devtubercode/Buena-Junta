@@ -174,7 +174,7 @@ export function MenuOrderDrawer({
           </button>
         </div>
 
-        {/* Items - scrollable */}
+        {/* Content - scrollable */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4">
           {!hasLines ? (
             <div className="flex h-full flex-col items-center justify-center py-12 text-center">
@@ -194,7 +194,7 @@ export function MenuOrderDrawer({
           ) : (
             <div className="py-2">
               {order.items.length > 0 && (
-                <section aria-label="Productos en el carrito">
+                <section aria-label="Productos en el carrito" className="max-h-[50vh] overflow-y-auto">
                   <ul className="divide-y divide-border">
                     {order.items.map((item) => (
                       <OrderItemRow
@@ -235,46 +235,37 @@ export function MenuOrderDrawer({
                   </ul>
                 </section>
               )}
+
+              <div className="mt-4 border-t border-border pt-4">
+                <div className="grid gap-3">
+                  <MenuOrderForm
+                    orderDetails={order.orderDetails}
+                    onChangeField={order.actions.updateOrderDetail}
+                    compact={false}
+                  />
+                  <button
+                    type="button"
+                    disabled={!order.canSendOrder}
+                    onClick={() => setShowConfirm(true)}
+                    className="inline-flex min-h-12 w-full items-center justify-between gap-2 rounded-xl bg-green-600 px-4 text-sm font-black text-white shadow-md transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:cursor-not-allowed disabled:bg-muted-foreground/30 disabled:text-muted-foreground disabled:shadow-none"
+                  >
+                    <span>Enviar pedido</span>
+                    <span className="rounded-lg bg-white/20 px-2 py-1 text-base">
+                      {formatCOP(order.total)}
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Footer - compact sticky */}
-        {hasLines && (
-          <div className="shrink-0 border-t border-border bg-background p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-            <div className="grid gap-3">
-              <MenuOrderForm
-                customerName={order.customerName}
-                generalObservation={order.generalObservation}
-                onChangeName={(customerName) =>
-                  order.actions.updateCustomerName(customerName)
-                }
-                onChangeObservation={(generalObservation) =>
-                  order.actions.updateGeneralObservation(generalObservation)
-                }
-                compact={false}
-              />
-              <button
-                type="button"
-                disabled={!order.canSendOrder}
-                onClick={() => setShowConfirm(true)}
-                className="inline-flex min-h-12 w-full items-center justify-between gap-2 rounded-xl bg-green-600 px-4 text-sm font-black text-white shadow-md transition hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:cursor-not-allowed disabled:bg-muted-foreground/30 disabled:text-muted-foreground disabled:shadow-none"
-              >
-                <span>Enviar pedido</span>
-                <span className="rounded-lg bg-white/20 px-2 py-1 text-base">
-                  {formatCOP(order.total)}
-                </span>
-              </button>
-            </div>
-          </div>
-        )}
       </aside>
 
       {/* Confirmation modal */}
       <CustomModal
         isOpen={showConfirm}
         title="¿Enviar pedido por WhatsApp?"
-        description="Revisa los productos y el responsable antes de continuar. Se abrirá WhatsApp con el mensaje listo."
+        description="Revisa productos, datos de entrega y pago antes de continuar. Se abrirá WhatsApp con mensaje listo."
         onClose={() => setShowConfirm(false)}
       >
         <div className="grid gap-3 p-3 sm:p-4">

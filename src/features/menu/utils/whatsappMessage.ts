@@ -1,4 +1,9 @@
 import { formatCOP } from "@/features/cart/utils/money";
+import type {
+  MenuOrderDetails,
+  MenuOrderFulfillmentType,
+  MenuOrderPaymentMethod,
+} from "@/store/menu-order/types/menu-order.types";
 import { formatProductName } from "@/shared/utils/formatProductName";
 
 const WHATSAPP_PHONE = "573174263716";
@@ -12,16 +17,13 @@ type WhatsAppMessageItem = {
   additionOptions?: Array<{ key: string; label: string; unitPrice: number }>;
 };
 
-type WhatsAppMessageDraft = {
-  customerName: string;
-  generalObservation: string;
-  table?: string;
-};
+type WhatsAppMessageDraft = MenuOrderDetails;
 
 type BuildWhatsAppMessageInput = {
   items: WhatsAppMessageItem[];
   orderDraft: WhatsAppMessageDraft;
   total: number;
+  totalQuantity: number;
 };
 
 type CompactLine = string | false | null | undefined;
@@ -39,7 +41,7 @@ function formatSelectedOptions(item: WhatsAppMessageItem): string | false {
     .map(([groupName, optionName]) => `${groupName}: ${optionName}`)
     .join(", ");
 
-  return `   Opciones: ${options}`;
+  return `   *Opciones:* ${options}`;
 }
 
 function formatAdditions(item: WhatsAppMessageItem): string | false {
@@ -51,7 +53,7 @@ function formatAdditions(item: WhatsAppMessageItem): string | false {
     .map((addition) => `${addition.label} (${formatCOP(addition.unitPrice)})`)
     .join(", ");
 
-  return `   Acompañantes: ${additions}`;
+  return `   *Acompañantes:* ${additions}`;
 }
 
 function formatProductLine(item: WhatsAppMessageItem, index: number): string {
@@ -59,14 +61,13 @@ function formatProductLine(item: WhatsAppMessageItem, index: number): string {
   const subtotal = item.price * item.quantity;
 
   return compactLines([
-    `${index + 1}. ${productName}`,
+    `*${index + 1}. ${productName} x${item.quantity}*`,
     item.variantKey?.trim()
-      ? `   Presentación: ${item.variantKey.trim()}`
+      ? `   *Presentación:* ${item.variantKey.trim()}`
       : false,
     formatSelectedOptions(item),
-    `   Cantidad: ${item.quantity}`,
-    `   Precio unitario: ${formatCOP(item.price)}`,
-    `   Subtotal: ${formatCOP(subtotal)}`,
+    `   *Unit:* ${formatCOP(item.price)}`,
+    `   *Subtotal:* ${formatCOP(subtotal)}`,
     formatAdditions(item),
   ]);
 }
@@ -78,13 +79,57 @@ function formatOrderNotes(orderDraft: WhatsAppMessageDraft): CompactLine[] {
     return [];
   }
 
-  return ["", "Observaciones del pedido:", observation];
+  return ["", "📌 *Observaciones*", observation];
+}
+
+function formatFulfillmentType(type: MenuOrderFulfillmentType): string {
+  switch (type) {
+    case "table":
+      return "En mesa";
+    case "delivery":
+      return "Domicilio";
+    case "pickup":
+    default:
+      return "Recoger";
+  }
+}
+
+function formatPaymentMethod(method: MenuOrderPaymentMethod): string {
+  switch (method) {
+    case "nequi":
+      return "QR Nequi";
+    case "cash":
+    default:
+      return "Pago físico";
+  }
+}
+
+function formatFulfillmentDetails(
+  orderDraft: WhatsAppMessageDraft,
+): CompactLine[] {
+  const table = orderDraft.table?.trim() ?? "";
+  const deliveryAddress = orderDraft.deliveryAddress?.trim() ?? "";
+  const deliveryReference = orderDraft.deliveryReference?.trim() ?? "";
+
+  return [
+    `*Entrega:* ${formatFulfillmentType(orderDraft.fulfillmentType)}`,
+    orderDraft.fulfillmentType === "table" && table
+      ? `*Mesa:* ${table}`
+      : false,
+    orderDraft.fulfillmentType === "delivery" && deliveryAddress
+      ? `*Dirección:* ${deliveryAddress}`
+      : false,
+    orderDraft.fulfillmentType === "delivery" && deliveryReference
+      ? `*Referencia:* ${deliveryReference}`
+      : false,
+  ];
 }
 
 export function buildWhatsAppOrderMessage({
   items,
   orderDraft,
   total,
+  totalQuantity,
 }: BuildWhatsAppMessageInput): string {
   if (items.length === 0) {
     throw new Error("No se puede generar el mensaje: el carrito está vacío.");
@@ -94,21 +139,32 @@ export function buildWhatsAppOrderMessage({
     throw new Error("No se puede generar el mensaje: el total no es válido.");
   }
 
-  const customerName = orderDraft.customerName.trim() || "Sin responsable";
-  const table = orderDraft.table?.trim() ?? "";
+  if (!Number.isFinite(totalQuantity)) {
+    throw new Error(
+      "No se puede generar el mensaje: la cantidad no es válida.",
+    );
+  }
+
+  const customerName = orderDraft.customerName.trim() || "Sin nombre";
   const productLines = items.map(formatProductLine).join("\n\n");
 
   return compactLines([
-    "*Pedido Buena Junta*",
+    "✅ *Nuevo pedido desde web*",
     "",
-    `Responsable: ${customerName}`,
-    table ? `Mesa: ${table}` : false,
+    "Hola, quiero hacer este pedido:",
     "",
-    "*Productos*",
+    "📝 *Datos del pedido*",
+    `*Nombre:* ${customerName}`,
+    ...formatFulfillmentDetails(orderDraft),
+    `*Pago:* ${formatPaymentMethod(orderDraft.paymentMethod)}`,
+    "",
+    "🛒 *Productos*",
     productLines,
     ...formatOrderNotes(orderDraft),
     "",
-    `*Total: ${formatCOP(total)}*`,
+    "📄 *Resumen*",
+    `*Productos:* ${totalQuantity}`,
+    `*Total:* ${formatCOP(total)}`,
   ]);
 }
 

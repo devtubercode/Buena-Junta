@@ -5,6 +5,7 @@ import {
 } from "@/features/menu/utils/whatsappMessage";
 import { notify } from "@/shared/notifications/notify";
 import type {
+  MenuOrderDetails,
   MenuOrderItem,
   MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
@@ -12,9 +13,9 @@ import type {
 type UseWhatsAppOrderSenderInput = {
   items: MenuOrderItem[];
   toppings: MenuOrderTopping[];
-  customerName: string;
-  generalObservation: string;
+  orderDetails: MenuOrderDetails;
   total: number;
+  totalQuantity: number;
   clearOrder: () => void;
 };
 
@@ -58,9 +59,9 @@ function isMobileDevice(): boolean {
 export function useWhatsAppOrderSender({
   items,
   toppings,
-  customerName,
-  generalObservation,
+  orderDetails,
   total,
+  totalQuantity,
   clearOrder,
 }: UseWhatsAppOrderSenderInput): UseWhatsAppOrderSenderResult {
   const sendOrder = useCallback(() => {
@@ -68,12 +69,9 @@ export function useWhatsAppOrderSender({
       const url = buildWhatsAppUrl(
         buildWhatsAppOrderMessage({
           items: [...items, ...toppings.map(toppingToMessageItem)],
-          orderDraft: {
-            customerName,
-            table: "",
-            generalObservation,
-          },
+          orderDraft: orderDetails,
           total,
+          totalQuantity,
         }),
       );
 
@@ -99,7 +97,14 @@ export function useWhatsAppOrderSender({
         "No pudimos preparar el mensaje de WhatsApp. Intenta de nuevo.",
       );
     }
-  }, [items, toppings, customerName, generalObservation, total, clearOrder]);
+  }, [
+    items,
+    toppings,
+    orderDetails,
+    total,
+    totalQuantity,
+    clearOrder,
+  ]);
 
   return { sendOrder };
 }
