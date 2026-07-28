@@ -1,5 +1,6 @@
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import type { Promotion } from "@/features/home/types/promotion.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 import type {
   ItemConfigurationStatus,
   SuggestedOrder,
@@ -91,7 +92,7 @@ function getDefaultOptions(
 }
 
 function buildPromotionItem(promotion: Promotion): SuggestedOrderItem {
-  const lineId = `promo-${promotion.slug}`;
+  const lineId = `promo-${promotion.id}`;
   return {
     lineId,
     productId: lineId,
@@ -106,6 +107,25 @@ function buildPromotionItem(promotion: Promotion): SuggestedOrderItem {
     quantity: 1,
     unitPrice: promotion.promotionPrice,
     subtotal: promotion.promotionPrice,
+    configurationStatus: "complete" as ItemConfigurationStatus,
+    isValid: true,
+  };
+}
+
+function buildToppingItem(addition: AdditionRow): SuggestedOrderItem {
+  const lineId = `topping-${addition.id}`;
+  return {
+    lineId,
+    productId: lineId,
+    productName: addition.name,
+    urlImage: undefined,
+    variantId: undefined,
+    variantLabel: undefined,
+    selectedOptions: {},
+    additionOptions: [],
+    quantity: 1,
+    unitPrice: addition.price,
+    subtotal: addition.price,
     configurationStatus: "complete" as ItemConfigurationStatus,
     isValid: true,
   };
@@ -192,11 +212,35 @@ function seededShuffle<T>(array: T[], seed: number): T[] {
   return result;
 }
 
+function ensurePreferredCategories(
+  selections: ProductSelection[],
+  available: MenuProduct[],
+  preferredSlugs: string[],
+): void {
+  const representedCategories = new Set(
+    selections.map((s) => s.product.category?.slug).filter(Boolean),
+  );
+
+  for (const slug of preferredSlugs) {
+    if (!representedCategories.has(slug)) {
+      const missingProduct = available.find(
+        (p) =>
+          p.category?.slug === slug &&
+          !selections.some((s) => s.product.id === p.id),
+      );
+      if (missingProduct) {
+        selections.push({ product: missingProduct, quantity: 1, isShared: false });
+      }
+    }
+  }
+}
+
 function selectProducts(
   available: MenuProduct[],
   peopleCount: number,
   hasSharedItem: boolean,
   iteration: number = 0,
+  preferredCategorySlugs: string[] = [],
 ): ProductSelection[] {
   if (available.length === 0) return [];
 
@@ -211,6 +255,8 @@ function selectProducts(
   const maxItems = available.length * 2;
   totalItems = Math.min(totalItems, maxItems);
 
+  let result: ProductSelection[];
+
   if (hasSharedItem && candidates.length > 0) {
     const shareCandidate =
       candidates.find((p) => isLikelyShared(p)) ??
@@ -222,13 +268,19 @@ function selectProducts(
     const remaining = Math.max(0, totalItems - 1);
     const distribution = distributeItems(pool, remaining);
 
-    return [
+    result = [
       { product: shareCandidate, quantity: 1, isShared: true },
       ...distribution,
     ];
+  } else {
+    result = distributeItems(candidates, totalItems);
   }
 
-  return distributeItems(candidates, totalItems);
+  if (preferredCategorySlugs.length > 0) {
+    ensurePreferredCategories(result, available, preferredCategorySlugs);
+  }
+
+  return result;
 }
 
 function distributeItems(
@@ -292,8 +344,13 @@ function buildExplanation(
 
   for (const item of items) {
     const isPromo = item.productId.startsWith("promo-");
+    const isTopping = item.productId.startsWith("topping-");
     if (isPromo) {
       perItem[item.lineId] = `Incluye la promoción ${item.productName}.`;
+      continue;
+    }
+    if (isTopping) {
+      perItem[item.lineId] = `Incluye ${item.productName} para compartir.`;
       continue;
     }
     const parts: string[] = [];
@@ -326,11 +383,16 @@ function buildExplanation(
 
   const sharedSelections = selections.filter((s) => s.isShared);
   const sharedPromo = items.find((i) => i.productId.startsWith("promo-"));
+  const sharedTopping = items.find((i) => i.productId.startsWith("topping-"));
   const itemCount = items.length;
 
   let summary: string;
-  if (sharedPromo) {
+  if (sharedPromo && sharedTopping) {
+    summary = `Seleccionamos ${itemCount} producto${itemCount !== 1 ? "s" : ""} para ${formData.peopleCount} persona${formData.peopleCount !== 1 ? "s" : ""}, incluyendo la promoción ${sharedPromo.productName} y ${sharedTopping.productName} para compartir.`;
+  } else if (sharedPromo) {
     summary = `Seleccionamos ${itemCount} producto${itemCount !== 1 ? "s" : ""} para ${formData.peopleCount} persona${formData.peopleCount !== 1 ? "s" : ""}, incluyendo la promoción ${sharedPromo.productName} para compartir.`;
+  } else if (sharedTopping) {
+    summary = `Seleccionamos ${itemCount} producto${itemCount !== 1 ? "s" : ""} para ${formData.peopleCount} persona${formData.peopleCount !== 1 ? "s" : ""}, incluyendo ${sharedTopping.productName} para compartir.`;
   } else if (sharedSelections.length > 0) {
     summary = `Seleccionamos ${itemCount} producto${itemCount !== 1 ? "s" : ""} para ${formData.peopleCount} persona${formData.peopleCount !== 1 ? "s" : ""}, incluyendo ${sharedSelections[0].product.name} para compartir. Buscamos variedad y equilibrio de precios.`;
   } else {
@@ -355,6 +417,7 @@ export function buildSuggestion(
   formData: SuggestionFormData,
   products: MenuProduct[],
   promotions: Promotion[] = [],
+  additions: AdditionRow[] = [],
   iteration: number = 0,
 ): SuggestedOrder {
   let available = products.filter((p) => p.is_available);
@@ -386,14 +449,19 @@ export function buildSuggestion(
   }
 
   const activePromotions = promotions.filter(isPromotionActiveNow);
+  const activeToppings = additions.filter((a) => a.price > 0);
+
   const usePromoAsShared =
     formData.hasSharedItem && activePromotions.length > 0;
+  const useToppingAsShared =
+    formData.hasSharedItem && activeToppings.length > 0;
 
   const selections = selectProducts(
     available,
     formData.peopleCount,
-    formData.hasSharedItem && !usePromoAsShared,
+    formData.hasSharedItem && !usePromoAsShared && !useToppingAsShared,
     iteration,
+    formData.preferredCategorySlugs,
   );
 
   const items: SuggestedOrderItem[] = selections.map((sel) =>
@@ -405,6 +473,11 @@ export function buildSuggestion(
       (a, b) => b.promotionPrice - a.promotionPrice,
     )[0];
     items.push(buildPromotionItem(bestPromo));
+  }
+
+  if (useToppingAsShared) {
+    const randomIndex = Math.floor(Math.random() * activeToppings.length);
+    items.push(buildToppingItem(activeToppings[randomIndex]));
   }
 
   const total = items.reduce((sum, item) => sum + item.subtotal, 0);

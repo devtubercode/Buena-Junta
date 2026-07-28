@@ -38,8 +38,6 @@ export function MenuPage() {
   const { categories, products, additions, isLoading, additionsError } =
     useCatalogData();
 
-  console.log("additions", additions);
-
   const { promotions, isLoading: isLoadingPromotions } = useMenuPromotions();
   const order = useMenuOrder();
   const { isOpen, open, close } = useMenuOrderDrawer();

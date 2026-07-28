@@ -1,7 +1,7 @@
 import { X, Sparkles, AlertTriangle, Loader } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/Button";
-import { AssistantInput } from "@/features/order-assistant/components/AssistantInput";
+import { AssistantForm } from "@/features/order-assistant/components/AssistantForm";
 import { SuggestedOrderReview } from "@/features/order-assistant/components/SuggestedOrderReview";
 import type {
   OrderAssistantStep,
@@ -9,8 +9,12 @@ import type {
   SuggestedOrder,
   OrderAssistantActions,
 } from "@/features/order-assistant/types/order-assistant.types";
-import type { MenuCategory, MenuProduct } from "@/features/menu/types/menu.types";
+import type {
+  MenuCategory,
+  MenuProduct,
+} from "@/features/menu/types/menu.types";
 import type { Promotion } from "@/features/home/types/promotion.types";
+import type { AdditionRow } from "@/features/admin/types/additions.types";
 
 type AssistantDrawerProps = {
   isOpen: boolean;
@@ -21,6 +25,7 @@ type AssistantDrawerProps = {
   categories: MenuCategory[];
   products: MenuProduct[];
   promotions: Promotion[];
+  additions: AdditionRow[];
   actions: OrderAssistantActions;
   onClose: () => void;
 };
@@ -33,6 +38,7 @@ function StepContent({
   categories,
   products,
   promotions,
+  additions,
   actions,
 }: {
   step: OrderAssistantStep;
@@ -42,14 +48,16 @@ function StepContent({
   categories: MenuCategory[];
   products: MenuProduct[];
   promotions: Promotion[];
+  additions: AdditionRow[];
   actions: OrderAssistantActions;
 }) {
-  const regenerate = () => actions.generateSuggestion(products, categories, promotions);
+  const regenerate = () =>
+    actions.generateSuggestion(products, categories, promotions, additions);
 
   switch (step) {
     case "form":
       return (
-        <AssistantInput
+        <AssistantForm
           formData={formData}
           categories={categories}
           onChange={actions.updateFormData}
@@ -61,7 +69,10 @@ function StepContent({
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-6 inline-flex rounded-full bg-surface p-4">
-            <Loader className="size-10 animate-spin text-primary" aria-hidden="true" />
+            <Loader
+              className="size-10 animate-spin text-primary"
+              aria-hidden="true"
+            />
           </div>
           <h3 className="font-heading text-lg font-black text-foreground">
             Buscando la mejor combinación
@@ -75,23 +86,27 @@ function StepContent({
     case "review":
       if (!suggestion) return null;
       return (
-          <SuggestedOrderReview
-            suggestion={suggestion}
-            products={products}
-            onUpdateQuantity={actions.updateItemQuantity}
-            onRemoveItem={actions.removeItem}
-            onUpdateConfiguration={actions.updateItemConfiguration}
-            onAddAllToCart={actions.addAllToCart}
-            onRegenerate={regenerate}
-            onBack={() => actions.reset()}
-          />
+        <SuggestedOrderReview
+          suggestion={suggestion}
+          products={products}
+          promotions={promotions}
+          onUpdateQuantity={actions.updateItemQuantity}
+          onRemoveItem={actions.removeItem}
+          onUpdateConfiguration={actions.updateItemConfiguration}
+          onAddAllToCart={actions.addAllToCart}
+          onRegenerate={regenerate}
+          onBack={() => actions.reset()}
+        />
       );
 
     case "error":
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-6 inline-flex rounded-full bg-red-50 p-4 dark:bg-red-900/20">
-            <AlertTriangle className="size-10 text-red-500" aria-hidden="true" />
+            <AlertTriangle
+              className="size-10 text-red-500"
+              aria-hidden="true"
+            />
           </div>
           <h3 className="font-heading text-lg font-black text-foreground">
             Algo salió mal
@@ -126,6 +141,7 @@ export function AssistantDrawer({
   categories,
   products,
   promotions,
+  additions,
   actions,
   onClose,
 }: AssistantDrawerProps) {
@@ -177,6 +193,7 @@ export function AssistantDrawer({
             categories={categories}
             products={products}
             promotions={promotions}
+            additions={additions}
             actions={actions}
           />
         </div>

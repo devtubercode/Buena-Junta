@@ -3,14 +3,18 @@ import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/Button";
 import { formatCOP } from "@/features/cart/utils/money";
 import { useMemo } from "react";
-import { SuggestedOrderItem } from "@/features/order-assistant/components/SuggestedOrderItem";
+import { SuggestedProductOrder } from "@/features/order-assistant/components/SuggestedProductOrder";
+import { SuggestedPromotionOrder } from "@/features/order-assistant/components/SuggestedPromotionOrder";
+import { SuggestedToppingOrder } from "@/features/order-assistant/components/SuggestedToppingOrder";
 import type { SuggestedOrder } from "@/features/order-assistant/types/order-assistant.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
+import type { Promotion } from "@/features/home/types/promotion.types";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
 type SuggestedOrderReviewProps = {
   suggestion: SuggestedOrder;
   products: MenuProduct[];
+  promotions?: Promotion[];
   onUpdateQuantity: (lineId: string, quantity: number) => void;
   onRemoveItem: (lineId: string) => void;
   onUpdateConfiguration: (lineId: string, output: ProductCustomizationOutput) => void;
@@ -113,18 +117,48 @@ export function SuggestedOrderReview({
       {/* Items */}
       <section aria-label="Productos sugeridos">
         <ul className="flex flex-col gap-3">
-          {suggestion.items.map((item) => (
-            <li key={item.lineId}>
-              <SuggestedOrderItem
-                item={item}
-                product={productMap.get(item.productId)!}
-                onUpdateQuantity={onUpdateQuantity}
-                onRemove={onRemoveItem}
-                onUpdateConfiguration={onUpdateConfiguration}
-                explanation={suggestion.explanation.perItem[item.lineId]}
-              />
-            </li>
-          ))}
+          {suggestion.items.map((item) => {
+            const product = productMap.get(item.productId);
+
+            if (product) {
+              return (
+                <li key={item.lineId}>
+                  <SuggestedProductOrder
+                    item={item}
+                    product={product}
+                    onUpdateQuantity={onUpdateQuantity}
+                    onRemove={onRemoveItem}
+                    onUpdateConfiguration={onUpdateConfiguration}
+                    explanation={suggestion.explanation.perItem[item.lineId]}
+                  />
+                </li>
+              );
+            }
+
+            if (item.productId.startsWith("promo-")) {
+              return (
+                <li key={item.lineId}>
+                  <SuggestedPromotionOrder
+                    item={item}
+                    explanation={suggestion.explanation.perItem[item.lineId]}
+                    onUpdateQuantity={onUpdateQuantity}
+                    onRemove={onRemoveItem}
+                  />
+                </li>
+              );
+            }
+
+            return (
+              <li key={item.lineId}>
+                <SuggestedToppingOrder
+                  item={item}
+                  explanation={suggestion.explanation.perItem[item.lineId]}
+                  onUpdateQuantity={onUpdateQuantity}
+                  onRemove={onRemoveItem}
+                />
+              </li>
+            );
+          })}
         </ul>
       </section>
 

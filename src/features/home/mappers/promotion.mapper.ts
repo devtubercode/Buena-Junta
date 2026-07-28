@@ -43,6 +43,7 @@ export function buildPromotions(promotions: MenuPromotionRow[]): Promotion[] {
       : "";
 
     return {
+      id: promotion.id,
       slug: promotion.slug,
       title: promotion.title,
       description: promotion.description,

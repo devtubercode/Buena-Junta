@@ -12,7 +12,7 @@ import type { SuggestedOrderItem as SuggestedOrderItemType } from "@/features/or
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
-type SuggestedOrderItemProps = {
+type SuggestedProductOrderProps = {
   item: SuggestedOrderItemType;
   product: MenuProduct;
   onUpdateQuantity: (lineId: string, quantity: number) => void;
@@ -77,14 +77,14 @@ function formatItemDetails(
   return parts.join(" · ");
 }
 
-export function SuggestedOrderItem({
+export function SuggestedProductOrder({
   item,
   product,
   onUpdateQuantity,
   onRemove,
   onUpdateConfiguration,
   explanation,
-}: SuggestedOrderItemProps) {
+}: SuggestedProductOrderProps) {
   const [showConfig, setShowConfig] = useState(false);
   const isMobile = useIsMobile();
   const image = item.urlImage ?? {
@@ -98,6 +98,7 @@ export function SuggestedOrderItem({
   const details = formatItemDetails(item, variantLabel);
   const cfg = statusConfig[item.configurationStatus] ?? statusConfig.incomplete;
   const needsAttention = item.configurationStatus !== "complete";
+
   const canConfigure = hasCustomizations(product);
   const hasOptionalAdditions =
     product.additions.length > 0 &&

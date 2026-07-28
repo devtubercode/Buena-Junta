@@ -1,25 +1,27 @@
 import { useState } from "react";
-import { Minus, Plus, Search } from "lucide-react";
-import { cn } from "@/shared/utils/cn";
+import { Search } from "lucide-react";
 import { Button } from "@/shared/components/Button";
+import { Checkbox } from "@/shared/components/Checkbox";
 import { CurrencyInput } from "@/shared/components/CurrencyInput";
+import { QuantityStepper } from "@/shared/components/QuantityStepper";
+import { CategoryChip } from "@/shared/components/menu/CategoryChip";
 import { getCategoryIcon } from "@/shared/constants/category-icons";
 import type { SuggestionFormData } from "@/features/order-assistant/types/order-assistant.types";
 import type { MenuCategory } from "@/features/menu/types/menu.types";
 
-type AssistantInputProps = {
+type AssistantFormProps = {
   formData: SuggestionFormData;
   categories: MenuCategory[];
   onChange: (data: Partial<SuggestionFormData>) => void;
   onSubmit: () => void;
 };
 
-export function AssistantInput({
+export const AssistantForm = ({
   formData,
   categories,
   onChange,
   onSubmit,
-}: AssistantInputProps) {
+}: AssistantFormProps) => {
   const [exclusionsText, setExclusionsText] = useState(
     formData.exclusions.join(", "),
   );
@@ -62,32 +64,12 @@ export function AssistantInput({
         <legend className="mb-2 text-sm font-black text-foreground">
           ¿Para cuántas personas?
         </legend>
-        <div className="inline-flex items-stretch overflow-hidden rounded-lg border border-border bg-surface">
-          <button
-            type="button"
-            onClick={() => handlePeopleChange(-1)}
-            disabled={formData.peopleCount <= 1}
-            className="flex aspect-square items-center justify-center p-3 transition hover:bg-primary-soft focus-visible:outline focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Disminuir cantidad de personas"
-          >
-            <Minus className="size-4 text-primary" />
-          </button>
-          <span
-            className="flex min-w-[3.5rem] items-center justify-center border-x border-border px-4 text-center font-heading text-lg font-black text-foreground"
-            aria-live="polite"
-          >
-            {formData.peopleCount}
-          </span>
-          <button
-            type="button"
-            onClick={() => handlePeopleChange(1)}
-            disabled={formData.peopleCount >= 20}
-            className="flex aspect-square items-center justify-center p-3 transition hover:bg-primary-soft focus-visible:outline focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Aumentar cantidad de personas"
-          >
-            <Plus className="size-4 text-primary" />
-          </button>
-        </div>
+        <QuantityStepper
+          quantity={formData.peopleCount}
+          onIncrement={() => handlePeopleChange(1)}
+          onDecrement={() => handlePeopleChange(-1)}
+          itemName="personas"
+        />
       </fieldset>
 
       {/* Maximum budget */}
@@ -124,57 +106,27 @@ export function AssistantInput({
             );
             const Icon = getCategoryIcon(category.slug);
             return (
-              <button
+              <CategoryChip
                 key={category.id}
-                type="button"
-                data-active={isSelected}
+                active={isSelected}
                 onClick={() => handleCategoryToggle(category.slug)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-black leading-none transition",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                  "active:scale-95",
-                  isSelected
-                    ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-                    : "border-border bg-surface text-muted-foreground hover:border-primary/60 hover:text-foreground",
-                )}
-                aria-pressed={isSelected}
+                icon={Icon}
               >
-                <Icon className="size-4 shrink-0" aria-hidden="true" />
                 {category.name}
-              </button>
+              </CategoryChip>
             );
           })}
         </div>
       </fieldset>
 
       {/* Shared item toggle */}
-      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface p-4">
-        <div>
-          <p className="text-sm font-black text-foreground">
-            ¿Incluir algo para compartir?
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Ideal para grupos grandes
-          </p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={formData.hasSharedItem}
-          onClick={() => onChange({ hasSharedItem: !formData.hasSharedItem })}
-          className={cn(
-            "relative inline-flex h-7 w-12 shrink-0 rounded-full border-2 border-transparent transition-colors",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-            formData.hasSharedItem ? "bg-primary" : "bg-muted-foreground/30",
-          )}
-        >
-          <span
-            className={cn(
-              "pointer-events-none inline-block size-6 rounded-full bg-white shadow-md transition-transform",
-              formData.hasSharedItem ? "translate-x-5" : "translate-x-0",
-            )}
-          />
-        </button>
+      <div className="rounded-xl border border-border bg-surface p-4">
+        <Checkbox
+          label="¿Incluir algo para compartir?"
+          description="Ideal para grupos grandes"
+          checked={formData.hasSharedItem}
+          onCheckedChange={(checked) => onChange({ hasSharedItem: checked })}
+        />
       </div>
 
       {/* Exclusions */}
@@ -214,4 +166,4 @@ export function AssistantInput({
       </Button>
     </div>
   );
-}
+};

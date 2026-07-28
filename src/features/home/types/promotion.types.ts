@@ -1,6 +1,7 @@
 import type { Weekday } from "@/types/weekday";
 
 export type Promotion = {
+  id: string;
   slug: string;
   title: string;
   description: string;
