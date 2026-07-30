@@ -7,10 +7,8 @@ import type {
   SuggestedOrderItem,
 } from "@/features/order-assistant/types/order-assistant.types";
 import type { AddMenuOrderItemInput } from "@/store/menu-order/types/menu-order.types";
-import {
-  buildSuggestion,
-  buildLineId,
-} from "@/features/order-assistant/services/suggestionBuilder";
+import { buildLineId } from "@/features/order-assistant/services/suggestionBuilder";
+import { buildAISuggestion } from "@/features/order-assistant/services/aiSuggestionBuilder";
 import { useMenuOrderStore } from "@/store/menu-order/useMenuOrderStore";
 import { notify } from "@/shared/notifications/notify";
 import { formatCOP } from "@/features/cart/utils/money";
@@ -52,7 +50,6 @@ export const useOrderAssistantStore = create<OrderAssistantStore>(
       products,
       _categories,
       promotions,
-      additions,
     ) => {
       const { formData, regenerationCount } = get();
       set({ step: "generating", error: null });
@@ -60,12 +57,10 @@ export const useOrderAssistantStore = create<OrderAssistantStore>(
       await new Promise((r) => setTimeout(r, 1200));
 
       try {
-        const suggestion = buildSuggestion(
+        const suggestion = await buildAISuggestion(
           formData,
           products,
-          promotions,
-          additions ?? [],
-          regenerationCount,
+          promotions ?? [],
         );
         set({
           suggestion,

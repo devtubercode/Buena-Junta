@@ -14,7 +14,6 @@ import type {
   MenuProduct,
 } from "@/features/menu/types/menu.types";
 import type { Promotion } from "@/features/home/types/promotion.types";
-import type { AdditionRow } from "@/features/admin/types/additions.types";
 
 type AssistantDrawerProps = {
   isOpen: boolean;
@@ -25,7 +24,6 @@ type AssistantDrawerProps = {
   categories: MenuCategory[];
   products: MenuProduct[];
   promotions: Promotion[];
-  additions: AdditionRow[];
   actions: OrderAssistantActions;
   onClose: () => void;
 };
@@ -38,7 +36,6 @@ function StepContent({
   categories,
   products,
   promotions,
-  additions,
   actions,
 }: {
   step: OrderAssistantStep;
@@ -48,11 +45,10 @@ function StepContent({
   categories: MenuCategory[];
   products: MenuProduct[];
   promotions: Promotion[];
-  additions: AdditionRow[];
   actions: OrderAssistantActions;
 }) {
   const regenerate = () =>
-    actions.generateSuggestion(products, categories, promotions, additions);
+    actions.generateSuggestion(products, categories, promotions);
 
   switch (step) {
     case "form":
@@ -141,7 +137,6 @@ export function AssistantDrawer({
   categories,
   products,
   promotions,
-  additions,
   actions,
   onClose,
 }: AssistantDrawerProps) {
@@ -193,7 +188,6 @@ export function AssistantDrawer({
             categories={categories}
             products={products}
             promotions={promotions}
-            additions={additions}
             actions={actions}
           />
         </div>

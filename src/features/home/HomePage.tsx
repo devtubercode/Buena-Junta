@@ -19,6 +19,11 @@ import { CustomModal } from "@/shared/components/CustomModal";
 import { useCatalogData } from "@/shared/hooks/useCatalogData";
 import { AdditionCard } from "@/features/menu/components/AdditionCard";
 import type { AdditionRow } from "@/features/admin/types/additions.types";
+import { Button } from "../../shared/components/Button";
+import {
+  getMyFirstFunctionFetchData,
+  getMyFirstFunctionInvokeData,
+} from "./services/mi-primera-funcion";
 
 const TOPPINGS_SLUG = "__toppings__";
 
@@ -89,6 +94,14 @@ export const HomePage = () => {
           <p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-primary">
             Carta BuenaJunta
           </p>
+          <Button onClick={() => getMyFirstFunctionFetchData("Fetch con Juan")}>
+            Callback with fetch
+          </Button>
+          <Button
+            onClick={() => getMyFirstFunctionInvokeData("Invoke con Juan")}
+          >
+            Callback with invoke
+          </Button>
           <h2
             id="menu-heading"
             className="m-0 font-heading text-4xl font-black leading-none tracking-normal text-foreground"

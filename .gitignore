@@ -16,10 +16,12 @@ dist-ssr
 .claude
 .agents
 supabase/.temp
+supabase/.branches
 
 # Editor directories and files
-.vscode/*
+.vscode/
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
