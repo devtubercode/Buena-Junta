@@ -26,7 +26,6 @@ type AIResponse = {
     quantity: number;
   }>;
   sharedPromotionSlug: string | null;
-  sharedPromotionReason: string | null;
   explanation: {
     summary: string;
     perItem: Record<string, string>;
@@ -172,11 +171,6 @@ export async function buildAISuggestion(
     if (explanation) {
       perItem[item.lineId] = explanation;
     }
-  }
-
-  if (data.sharedPromotionSlug && data.sharedPromotionReason) {
-    const promoLineId = `promo-${data.sharedPromotionSlug}`;
-    perItem[promoLineId] = data.sharedPromotionReason;
   }
 
   return {

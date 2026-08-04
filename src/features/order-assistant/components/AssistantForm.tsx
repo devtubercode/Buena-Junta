@@ -26,6 +26,8 @@ export const AssistantForm = ({
     formData.exclusions.join(", "),
   );
 
+  const hasSelectedCategories = formData.preferredCategorySlugs.length > 0;
+
   const handlePeopleChange = (delta: number) => {
     const next = Math.max(1, Math.min(20, formData.peopleCount + delta));
     onChange({ peopleCount: next });
@@ -117,6 +119,11 @@ export const AssistantForm = ({
             );
           })}
         </div>
+        {!hasSelectedCategories ? (
+          <p className="mt-2 text-xs font-medium text-error">
+            Selecciona al menos una categoría para continuar
+          </p>
+        ) : null}
       </fieldset>
 
       {/* Shared item toggle */}
@@ -160,6 +167,7 @@ export const AssistantForm = ({
         radius="full"
         fullWidth
         icon={<Search className="size-5" />}
+        disabled={!hasSelectedCategories}
         onClick={onSubmit}
       >
         Buscar combinación
