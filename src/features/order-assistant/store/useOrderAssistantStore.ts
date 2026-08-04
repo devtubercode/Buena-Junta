@@ -54,8 +54,6 @@ export const useOrderAssistantStore = create<OrderAssistantStore>(
       const { formData, regenerationCount } = get();
       set({ step: "generating", error: null });
 
-      await new Promise((r) => setTimeout(r, 1200));
-
       try {
         const suggestion = await buildAISuggestion(
           formData,

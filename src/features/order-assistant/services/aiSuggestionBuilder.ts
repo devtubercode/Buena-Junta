@@ -26,6 +26,7 @@ type AIResponse = {
     quantity: number;
   }>;
   sharedPromotionSlug: string | null;
+  sharedPromotionReason: string | null;
   explanation: {
     summary: string;
     perItem: Record<string, string>;
@@ -41,9 +42,13 @@ function buildCustomItem(
     ? (product.priceVariants.find((v) => v.id === variantId) ?? null)
     : null;
 
+  const additionKeys = aiSelection.additionKeys ?? [];
   const additionOptions = product.additions
-    .filter((a) => aiSelection.additionKeys.includes(a.id))
+    .filter((a) => additionKeys.includes(a.id))
     .map((a) => ({ key: a.id, label: a.name, unitPrice: a.price }));
+
+  const selectedOptions = aiSelection.selectedOptions ?? {};
+  const quantity = aiSelection.quantity ?? 1;
 
   const basePrice = resolveBasePrice(
     product.priceVariants,
@@ -59,7 +64,7 @@ function buildCustomItem(
       additionsTotal,
     }) ?? 0;
 
-  const subtotal = calculateSubtotal(unitPrice, aiSelection.quantity) ?? 0;
+  const subtotal = calculateSubtotal(unitPrice, quantity) ?? 0;
 
   const validation = validateConfiguration(
     product.priceVariants,
@@ -67,7 +72,7 @@ function buildCustomItem(
     product.additions.length > 0,
     {
       variantKey: selectedVariant?.label,
-      selectedOptions: aiSelection.selectedOptions,
+      selectedOptions,
       additionOptions,
     },
   );
@@ -76,7 +81,7 @@ function buildCustomItem(
     product.id,
     variantId,
     additionOptions,
-    aiSelection.selectedOptions,
+    selectedOptions,
   );
 
   return {
@@ -86,9 +91,9 @@ function buildCustomItem(
     urlImage: product.urlImage,
     variantId,
     variantLabel: selectedVariant?.label,
-    selectedOptions: aiSelection.selectedOptions,
+    selectedOptions,
     additionOptions,
-    quantity: aiSelection.quantity,
+    quantity,
     unitPrice,
     subtotal,
     configurationStatus: validation.status as ItemConfigurationStatus,
@@ -114,8 +119,6 @@ export async function buildAISuggestion(
     },
   );
 
-  console.log("Response from assistant-suggest:", data, error);
-
   if (error || !data) {
     throw new Error(
       error?.message ?? "No pudimos generar una sugerencia con IA.",
@@ -127,7 +130,7 @@ export async function buildAISuggestion(
 
   const items: SuggestedOrderItem[] = [];
 
-  for (const sel of data.items) {
+  for (const sel of data.items ?? []) {
     const product = productMap.get(sel.productId);
     if (!product) continue;
     items.push(buildCustomItem(product, sel));
@@ -169,6 +172,11 @@ export async function buildAISuggestion(
     if (explanation) {
       perItem[item.lineId] = explanation;
     }
+  }
+
+  if (data.sharedPromotionSlug && data.sharedPromotionReason) {
+    const promoLineId = `promo-${data.sharedPromotionSlug}`;
+    perItem[promoLineId] = data.sharedPromotionReason;
   }
 
   return {

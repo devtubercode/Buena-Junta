@@ -1,8 +1,9 @@
-import { X, Sparkles, AlertTriangle, Loader } from "lucide-react";
+import { X, Sparkles, AlertTriangle } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/Button";
 import { AssistantForm } from "@/features/order-assistant/components/AssistantForm";
 import { SuggestedOrderReview } from "@/features/order-assistant/components/SuggestedOrderReview";
+import GeneratingSuggestion from "@/features/order-assistant/components/GeneratingSuggestion";
 import type {
   OrderAssistantStep,
   SuggestionFormData,
@@ -62,22 +63,7 @@ function StepContent({
       );
 
     case "generating":
-      return (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-6 inline-flex rounded-full bg-surface p-4">
-            <Loader
-              className="size-10 animate-spin text-primary"
-              aria-hidden="true"
-            />
-          </div>
-          <h3 className="font-heading text-lg font-black text-foreground">
-            Buscando la mejor combinación
-          </h3>
-          <p className="mt-2 max-w-64 text-sm text-muted-foreground">
-            Estamos analizando el menú para armar el pedido ideal para ti
-          </p>
-        </div>
-      );
+      return <GeneratingSuggestion />;
 
     case "review":
       if (!suggestion) return null;
@@ -140,6 +126,11 @@ export function AssistantDrawer({
   actions,
   onClose,
 }: AssistantDrawerProps) {
+  const handleClose = () => {
+    actions.reset();
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -148,7 +139,7 @@ export function AssistantDrawer({
           "fixed inset-0 z-1000 bg-black/50 transition-opacity duration-300",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
 
@@ -170,7 +161,7 @@ export function AssistantDrawer({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Cerrar asistente"
             className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-black/5 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
