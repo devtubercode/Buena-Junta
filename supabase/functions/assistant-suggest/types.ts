@@ -53,6 +53,7 @@ export type PromotionRecord = {
 };
 
 export type CategoryRecord = {
+  id: string;
   name: string;
   slug: string;
 };
@@ -105,7 +106,6 @@ export type MenuContext = {
 export type AIResponse = {
   items: AIItem[];
   sharedPromotionSlug: string | null;
-  sharedPromotionReason: string | null;
   explanation: AIExplanation;
 };
 
@@ -137,4 +137,9 @@ export type ZenChatCompletion = {
     finish_reason: string;
     message: { role: string; content: string };
   }>;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
 };

@@ -1,7 +1,6 @@
 import type { AIResponse, ZenChatCompletion } from "./types.ts";
 import {
   AI_CHAT_COMPLETIONS_URL,
-  AI_MODEL,
   AI_MAX_TOKENS,
   AI_TEMPERATURE,
   AI_REQUEST_TIMEOUT_MILLISECONDS,
@@ -14,8 +13,27 @@ function cleanMarkdownFromJson(rawContent: string): string {
     .trim();
 }
 
+function extractJsonSubstring(rawContent: string): string {
+  const firstBraceIndex = rawContent.indexOf("{");
+  const lastBraceIndex = rawContent.lastIndexOf("}");
+  if (
+    firstBraceIndex === -1 ||
+    lastBraceIndex === -1 ||
+    lastBraceIndex < firstBraceIndex
+  ) {
+    return rawContent;
+  }
+  return rawContent.slice(firstBraceIndex, lastBraceIndex + 1);
+}
+
+function parseAiJsonResponse(content: string): AIResponse {
+  const cleanedContent = extractJsonSubstring(cleanMarkdownFromJson(content));
+  return JSON.parse(cleanedContent) as AIResponse;
+}
+
 export async function requestSuggestion(
   apiKey: string,
+  iaModel: string,
   systemPrompt: string,
   userPrompt: string,
 ): Promise<AIResponse> {
@@ -28,13 +46,14 @@ export async function requestSuggestion(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: AI_MODEL,
+        model: iaModel,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         temperature: AI_TEMPERATURE,
         max_tokens: AI_MAX_TOKENS,
+        response_format: { type: "json_object" },
       }),
       signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MILLISECONDS),
     });
@@ -57,17 +76,29 @@ export async function requestSuggestion(
 
   const completion = (await response.json()) as ZenChatCompletion;
   const content = completion.choices?.[0]?.message?.content;
+  const finishReason = completion.choices?.[0]?.finish_reason ?? "unknown";
+
+  const promptTokens = completion.usage?.prompt_tokens ?? 0;
+  const completionTokens = completion.usage?.completion_tokens ?? 0;
+  const totalTokens = completion.usage?.total_tokens ?? 0;
+  console.error(
+    "AI tokens usados — prompt:",
+    promptTokens,
+    "| completion:",
+    completionTokens,
+    "| total:",
+    totalTokens,
+    "| finish_reason:",
+    finishReason,
+  );
 
   if (!content) {
-    const finishReason = completion.choices?.[0]?.finish_reason ?? "unknown";
     console.error("AI returned empty content, finish_reason:", finishReason);
     throw new Error("AI returned empty content");
   }
 
   try {
-    const cleanedContent = cleanMarkdownFromJson(content);
-    const parsedResponse = JSON.parse(cleanedContent) as AIResponse;
-    return parsedResponse;
+    return parseAiJsonResponse(content);
   } catch {
     console.error("Failed to parse AI JSON, content:", content.slice(0, 300));
     throw new Error("Invalid JSON from AI");

@@ -16,14 +16,35 @@ import { PRODUCT_DESCRIPTION_MAXIMUM_LENGTH } from "./constants.ts";
 
 export async function fetchAllDatabaseTables(
   supabaseAdmin: SupabaseClient,
+  includePromotions: boolean,
+  preferredCategorySlugs: string[],
 ): Promise<DatabaseQueryResult> {
-  const [
-    productsResult,
-    groupsResult,
-    additionsResult,
-    promotionsResult,
-    categoriesResult,
-  ] = await Promise.all([
+  // 1. Fetch solo las categorías preferidas (slug es único) para obtener sus IDs.
+  const categoriesResult = await supabaseAdmin
+    .from("categories")
+    .select(`id, name, slug`)
+    .in("slug", preferredCategorySlugs);
+
+  if (categoriesResult.error) {
+    throw new Error(
+      `Failed to fetch categories: ${String(categoriesResult.error)}`,
+    );
+  }
+
+  const categoriesData = (categoriesResult.data ??
+    []) as unknown as CategoryRecord[];
+
+  console.error(
+    "DEBUG categorías — slugs entrantes:",
+    preferredCategorySlugs.join(", "),
+    "| categorías obtenidas:",
+    categoriesData.map((category) => category.slug).join(", ") || "ninguna",
+  );
+
+  const preferredCategoryIds = categoriesData.map((category) => category.id);
+
+  // 2. Fetch products (solo los de las categorías preferidas), grupos y adiciones.
+  const [productsResult, groupsResult, additionsResult] = await Promise.all([
     supabaseAdmin
       .from("products")
       .select(
@@ -31,7 +52,8 @@ export async function fetchAllDatabaseTables(
          category:categories(name, slug),
          variants:product_variants(id, name, price, is_active)`,
       )
-      .eq("is_available", true),
+      .eq("is_available", true)
+      .in("category_id", preferredCategoryIds),
 
     supabaseAdmin
       .from("product_option_groups")
@@ -46,15 +68,6 @@ export async function fetchAllDatabaseTables(
       .select(
         `product_id, addition_id, addition:additions!inner(id, name, price)`,
       ),
-
-    supabaseAdmin
-      .from("promotions")
-      .select(
-        `slug, title, description, promotion_price, original_price, active_weekdays`,
-      )
-      .eq("is_active", true),
-
-    supabaseAdmin.from("categories").select(`name, slug`),
   ]);
 
   if (productsResult.error) {
@@ -63,28 +76,33 @@ export async function fetchAllDatabaseTables(
     );
   }
 
+  let promotionsResult: {
+    data: PromotionRecord[] | null;
+    error: unknown;
+  } = { data: null, error: null };
+
+  if (includePromotions) {
+    const result = await supabaseAdmin
+      .from("promotions")
+      .select(
+        `slug, title, description, promotion_price, original_price, active_weekdays`,
+      )
+      .eq("is_active", true);
+    promotionsResult = result as {
+      data: PromotionRecord[] | null;
+      error: unknown;
+    };
+  }
+
   return {
     products: (productsResult.data ?? []) as unknown as ProductRecord[],
     optionGroups: (groupsResult.data ?? []) as unknown as OptionGroupRecord[],
     additionLinks: (additionsResult.data ??
       []) as unknown as AdditionLinkRecord[],
     promotions: (promotionsResult.data ?? []) as unknown as PromotionRecord[],
-    categories: (categoriesResult.data ?? []) as unknown as CategoryRecord[],
+    categories: categoriesData,
   };
 }
-
-const filterProductsByPreferredCategories = (
-  products: ProductRecord[],
-  preferredCategorySlugs: string[],
-): ProductRecord[] => {
-  if (preferredCategorySlugs.length === 0) return products;
-
-  const allowedSlugs = new Set(preferredCategorySlugs);
-  return products.filter(
-    (product) =>
-      product.category !== null && allowedSlugs.has(product.category.slug),
-  );
-};
 
 const mapDatabaseRecordsToMenuProducts = (
   filteredProducts: ProductRecord[],
@@ -171,54 +189,39 @@ const mapPromotionRecords = (
   );
 };
 
-const getPreferredCategoryNames = (
-  categories: CategoryRecord[],
-  preferredCategorySlugs: string[],
-): string[] => {
-  if (preferredCategorySlugs.length === 0) return [];
-  const slugSet = new Set(preferredCategorySlugs);
-  return categories
-    .filter((category) => slugSet.has(category.slug))
-    .map((category) => category.name);
-};
-
 export const fetchMenuContext = async (
   supabaseAdmin: SupabaseClient,
   preferredCategorySlugs: string[],
+  hasSharedItem: boolean,
 ): Promise<{ menuContext: MenuContext; preferredCategoryNames: string[] }> => {
-  const databaseData = await fetchAllDatabaseTables(supabaseAdmin);
-
-  const filteredProducts = filterProductsByPreferredCategories(
-    databaseData.products,
+  const databaseData = await fetchAllDatabaseTables(
+    supabaseAdmin,
+    hasSharedItem,
     preferredCategorySlugs,
   );
 
-  if (filteredProducts.length === 0) {
+  if (databaseData.products.length === 0) {
     throw new Error("No products match the selected categories");
   }
 
   const menuProducts = mapDatabaseRecordsToMenuProducts(
-    filteredProducts,
+    databaseData.products,
     databaseData.optionGroups,
     databaseData.additionLinks,
   );
 
   const menuPromotions = mapPromotionRecords(databaseData.promotions);
 
-  const categoryNames = databaseData.categories.map(
+  // categoriesData ya solo contiene las categorías preferidas (filtradas por slug).
+  const preferredCategoryNames = databaseData.categories.map(
     (category) => category.name,
   );
 
   const menuContext: MenuContext = {
     products: menuProducts,
     promotions: menuPromotions,
-    categories: categoryNames,
+    categories: preferredCategoryNames,
   };
-
-  const preferredCategoryNames = getPreferredCategoryNames(
-    databaseData.categories,
-    preferredCategorySlugs,
-  );
 
   return { menuContext, preferredCategoryNames };
 };

@@ -5,7 +5,6 @@ import { fetchMenuContext } from "./data.ts";
 import { requestSuggestion } from "./zen.ts";
 import { buildSystemPrompt, buildUserPrompt } from "./prompt.ts";
 import type { SuggestionRequestBody, MenuContext } from "./types.ts";
-import { AI_API_KEY_ENVIRONMENT_VARIABLE } from "./constants.ts";
 
 export default {
   fetch: withSupabase(
@@ -22,7 +21,14 @@ export default {
         return Response.json({ error: "Invalid JSON body" }, { status: 400 });
       }
 
-      const apiKey = Deno.env.get(AI_API_KEY_ENVIRONMENT_VARIABLE);
+      const apiKey = Deno.env.get("AI_API_KEY");
+      const iaModel = Deno.env.get("AI_MODEL") ?? "glm-5";
+      console.error(
+        "DEBUG env vars — modelo:",
+        iaModel,
+        "| key configurada:",
+        apiKey ? "sí" : "no",
+      );
       if (!apiKey) {
         return Response.json(
           { error: "Missing API key secret" },
@@ -36,6 +42,7 @@ export default {
         const result = await fetchMenuContext(
           context.supabaseAdmin,
           body.preferredCategorySlugs,
+          body.hasSharedItem,
         );
         menuContext = result.menuContext;
         preferredCategoryNames = result.preferredCategoryNames;
@@ -66,6 +73,7 @@ export default {
       try {
         const suggestion = await requestSuggestion(
           apiKey,
+          iaModel,
           systemPrompt,
           userPrompt,
         );
