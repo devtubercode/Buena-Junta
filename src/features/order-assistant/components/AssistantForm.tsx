@@ -49,6 +49,11 @@ export const AssistantForm = ({
     onChange({ exclusions: items });
   };
 
+  const handleSubmit = () => {
+    handleExclusionsBlur();
+    onSubmit();
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -168,7 +173,7 @@ export const AssistantForm = ({
         fullWidth
         icon={<Search className="size-5" />}
         disabled={!hasSelectedCategories}
-        onClick={onSubmit}
+        onClick={handleSubmit}
       >
         Buscar combinación
       </Button>

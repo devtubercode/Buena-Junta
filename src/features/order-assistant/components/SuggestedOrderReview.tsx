@@ -1,23 +1,31 @@
-import { AlertTriangle, Check, ShoppingBag, Sparkles, ChevronLeft } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  ShoppingBag,
+  Sparkles,
+  ChevronLeft,
+} from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/Button";
 import { formatCOP } from "@/features/cart/utils/money";
 import { useMemo } from "react";
 import { SuggestedProductOrder } from "@/features/order-assistant/components/SuggestedProductOrder";
 import { SuggestedPromotionOrder } from "@/features/order-assistant/components/SuggestedPromotionOrder";
-import { SuggestedToppingOrder } from "@/features/order-assistant/components/SuggestedToppingOrder";
-import type { SuggestedOrder } from "@/features/order-assistant/types/order-assistant.types";
+import type { SuggestedOrderDerived } from "@/features/order-assistant/types/order-assistant.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
-import type { Promotion } from "@/features/home/types/promotion.types";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
 type SuggestedOrderReviewProps = {
-  suggestion: SuggestedOrder;
+  suggestion: SuggestedOrderDerived;
   products: MenuProduct[];
-  promotions?: Promotion[];
   onUpdateQuantity: (lineId: string, quantity: number) => void;
   onRemoveItem: (lineId: string) => void;
-  onUpdateConfiguration: (lineId: string, output: ProductCustomizationOutput) => void;
+  onUpdateConfiguration: (
+    lineId: string,
+    output: ProductCustomizationOutput,
+  ) => void;
+  onUpdatePromotionQuantity: (quantity: number) => void;
+  onRemovePromotion: () => void;
   onAddAllToCart: () => void;
   onRegenerate: () => void;
   onBack: () => void;
@@ -80,11 +88,13 @@ export function SuggestedOrderReview({
   onUpdateQuantity,
   onRemoveItem,
   onUpdateConfiguration,
+  onUpdatePromotionQuantity,
+  onRemovePromotion,
   onAddAllToCart,
   onRegenerate,
   onBack,
 }: SuggestedOrderReviewProps) {
-  const itemCount = suggestion.items.length;
+  const itemCount = suggestion.products.length;
   const hasWarnings = suggestion.explanation.warnings.length > 0;
 
   const productMap = useMemo(
@@ -114,53 +124,35 @@ export function SuggestedOrderReview({
         total={suggestion.total}
       />
 
-      {/* Items */}
+      {/* Products */}
       <section aria-label="Productos sugeridos">
         <ul className="flex flex-col gap-3">
-          {suggestion.items.map((item) => {
-            const product = productMap.get(item.productId);
-
-            if (product) {
-              return (
-                <li key={item.lineId}>
-                  <SuggestedProductOrder
-                    item={item}
-                    product={product}
-                    onUpdateQuantity={onUpdateQuantity}
-                    onRemove={onRemoveItem}
-                    onUpdateConfiguration={onUpdateConfiguration}
-                    explanation={suggestion.explanation.perItem[item.lineId]}
-                  />
-                </li>
-              );
-            }
-
-            if (item.productId.startsWith("promo-")) {
-              return (
-                <li key={item.lineId}>
-                  <SuggestedPromotionOrder
-                    item={item}
-                    explanation={suggestion.explanation.perItem[item.lineId]}
-                    onUpdateQuantity={onUpdateQuantity}
-                    onRemove={onRemoveItem}
-                  />
-                </li>
-              );
-            }
-
-            return (
-              <li key={item.lineId}>
-                <SuggestedToppingOrder
-                  item={item}
-                  explanation={suggestion.explanation.perItem[item.lineId]}
-                  onUpdateQuantity={onUpdateQuantity}
-                  onRemove={onRemoveItem}
-                />
-              </li>
-            );
-          })}
+          {suggestion.products.map((product) => (
+            <li key={product.lineId}>
+              <SuggestedProductOrder
+                item={product}
+                product={productMap.get(product.productId)!}
+                onUpdateQuantity={onUpdateQuantity}
+                onRemove={onRemoveItem}
+                onUpdateConfiguration={onUpdateConfiguration}
+                explanation={suggestion.explanation.perProduct[product.lineId]}
+              />
+            </li>
+          ))}
         </ul>
       </section>
+
+      {/* Promotion */}
+      {suggestion.promotion ? (
+        <section aria-label="Promoción sugerida">
+          <SuggestedPromotionOrder
+            promotion={suggestion.promotion}
+            explanation={suggestion.explanation.promotion}
+            onUpdateQuantity={onUpdatePromotionQuantity}
+            onRemove={onRemovePromotion}
+          />
+        </section>
+      ) : null}
 
       {/* Explanation summary */}
       {suggestion.explanation.summary ? (
@@ -194,11 +186,11 @@ export function SuggestedOrderReview({
       ) : null}
 
       {/* Incomplete items notice */}
-      {suggestion.incompleteItemCount > 0 ? (
+      {suggestion.incompleteProductCount > 0 ? (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-900/40 dark:bg-yellow-900/10">
           <p className="text-xs font-bold text-yellow-800 dark:text-yellow-300">
-            Hay {suggestion.incompleteItemCount} producto
-            {suggestion.incompleteItemCount !== 1 ? "s" : ""} que requieren
+            Hay {suggestion.incompleteProductCount} producto
+            {suggestion.incompleteProductCount !== 1 ? "s" : ""} que requieren
             configuración. Ábrelos para personalizarlos.
           </p>
         </div>

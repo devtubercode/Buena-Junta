@@ -8,12 +8,12 @@ import { CustomModal } from "@/shared/components/CustomModal";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { useIsMobile } from "@/shared/hooks/useIsMobile";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
-import type { SuggestedOrderItem as SuggestedOrderItemType } from "@/features/order-assistant/types/order-assistant.types";
+import type { SuggestedOrderProduct } from "@/features/order-assistant/types/order-assistant.types";
 import type { MenuProduct } from "@/features/menu/types/menu.types";
 import type { ProductCustomizationOutput } from "@/shared/components/product/types";
 
 type SuggestedProductOrderProps = {
-  item: SuggestedOrderItemType;
+  item: SuggestedOrderProduct;
   product: MenuProduct;
   onUpdateQuantity: (lineId: string, quantity: number) => void;
   onRemove: (lineId: string) => void;
@@ -57,7 +57,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 };
 
 function formatItemDetails(
-  item: SuggestedOrderItemType,
+  item: SuggestedOrderProduct,
   variantLabel?: string,
 ): string {
   const parts: string[] = [];

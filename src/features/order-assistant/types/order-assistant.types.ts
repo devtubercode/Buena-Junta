@@ -15,63 +15,108 @@ export type ItemConfigurationStatus =
   | "needs_additions"
   | "incomplete";
 
-export type SuggestedOrderItem = {
-  lineId: string;
-  productId: string;
-  productName: string;
-  urlImage: { src: string; alt: string } | undefined;
-  variantId: string | undefined;
-  variantLabel: string | undefined;
-  selectedOptions: Record<string, string>;
-  additionOptions: Array<{ key: string; label: string; unitPrice: number }>;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  configurationStatus: ItemConfigurationStatus;
-  isValid: boolean;
-};
-
-export type SuggestedOrderExplanation = {
-  summary: string;
-  perItem: Record<string, string>;
-  warnings: string[];
-};
-
-export type SuggestedOrder = {
-  items: SuggestedOrderItem[];
-  total: number;
-  peopleCount: number;
-  budget: number | null;
-  withinBudget: boolean;
-  budgetMargin: number;
-  explanation: SuggestedOrderExplanation;
-  isComplete: boolean;
-  incompleteItemCount: number;
-};
-
 export type OrderAssistantStep = "form" | "generating" | "review" | "error";
 
 export type OrderAssistantState = {
   isOpen: boolean;
   step: OrderAssistantStep;
   formData: SuggestionFormData;
-  suggestion: SuggestedOrder | null;
+  suggestion: SuggestedOrderDerived | null;
   error: string | null;
-  regenerationCount: number;
 };
 
 export type OrderAssistantActions = {
   open: () => void;
   close: () => void;
-  updateFormData: (data: Partial<SuggestionFormData>) => void;
-  generateSuggestion: (products: import("@/features/menu/types/menu.types").MenuProduct[], categories: import("@/features/menu/types/menu.types").MenuCategory[], promotions?: import("@/features/home/types/promotion.types").Promotion[]) => void;
-  updateItemQuantity: (lineId: string, quantity: number) => void;
-  updateItemConfiguration: (lineId: string, output: ProductCustomizationOutput) => void;
-  removeItem: (lineId: string) => void;
-  addAllToCart: () => void;
   reset: () => void;
+  updateFormData: (data: Partial<SuggestionFormData>) => void;
+  setSuggestion: (suggestion: SuggestedOrderDerived | null) => void;
+  setStep: (step: OrderAssistantStep) => void;
+  setError: (error: string | null) => void;
+  updateSuggestedProductQuantity: (lineId: string, quantity: number) => void;
+  updateSuggestedProductConfiguration: (
+    lineId: string,
+    output: ProductCustomizationOutput,
+  ) => void;
+  removeSuggestedProduct: (lineId: string) => void;
+  setSuggestedPromotionQuantity: (quantity: number) => void;
+  removeSuggestedPromotion: () => void;
+  addSuggestionToCart: () => void;
 };
 
 export type UseOrderAssistantResult = OrderAssistantState & {
   actions: OrderAssistantActions;
+};
+
+/* -------------------------------------------------------------------------- */
+/* Bloque A - modelo derivado                                                  */
+/* Tipos nuevos para el refactor: separan productos vs promoción y derivan     */
+/* métricas (total, presupuesto, completitud) en lugar de persistirlas.        */
+/* -------------------------------------------------------------------------- */
+
+export type SuggestedOrderProduct = {
+  lineId: string;
+  productId: string;
+  productName: string;
+  urlImage?: { src: string; alt: string };
+  variantId?: string;
+  variantLabel?: string;
+  selectedOptions: Record<string, string>;
+  additionOptions: Array<{ key: string; label: string; unitPrice: number }>;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  configurationStatus: ItemConfigurationStatus;
+};
+
+export type SuggestedOrderPromotion = {
+  id: string;
+  title: string;
+  urlImage?: { src: string; alt: string };
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+};
+
+export type SuggestedOrderExplanationDerived = {
+  summary: string;
+  perProduct: Record<string, string>;
+  promotion?: string;
+  warnings: string[];
+};
+
+export type SuggestedOrderBase = {
+  peopleCount: number;
+  requestedBudget: number | null;
+  products: SuggestedOrderProduct[];
+  promotion: SuggestedOrderPromotion | null;
+  explanation: SuggestedOrderExplanationDerived;
+};
+
+export type SuggestedOrderComputed = {
+  total: number;
+  withinBudget: boolean;
+  budgetMargin: number;
+  isComplete: boolean;
+  incompleteProductCount: number;
+};
+
+export type SuggestedOrderDerived = SuggestedOrderBase & SuggestedOrderComputed;
+
+/* -------------------------------------------------------------------------- */
+/* Contrato con la edge function assistant-suggest                             */
+/* -------------------------------------------------------------------------- */
+
+export type AISuggestionItem = {
+  productId: string;
+  quantity: number;
+};
+
+export type AISuggestionResponse = {
+  items: AISuggestionItem[];
+  sharedPromotionId: string | null;
+  explanation: {
+    summary: string;
+    itemReasons: Record<string, string>;
+  };
 };

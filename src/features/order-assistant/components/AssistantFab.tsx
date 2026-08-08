@@ -19,7 +19,7 @@ export function AssistantFab({ onClick }: AssistantFabProps) {
         "rounded-full bg-primary text-primary-foreground",
         "shadow-elevated transition-all duration-300 ease-out",
         "hover:scale-105 hover:shadow-lg",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+        "focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary",
         "animate-fade-slide-up",
       )}
     >

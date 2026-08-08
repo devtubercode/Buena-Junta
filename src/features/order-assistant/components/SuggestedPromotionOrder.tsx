@@ -2,17 +2,17 @@ import { Trash2, Sparkles } from "lucide-react";
 import { QuantityStepper } from "@/shared/components/QuantityStepper";
 import { formatCOP } from "@/features/cart/utils/money";
 import productPlaceholderImage from "@/assets/product-placeholder.svg";
-import type { SuggestedOrderItem } from "@/features/order-assistant/types/order-assistant.types";
+import type { SuggestedOrderPromotion } from "@/features/order-assistant/types/order-assistant.types";
 
 type SuggestedPromotionOrderProps = {
-  item: SuggestedOrderItem;
+  promotion: SuggestedOrderPromotion;
   explanation?: string;
-  onUpdateQuantity: (lineId: string, quantity: number) => void;
-  onRemove: (lineId: string) => void;
+  onUpdateQuantity: (quantity: number) => void;
+  onRemove: () => void;
 };
 
 export function SuggestedPromotionOrder({
-  item,
+  promotion,
   explanation,
   onUpdateQuantity,
   onRemove,
@@ -21,8 +21,8 @@ export function SuggestedPromotionOrder({
     <article className="rounded-2xl border border-border bg-surface p-3 shadow-elevated sm:p-4">
       <div className="flex items-start gap-3">
         <img
-          src={item.urlImage?.src ?? productPlaceholderImage}
-          alt={item.urlImage?.alt ?? item.productName}
+          src={promotion.urlImage?.src ?? productPlaceholderImage}
+          alt={promotion.urlImage?.alt ?? promotion.title}
           className="size-12 shrink-0 rounded-xl border border-border object-cover sm:size-14"
           loading="lazy"
           decoding="async"
@@ -31,18 +31,18 @@ export function SuggestedPromotionOrder({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="truncate font-heading text-sm font-black leading-tight text-foreground sm:text-base">
-                {item.productName}
+                {promotion.title}
               </h3>
               <p className="mt-0.5 text-xs font-bold text-muted-foreground">
-                {formatCOP(item.unitPrice)} c/u
+                {formatCOP(promotion.unitPrice)} c/u
               </p>
             </div>
             <div className="shrink-0 text-right">
               <p className="font-heading text-base font-black leading-none text-primary sm:text-lg">
-                {formatCOP(item.subtotal)}
+                {formatCOP(promotion.subtotal)}
               </p>
               <p className="mt-0.5 text-[10px] font-bold text-muted-foreground sm:text-xs">
-                {item.quantity} x {formatCOP(item.unitPrice)}
+                {promotion.quantity} x {formatCOP(promotion.unitPrice)}
               </p>
             </div>
           </div>
@@ -62,19 +62,19 @@ export function SuggestedPromotionOrder({
       <div className="mt-3 flex items-center justify-between gap-3">
         <QuantityStepper
           size="sm"
-          quantity={item.quantity}
-          onIncrement={() => onUpdateQuantity(item.lineId, item.quantity + 1)}
+          quantity={promotion.quantity}
+          onIncrement={() => onUpdateQuantity(promotion.quantity + 1)}
           onDecrement={() =>
-            onUpdateQuantity(item.lineId, Math.max(0, item.quantity - 1))
+            onUpdateQuantity(Math.max(0, promotion.quantity - 1))
           }
-          onChange={(qty) => onUpdateQuantity(item.lineId, qty)}
-          itemName={item.productName}
+          onChange={(qty) => onUpdateQuantity(qty)}
+          itemName={promotion.title}
         />
         <button
           type="button"
-          onClick={() => onRemove(item.lineId)}
+          onClick={onRemove}
           className="inline-flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-error hover:text-error focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
-          aria-label={`Eliminar ${item.productName} de la sugerencia`}
+          aria-label={`Eliminar ${promotion.title} de la sugerencia`}
           title="Eliminar"
         >
           <Trash2 className="size-4" aria-hidden="true" />

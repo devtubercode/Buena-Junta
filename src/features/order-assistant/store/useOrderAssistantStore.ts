@@ -3,15 +3,18 @@ import type {
   OrderAssistantActions,
   OrderAssistantState,
   SuggestionFormData,
-  SuggestedOrder,
-  SuggestedOrderItem,
+  SuggestedOrderDerived,
+  SuggestedOrderProduct,
+  SuggestedOrderPromotion,
 } from "@/features/order-assistant/types/order-assistant.types";
 import type { AddMenuOrderItemInput } from "@/store/menu-order/types/menu-order.types";
-import { buildLineId } from "@/features/order-assistant/services/suggestionBuilder";
-import { buildAISuggestion } from "@/features/order-assistant/services/aiSuggestionBuilder";
+import { buildLineId } from "@/features/order-assistant/utils/suggestionBuilder";
+import {
+  deriveSuggestedOrder,
+  isSuggestedProductValid,
+} from "@/features/order-assistant/utils/suggestedOrderDerivation";
 import { useMenuOrderStore } from "@/store/menu-order/useMenuOrderStore";
 import { notify } from "@/shared/notifications/notify";
-import { formatCOP } from "@/features/cart/utils/money";
 
 const emptyFormData: SuggestionFormData = {
   peopleCount: 1,
@@ -23,6 +26,23 @@ const emptyFormData: SuggestionFormData = {
 
 type OrderAssistantStore = OrderAssistantState & OrderAssistantActions;
 
+function rebuildSuggestion(
+  current: SuggestedOrderDerived,
+  patch: {
+    products?: SuggestedOrderProduct[];
+    promotion?: SuggestedOrderPromotion | null;
+  },
+): SuggestedOrderDerived {
+  return deriveSuggestedOrder({
+    peopleCount: current.peopleCount,
+    requestedBudget: current.requestedBudget,
+    products: patch.products ?? current.products,
+    promotion:
+      patch.promotion !== undefined ? patch.promotion : current.promotion,
+    explanation: current.explanation,
+  });
+}
+
 export const useOrderAssistantStore = create<OrderAssistantStore>(
   (set, get) => ({
     isOpen: false,
@@ -30,14 +50,22 @@ export const useOrderAssistantStore = create<OrderAssistantStore>(
     formData: { ...emptyFormData },
     suggestion: null,
     error: null,
-    regenerationCount: 0,
 
     open: () => {
-      set({ isOpen: true, step: "form", regenerationCount: 0 });
+      set({ isOpen: true, step: "form" });
     },
 
     close: () => {
       set({ isOpen: false });
+    },
+
+    reset: () => {
+      set({
+        step: "form",
+        formData: { ...emptyFormData },
+        suggestion: null,
+        error: null,
+      });
     },
 
     updateFormData: (data) => {
@@ -46,75 +74,59 @@ export const useOrderAssistantStore = create<OrderAssistantStore>(
       }));
     },
 
-    generateSuggestion: async (
-      products,
-      _categories,
-      promotions,
-    ) => {
-      const { formData, regenerationCount } = get();
-      set({ step: "generating", error: null });
-
-      try {
-        const suggestion = await buildAISuggestion(
-          formData,
-          products,
-          promotions ?? [],
-        );
-        set({
-          suggestion,
-          step: "review",
-          error: null,
-          regenerationCount: regenerationCount + 1,
-        });
-      } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "No pudimos generar una sugerencia. Intenta de nuevo.";
-        set({ error: message, step: "error" });
-      }
+    setSuggestion: (suggestion) => {
+      set({ suggestion });
     },
 
-    updateItemQuantity: (lineId, quantity) => {
+    setStep: (step) => {
+      set({ step });
+    },
+
+    setError: (error) => {
+      set({ error });
+    },
+
+    updateSuggestedProductQuantity: (lineId, quantity) => {
       set((state) => {
         if (!state.suggestion) return state;
 
         if (quantity <= 0) {
-          const updatedItems = state.suggestion.items.filter(
-            (item) => item.lineId !== lineId,
-          );
           return {
-            suggestion: recalculateSuggestion(state.suggestion, updatedItems),
+            suggestion: rebuildSuggestion(state.suggestion, {
+              products: state.suggestion.products.filter(
+                (product) => product.lineId !== lineId,
+              ),
+            }),
           };
         }
 
-        const updatedItems = state.suggestion.items.map((item) => {
-          if (item.lineId !== lineId) return item;
-          const subtotal = item.unitPrice * quantity;
-          return { ...item, quantity, subtotal };
-        });
+        const products = state.suggestion.products.map((product) =>
+          product.lineId === lineId
+            ? { ...product, quantity, subtotal: product.unitPrice * quantity }
+            : product,
+        );
 
         return {
-          suggestion: recalculateSuggestion(state.suggestion, updatedItems),
+          suggestion: rebuildSuggestion(state.suggestion, { products }),
         };
       });
     },
 
-    updateItemConfiguration: (lineId, output) => {
+    updateSuggestedProductConfiguration: (lineId, output) => {
       set((state) => {
         if (!state.suggestion) return state;
 
-        const updatedItems = state.suggestion.items.map((item) => {
-          if (item.lineId !== lineId) return item;
-          const newLineId = buildLineId(
-            output.id,
-            output.variantId,
-            output.additionOptions,
-            output.selectedOptions,
-          );
+        const products = state.suggestion.products.map((product) => {
+          if (product.lineId !== lineId) return product;
+
           return {
-            ...item,
-            lineId: newLineId,
+            ...product,
+            lineId: buildLineId(
+              output.id,
+              output.variantId,
+              output.additionOptions,
+              output.selectedOptions,
+            ),
             productName: output.name,
             variantId: output.variantId,
             variantLabel: output.variantLabel,
@@ -124,55 +136,104 @@ export const useOrderAssistantStore = create<OrderAssistantStore>(
             unitPrice: output.price,
             subtotal: output.price * output.quantity,
             configurationStatus: "complete" as const,
-            isValid: true,
-          } satisfies SuggestedOrderItem;
+          } satisfies SuggestedOrderProduct;
         });
 
         return {
-          suggestion: recalculateSuggestion(state.suggestion, updatedItems),
+          suggestion: rebuildSuggestion(state.suggestion, { products }),
         };
       });
     },
 
-    removeItem: (lineId) => {
+    removeSuggestedProduct: (lineId) => {
       set((state) => {
         if (!state.suggestion) return state;
 
-        const updatedItems = state.suggestion.items.filter(
-          (item) => item.lineId !== lineId,
-        );
         return {
-          suggestion: recalculateSuggestion(state.suggestion, updatedItems),
+          suggestion: rebuildSuggestion(state.suggestion, {
+            products: state.suggestion.products.filter(
+              (product) => product.lineId !== lineId,
+            ),
+          }),
         };
       });
     },
 
-    addAllToCart: () => {
+    setSuggestedPromotionQuantity: (quantity) => {
+      set((state) => {
+        const promotion = state.suggestion?.promotion;
+        if (!state.suggestion || !promotion) return state;
+
+        if (quantity <= 0) {
+          return {
+            suggestion: rebuildSuggestion(state.suggestion, {
+              promotion: null,
+            }),
+          };
+        }
+
+        return {
+          suggestion: rebuildSuggestion(state.suggestion, {
+            promotion: {
+              ...promotion,
+              quantity,
+              subtotal: promotion.unitPrice * quantity,
+            },
+          }),
+        };
+      });
+    },
+
+    removeSuggestedPromotion: () => {
+      set((state) => {
+        if (!state.suggestion) return state;
+
+        return {
+          suggestion: rebuildSuggestion(state.suggestion, { promotion: null }),
+        };
+      });
+    },
+
+    addSuggestionToCart: () => {
       const { suggestion } = get();
       if (!suggestion || !suggestion.isComplete) return;
 
-      const validItems = suggestion.items.filter((item) => item.isValid);
       const orderStore = useMenuOrderStore.getState();
+      let count = 0;
 
-      for (const item of validItems) {
+      for (const product of suggestion.products) {
+        if (!isSuggestedProductValid(product)) continue;
+
         const input: AddMenuOrderItemInput = {
-          id: item.productId,
-          name: item.variantLabel
-            ? `${item.productName} (${item.variantLabel})`
-            : item.productName,
-          price: item.unitPrice,
-          quantity: item.quantity,
-          urlImage: item.urlImage,
-          variantId: item.variantId,
-          selectedOptions: item.selectedOptions,
-          additionOptions: item.additionOptions,
+          id: product.productId,
+          name: product.variantLabel
+            ? `${product.productName} (${product.variantLabel})`
+            : product.productName,
+          price: product.unitPrice,
+          quantity: product.quantity,
+          urlImage: product.urlImage,
+          variantId: product.variantId,
+          selectedOptions: product.selectedOptions,
+          additionOptions: product.additionOptions,
         };
 
         orderStore.addItem(input);
+        count += 1;
+      }
+
+      if (suggestion.promotion) {
+        orderStore.addPromotion({
+          id: suggestion.promotion.id,
+          name: suggestion.promotion.title,
+          price: suggestion.promotion.unitPrice,
+          quantity: suggestion.promotion.quantity,
+          urlImage: suggestion.promotion.urlImage,
+        });
+        count += 1;
       }
 
       notify.success(
-        `Agregamos ${validItems.length} producto${validItems.length !== 1 ? "s" : ""} al pedido.`,
+        `Agregamos ${count} producto${count !== 1 ? "s" : ""} al pedido.`,
       );
 
       set({
@@ -181,62 +242,7 @@ export const useOrderAssistantStore = create<OrderAssistantStore>(
         formData: { ...emptyFormData },
         suggestion: null,
         error: null,
-        regenerationCount: 0,
-      });
-    },
-
-    reset: () => {
-      set({
-        step: "form",
-        formData: { ...emptyFormData },
-        suggestion: null,
-        error: null,
-        regenerationCount: 0,
       });
     },
   }),
 );
-
-function recalculateSuggestion(
-  prev: SuggestedOrder,
-  items: SuggestedOrder["items"],
-): SuggestedOrder {
-  const total = items.reduce((sum, item) => sum + item.subtotal, 0);
-  const incompleteItemCount = items.filter((i) => !i.isValid).length;
-  const isComplete = incompleteItemCount === 0;
-
-  const warnings = prev.explanation.warnings.filter(
-    (w) => !w.startsWith("El total de"),
-  );
-
-  if (prev.budget !== null) {
-    const margin = prev.budget - total;
-    if (margin < 0) {
-      warnings.push(
-        `El total de ${formatCOP(total)} excede el presupuesto de ${formatCOP(prev.budget)}. Puedes ajustar cantidades o quitar productos.`,
-      );
-    }
-
-    return {
-      ...prev,
-      items,
-      total,
-      withinBudget: margin >= 0,
-      budgetMargin: margin,
-      isComplete,
-      incompleteItemCount,
-      explanation: { ...prev.explanation, warnings },
-    };
-  }
-
-  return {
-    ...prev,
-    items,
-    total,
-    withinBudget: true,
-    budgetMargin: 0,
-    isComplete,
-    incompleteItemCount,
-    explanation: { ...prev.explanation, warnings },
-  };
-}

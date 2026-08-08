@@ -7,112 +7,26 @@ import GeneratingSuggestion from "@/features/order-assistant/components/Generati
 import type {
   OrderAssistantStep,
   SuggestionFormData,
-  SuggestedOrder,
+  SuggestedOrderDerived,
   OrderAssistantActions,
 } from "@/features/order-assistant/types/order-assistant.types";
 import type {
   MenuCategory,
   MenuProduct,
 } from "@/features/menu/types/menu.types";
-import type { Promotion } from "@/features/home/types/promotion.types";
 
 type AssistantDrawerProps = {
   isOpen: boolean;
   step: OrderAssistantStep;
   formData: SuggestionFormData;
-  suggestion: SuggestedOrder | null;
+  suggestion: SuggestedOrderDerived | null;
   error: string | null;
   categories: MenuCategory[];
   products: MenuProduct[];
-  promotions: Promotion[];
   actions: OrderAssistantActions;
+  onGenerate: () => void;
   onClose: () => void;
 };
-
-function StepContent({
-  step,
-  formData,
-  suggestion,
-  error,
-  categories,
-  products,
-  promotions,
-  actions,
-}: {
-  step: OrderAssistantStep;
-  formData: SuggestionFormData;
-  suggestion: SuggestedOrder | null;
-  error: string | null;
-  categories: MenuCategory[];
-  products: MenuProduct[];
-  promotions: Promotion[];
-  actions: OrderAssistantActions;
-}) {
-  const regenerate = () =>
-    actions.generateSuggestion(products, categories, promotions);
-
-  switch (step) {
-    case "form":
-      return (
-        <AssistantForm
-          formData={formData}
-          categories={categories}
-          onChange={actions.updateFormData}
-          onSubmit={regenerate}
-        />
-      );
-
-    case "generating":
-      return <GeneratingSuggestion />;
-
-    case "review":
-      if (!suggestion) return null;
-      return (
-        <SuggestedOrderReview
-          suggestion={suggestion}
-          products={products}
-          promotions={promotions}
-          onUpdateQuantity={actions.updateItemQuantity}
-          onRemoveItem={actions.removeItem}
-          onUpdateConfiguration={actions.updateItemConfiguration}
-          onAddAllToCart={actions.addAllToCart}
-          onRegenerate={regenerate}
-          onBack={() => actions.reset()}
-        />
-      );
-
-    case "error":
-      return (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-6 inline-flex rounded-full bg-red-50 p-4 dark:bg-red-900/20">
-            <AlertTriangle
-              className="size-10 text-red-500"
-              aria-hidden="true"
-            />
-          </div>
-          <h3 className="font-heading text-lg font-black text-foreground">
-            Algo salió mal
-          </h3>
-          <p className="mt-2 max-w-64 text-sm text-muted-foreground">
-            {error ?? "No pudimos generar una sugerencia. Intenta de nuevo."}
-          </p>
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            radius="full"
-            className="mt-6"
-            onClick={regenerate}
-          >
-            Intentar de nuevo
-          </Button>
-        </div>
-      );
-
-    default:
-      return null;
-  }
-}
 
 export function AssistantDrawer({
   isOpen,
@@ -122,14 +36,16 @@ export function AssistantDrawer({
   error,
   categories,
   products,
-  promotions,
   actions,
+  onGenerate,
   onClose,
 }: AssistantDrawerProps) {
   const handleClose = () => {
     actions.reset();
     onClose();
   };
+
+  const regenerate = onGenerate;
 
   return (
     <>
@@ -171,16 +87,59 @@ export function AssistantDrawer({
 
         {/* Content - scrollable */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
-          <StepContent
-            step={step}
-            formData={formData}
-            suggestion={suggestion}
-            error={error}
-            categories={categories}
-            products={products}
-            promotions={promotions}
-            actions={actions}
-          />
+          {step === "form" && (
+            <AssistantForm
+              formData={formData}
+              categories={categories}
+              onChange={actions.updateFormData}
+              onSubmit={regenerate}
+            />
+          )}
+          {step === "generating" && <GeneratingSuggestion />}
+          {step === "review" && suggestion && (
+            <SuggestedOrderReview
+              suggestion={suggestion}
+              products={products}
+              onUpdateQuantity={actions.updateSuggestedProductQuantity}
+              onRemoveItem={actions.removeSuggestedProduct}
+              onUpdateConfiguration={
+                actions.updateSuggestedProductConfiguration
+              }
+              onUpdatePromotionQuantity={actions.setSuggestedPromotionQuantity}
+              onRemovePromotion={actions.removeSuggestedPromotion}
+              onAddAllToCart={actions.addSuggestionToCart}
+              onRegenerate={regenerate}
+              onBack={() => actions.reset()}
+            />
+          )}
+
+          {step === "error" && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-6 inline-flex rounded-full bg-red-50 p-4 dark:bg-red-900/20">
+                <AlertTriangle
+                  className="size-10 text-red-500"
+                  aria-hidden="true"
+                />
+              </div>
+              <h3 className="font-heading text-lg font-black text-foreground">
+                Algo salió mal
+              </h3>
+              <p className="mt-2 max-w-64 text-sm text-muted-foreground">
+                {error ??
+                  "No pudimos generar una sugerencia. Intenta de nuevo."}
+              </p>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                radius="full"
+                className="mt-6"
+                onClick={regenerate}
+              >
+                Intentar de nuevo
+              </Button>
+            </div>
+          )}
         </div>
       </aside>
     </>
