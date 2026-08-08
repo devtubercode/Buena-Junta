@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, ShoppingBag, Pizza, ClipboardList, ChefHat } from "lucide-react";
+import { X, ShoppingBag, Pizza, ClipboardList, ChefHat, BadgePercent } from "lucide-react";
 import { CustomModal } from "@/shared/components/CustomModal";
 import { ButtonSheetModal } from "@/shared/components/ButtonSheetModal";
 import { QuantityStepper } from "@/shared/components/QuantityStepper";
@@ -11,6 +11,7 @@ import { Button } from "@/shared/components/Button";
 import { useIsMobile } from "@/shared/hooks/useIsMobile";
 import type {
   MenuOrderItem,
+  MenuOrderPromotion,
   MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
 import type { UseMenuOrderResult } from "@/features/menu/hooks/useMenuOrder";
@@ -134,6 +135,54 @@ function ToppingRow({
   );
 }
 
+// ── Promotion row ────────────────────────────────────────────────────
+function PromotionRow({
+  promotion,
+  onIncrement,
+  onDecrement,
+  onRemove,
+}: {
+  promotion: MenuOrderPromotion;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  onRemove: () => void;
+}) {
+  const image = promotion.urlImage ?? {
+    src: productPlaceholderImage,
+    alt: promotion.name,
+  };
+
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-xl border border-primary-border bg-primary-soft px-3 py-2.5 shadow-sm">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <img
+          src={image.src}
+          alt={image.alt}
+          className="size-8 shrink-0 rounded-lg border border-border object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-bold text-foreground">
+            {promotion.name}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {formatCOP(promotion.price)} c/u
+          </p>
+        </div>
+      </div>
+      <QuantityStepper
+        quantity={promotion.quantity}
+        onIncrement={onIncrement}
+        onDecrement={onDecrement}
+        onRemove={onRemove}
+        itemName={promotion.name}
+        size="sm"
+      />
+    </li>
+  );
+}
+
 // ── Drawer component ────────────────────────────────────────────────
 export function MenuOrderDrawer({
   isOpen,
@@ -143,7 +192,10 @@ export function MenuOrderDrawer({
   const [showConfirm, setShowConfirm] = useState(false);
   const isMobile = useIsMobile();
 
-  const hasLines = order.items.length > 0 || order.toppings.length > 0;
+  const hasLines =
+    order.items.length > 0 ||
+    order.toppings.length > 0 ||
+    order.promotions.length > 0;
   const totalQuantity = order.totalQuantity;
 
   const handleSend = () => {
@@ -157,6 +209,7 @@ export function MenuOrderDrawer({
       <MenuOrderSummary
         items={order.items}
         toppings={order.toppings}
+        promotions={order.promotions}
         total={order.total}
         totalQuantity={order.totalQuantity}
       />
@@ -305,6 +358,36 @@ export function MenuOrderDrawer({
                           order.actions.decrementTopping(topping.id)
                         }
                         onRemove={() => order.actions.removeTopping(topping.id)}
+                      />
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {/* Promotions section */}
+              {order.promotions.length > 0 && (
+                <section aria-label="Promociones en el carrito">
+                  <h3 className="mb-2 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                    <BadgePercent className="size-3.5" aria-hidden="true" />
+                    Promociones
+                    <span className="ml-auto rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-black text-primary">
+                      {order.promotions.length}
+                    </span>
+                  </h3>
+                  <ul className="flex flex-col gap-2">
+                    {order.promotions.map((promotion) => (
+                      <PromotionRow
+                        key={promotion.id}
+                        promotion={promotion}
+                        onIncrement={() =>
+                          order.actions.incrementPromotion(promotion.id)
+                        }
+                        onDecrement={() =>
+                          order.actions.decrementPromotion(promotion.id)
+                        }
+                        onRemove={() =>
+                          order.actions.removePromotion(promotion.id)
+                        }
                       />
                     ))}
                   </ul>

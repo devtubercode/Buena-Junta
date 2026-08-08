@@ -7,12 +7,14 @@ import { notify } from "@/shared/notifications/notify";
 import type {
   MenuOrderDetails,
   MenuOrderItem,
+  MenuOrderPromotion,
   MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
 
 type UseWhatsAppOrderSenderInput = {
   items: MenuOrderItem[];
   toppings: MenuOrderTopping[];
+  promotions: MenuOrderPromotion[];
   orderDetails: MenuOrderDetails;
   total: number;
   totalQuantity: number;
@@ -38,6 +40,18 @@ function toppingToMessageItem(topping: MenuOrderTopping): {
   };
 }
 
+function promotionToMessageItem(promotion: MenuOrderPromotion): {
+  name: string;
+  price: number;
+  quantity: number;
+} {
+  return {
+    name: promotion.name,
+    price: promotion.price,
+    quantity: promotion.quantity,
+  };
+}
+
 function isMobileDevice(): boolean {
   if (typeof window === "undefined") return false;
   return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -59,6 +73,7 @@ function isMobileDevice(): boolean {
 export function useWhatsAppOrderSender({
   items,
   toppings,
+  promotions,
   orderDetails,
   total,
   totalQuantity,
@@ -69,6 +84,7 @@ export function useWhatsAppOrderSender({
       const url = buildWhatsAppUrl(
         buildWhatsAppOrderMessage({
           items: [...items, ...toppings.map(toppingToMessageItem)],
+          promotions: promotions.map(promotionToMessageItem),
           orderDraft: orderDetails,
           total,
           totalQuantity,
@@ -100,6 +116,7 @@ export function useWhatsAppOrderSender({
   }, [
     items,
     toppings,
+    promotions,
     orderDetails,
     total,
     totalQuantity,

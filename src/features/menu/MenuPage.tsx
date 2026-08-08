@@ -4,6 +4,7 @@ import { useMenuPromotions } from "@/features/menu/hooks/useMenuPromotions";
 import { useMenuOrder } from "@/features/menu/hooks/useMenuOrder";
 import { useMenuOrderDrawer } from "@/features/menu/hooks/useMenuOrderDrawer";
 import { useOrderAssistant } from "@/features/order-assistant/hooks/useOrderAssistant";
+import { useOrderAssistantController } from "@/features/order-assistant/hooks/useOrderAssistantController";
 import { notify } from "@/shared/notifications/notify";
 import {
   MenuTabs,
@@ -42,6 +43,10 @@ export function MenuPage() {
   const order = useMenuOrder();
   const { isOpen, open, close } = useMenuOrderDrawer();
   const assistant = useOrderAssistant();
+  const { generateSuggestion } = useOrderAssistantController(
+    products,
+    promotions,
+  );
 
   const getProductQuantity = (productId: string) => {
     return order.items
@@ -71,8 +76,8 @@ export function MenuPage() {
 
   const onAddPromotion = () => {
     if (!selectedPromotion) return;
-    order.actions.addItem({
-      id: selectedPromotion.slug,
+    order.actions.addPromotion({
+      id: selectedPromotion.id,
       name: selectedPromotion.title,
       price: selectedPromotion.promotionPrice,
       quantity: 1,
@@ -205,8 +210,8 @@ export function MenuPage() {
         error={assistant.error}
         categories={categories}
         products={products}
-        promotions={promotions}
         actions={assistant.actions}
+        onGenerate={generateSuggestion}
         onClose={assistant.actions.close}
       />
     </main>

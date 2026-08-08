@@ -17,10 +17,17 @@ type WhatsAppMessageItem = {
   additionOptions?: Array<{ key: string; label: string; unitPrice: number }>;
 };
 
+type WhatsAppMessagePromotion = {
+  name: string;
+  price: number;
+  quantity: number;
+};
+
 type WhatsAppMessageDraft = MenuOrderDetails;
 
 type BuildWhatsAppMessageInput = {
   items: WhatsAppMessageItem[];
+  promotions: WhatsAppMessagePromotion[];
   orderDraft: WhatsAppMessageDraft;
   total: number;
   totalQuantity: number;
@@ -66,6 +73,19 @@ function formatProductLine(item: WhatsAppMessageItem, index: number): string {
     `   *Unit:* ${formatCOP(item.price)}`,
     `   *Subtotal:* ${formatCOP(subtotal)}`,
     formatAdditions(item),
+  ]);
+}
+
+function formatPromotionLine(
+  promotion: WhatsAppMessagePromotion,
+  index: number,
+): string {
+  const subtotal = promotion.price * promotion.quantity;
+
+  return compactLines([
+    `*${index + 1}. 🏷️ ${promotion.name} x${promotion.quantity}*`,
+    `   *Unit:* ${formatCOP(promotion.price)}`,
+    `   *Subtotal:* ${formatCOP(subtotal)}`,
   ]);
 }
 
@@ -124,11 +144,12 @@ function formatFulfillmentDetails(
 
 export function buildWhatsAppOrderMessage({
   items,
+  promotions,
   orderDraft,
   total,
   totalQuantity,
 }: BuildWhatsAppMessageInput): string {
-  if (items.length === 0) {
+  if (items.length === 0 && promotions.length === 0) {
     throw new Error("No se puede generar el mensaje: el carrito está vacío.");
   }
 
@@ -144,6 +165,16 @@ export function buildWhatsAppOrderMessage({
 
   const customerName = orderDraft.customerName.trim() || "Sin nombre";
   const productLines = items.map(formatProductLine).join("\n\n");
+  const promotionLines = promotions.map(formatPromotionLine).join("\n\n");
+
+  const sections: CompactLine[] = [
+    "🛒 *Productos*",
+    productLines,
+  ];
+
+  if (promotions.length > 0) {
+    sections.push("", "🏷️ *Promociones*", promotionLines);
+  }
 
   return compactLines([
     "✅ *Nuevo pedido desde web*",
@@ -155,8 +186,7 @@ export function buildWhatsAppOrderMessage({
     ...formatFulfillmentDetails(orderDraft),
     `*Pago:* ${formatPaymentMethod(orderDraft.paymentMethod)}`,
     "",
-    "🛒 *Productos*",
-    productLines,
+    ...sections,
     ...formatOrderNotes(orderDraft),
     "",
     "📄 *Resumen*",

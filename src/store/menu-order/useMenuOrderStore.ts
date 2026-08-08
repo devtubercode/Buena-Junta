@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type {
   AddMenuOrderItemInput,
   MenuOrderDetails,
+  MenuOrderPromotion,
   MenuOrderState,
   MenuOrderTopping,
 } from "./types/menu-order.types";
@@ -10,14 +11,19 @@ import type {
 type MenuOrderStore = MenuOrderState & {
   addItem: (input: AddMenuOrderItemInput) => void;
   addTopping: (input: MenuOrderTopping) => void;
+  addPromotion: (input: MenuOrderPromotion) => void;
   removeItem: (lineId: string) => void;
   removeTopping: (id: string) => void;
+  removePromotion: (id: string) => void;
   incrementItem: (lineId: string) => void;
   incrementTopping: (id: string) => void;
+  incrementPromotion: (id: string) => void;
   decrementItem: (lineId: string) => void;
   decrementTopping: (id: string) => void;
+  decrementPromotion: (id: string) => void;
   updateItemQuantity: (lineId: string, quantity: number) => void;
   updateToppingQuantity: (id: string, quantity: number) => void;
+  updatePromotionQuantity: (id: string, quantity: number) => void;
   updateOrderDetail: <K extends keyof MenuOrderDetails>(
     key: K,
     value: MenuOrderDetails[K],
@@ -42,6 +48,7 @@ const emptyOrderDetails: MenuOrderDetails = {
 const emptyState: MenuOrderState = {
   items: [],
   toppings: [],
+  promotions: [],
   orderDetails: emptyOrderDetails,
 };
 
@@ -270,11 +277,32 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           ),
         }));
       },
+      addPromotion: (input) => {
+        const quantity = Math.max(1, Math.floor(input.quantity));
+
+        set((state) => ({
+          promotions: addOrUpdateTopping(
+            state.promotions,
+            input.id,
+            {
+              id: input.id,
+              name: input.name,
+              price: input.price,
+              quantity,
+              urlImage: input.urlImage,
+            },
+            quantity,
+          ),
+        }));
+      },
       removeItem: (lineId) => {
         set((state) => ({ items: removeLineItem(state.items, lineId) }));
       },
       removeTopping: (id) => {
         set((state) => ({ toppings: removeTopping(state.toppings, id) }));
+      },
+      removePromotion: (id) => {
+        set((state) => ({ promotions: removeTopping(state.promotions, id) }));
       },
       incrementItem: (lineId) => {
         set((state) => ({ items: incrementLine(state.items, lineId) }));
@@ -282,6 +310,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
       incrementTopping: (id) => {
         set((state) => ({
           toppings: incrementToppingById(state.toppings, id),
+        }));
+      },
+      incrementPromotion: (id) => {
+        set((state) => ({
+          promotions: incrementToppingById(state.promotions, id),
         }));
       },
       decrementItem: (lineId) => {
@@ -292,6 +325,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           toppings: decrementToppingById(state.toppings, id),
         }));
       },
+      decrementPromotion: (id) => {
+        set((state) => ({
+          promotions: decrementToppingById(state.promotions, id),
+        }));
+      },
       updateItemQuantity: (lineId, quantity) => {
         set((state) => ({
           items: updateLineQuantity(state.items, lineId, quantity),
@@ -300,6 +338,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
       updateToppingQuantity: (id, quantity) => {
         set((state) => ({
           toppings: updateToppingQuantity(state.toppings, id, quantity),
+        }));
+      },
+      updatePromotionQuantity: (id, quantity) => {
+        set((state) => ({
+          promotions: updateToppingQuantity(state.promotions, id, quantity),
         }));
       },
       updateOrderDetail: (key, value) => {
@@ -327,7 +370,11 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           (total, topping) => total + topping.price * topping.quantity,
           0,
         );
-        return itemsTotal + toppingsTotal;
+        const promotionsTotal = state.promotions.reduce(
+          (total, promotion) => total + promotion.price * promotion.quantity,
+          0,
+        );
+        return itemsTotal + toppingsTotal + promotionsTotal;
       },
       getTotalQuantity: () => {
         const state = get();
@@ -339,15 +386,20 @@ export const useMenuOrderStore = create<MenuOrderStore>()(
           (total, topping) => total + topping.quantity,
           0,
         );
-        return itemsQuantity + toppingsQuantity;
+        const promotionsQuantity = state.promotions.reduce(
+          (total, promotion) => total + promotion.quantity,
+          0,
+        );
+        return itemsQuantity + toppingsQuantity + promotionsQuantity;
       },
     }),
     {
       name: STORAGE_KEY,
-      version: 4,
+      version: 5,
       partialize: (state) => ({
         items: state.items,
         toppings: state.toppings,
+        promotions: state.promotions,
         orderDetails: state.orderDetails,
       }),
     },

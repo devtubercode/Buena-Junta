@@ -4,6 +4,7 @@ import { useWhatsAppOrderSender } from "@/features/menu/hooks/useWhatsAppOrderSe
 import type {
   AddMenuOrderItemInput,
   MenuOrderDetails,
+  MenuOrderPromotion,
   MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
 
@@ -20,20 +21,26 @@ import type {
 export function useMenuOrder() {
   const items = useMenuOrderStore((state) => state.items);
   const toppings = useMenuOrderStore((state) => state.toppings);
+  const promotions = useMenuOrderStore((state) => state.promotions);
   const orderDetails = useMenuOrderStore((state) => state.orderDetails);
 
   const total = useMemo(
     () =>
       items.reduce((sum, item) => sum + item.price * item.quantity, 0) +
-      toppings.reduce((sum, topping) => sum + topping.price * topping.quantity, 0),
-    [items, toppings],
+      toppings.reduce((sum, topping) => sum + topping.price * topping.quantity, 0) +
+      promotions.reduce(
+        (sum, promotion) => sum + promotion.price * promotion.quantity,
+        0,
+      ),
+    [items, toppings, promotions],
   );
 
   const totalQuantity = useMemo(
     () =>
       items.reduce((sum, item) => sum + item.quantity, 0) +
-      toppings.reduce((sum, topping) => sum + topping.quantity, 0),
-    [items, toppings],
+      toppings.reduce((sum, topping) => sum + topping.quantity, 0) +
+      promotions.reduce((sum, promotion) => sum + promotion.quantity, 0),
+    [items, toppings, promotions],
   );
 
   const { customerName, fulfillmentType, table, deliveryAddress } = orderDetails;
@@ -64,12 +71,20 @@ export function useMenuOrder() {
     useMenuOrderStore.getState().addTopping(input);
   }, []);
 
+  const addPromotion = useCallback((input: MenuOrderPromotion) => {
+    useMenuOrderStore.getState().addPromotion(input);
+  }, []);
+
   const removeItem = useCallback((lineId: string) => {
     useMenuOrderStore.getState().removeItem(lineId);
   }, []);
 
   const removeTopping = useCallback((id: string) => {
     useMenuOrderStore.getState().removeTopping(id);
+  }, []);
+
+  const removePromotion = useCallback((id: string) => {
+    useMenuOrderStore.getState().removePromotion(id);
   }, []);
 
   const incrementItem = useCallback((lineId: string) => {
@@ -80,12 +95,20 @@ export function useMenuOrder() {
     useMenuOrderStore.getState().incrementTopping(id);
   }, []);
 
+  const incrementPromotion = useCallback((id: string) => {
+    useMenuOrderStore.getState().incrementPromotion(id);
+  }, []);
+
   const decrementItem = useCallback((lineId: string) => {
     useMenuOrderStore.getState().decrementItem(lineId);
   }, []);
 
   const decrementTopping = useCallback((id: string) => {
     useMenuOrderStore.getState().decrementTopping(id);
+  }, []);
+
+  const decrementPromotion = useCallback((id: string) => {
+    useMenuOrderStore.getState().decrementPromotion(id);
   }, []);
 
   const updateItemQuantity = useCallback((lineId: string, quantity: number) => {
@@ -95,6 +118,13 @@ export function useMenuOrder() {
   const updateToppingQuantity = useCallback(
     (id: string, quantity: number) => {
       useMenuOrderStore.getState().updateToppingQuantity(id, quantity);
+    },
+    [],
+  );
+
+  const updatePromotionQuantity = useCallback(
+    (id: string, quantity: number) => {
+      useMenuOrderStore.getState().updatePromotionQuantity(id, quantity);
     },
     [],
   );
@@ -129,6 +159,7 @@ export function useMenuOrder() {
   const { sendOrder } = useWhatsAppOrderSender({
     items,
     toppings,
+    promotions,
     orderDetails,
     total,
     totalQuantity,
@@ -138,6 +169,7 @@ export function useMenuOrder() {
   return {
     items,
     toppings,
+    promotions,
     total,
     totalQuantity,
     orderDetails,
@@ -145,14 +177,19 @@ export function useMenuOrder() {
     actions: {
       addItem,
       addTopping,
+      addPromotion,
       removeItem,
       removeTopping,
+      removePromotion,
       incrementItem,
       incrementTopping,
+      incrementPromotion,
       decrementItem,
       decrementTopping,
+      decrementPromotion,
       updateItemQuantity,
       updateToppingQuantity,
+      updatePromotionQuantity,
       updateOrderDetail,
       updateOrderDetails,
       clearOrder,

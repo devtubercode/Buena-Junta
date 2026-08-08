@@ -42,6 +42,19 @@ export type MenuOrderTopping = {
   quantity: number;
 };
 
+export type MenuOrderPromotion = {
+  /** ID de la promoción en el catálogo. */
+  id: string;
+  /** Nombre de la promoción. */
+  name: string;
+  /** Precio unitario. */
+  price: number;
+  /** Cantidad solicitada. */
+  quantity: number;
+  /** Imagen de la promoción. */
+  urlImage?: MenuImage;
+};
+
 export type MenuOrderFulfillmentType = "pickup" | "table" | "delivery";
 
 export type MenuOrderPaymentMethod = "cash" | "nequi";
@@ -68,6 +81,8 @@ export type MenuOrderState = {
   items: MenuOrderItem[];
   /** Toppings globales del pedido. */
   toppings: MenuOrderTopping[];
+  /** Promociones del pedido. */
+  promotions: MenuOrderPromotion[];
   /** Datos del formulario del pedido. */
   orderDetails: MenuOrderDetails;
 };

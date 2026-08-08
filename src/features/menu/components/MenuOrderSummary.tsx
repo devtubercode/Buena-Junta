@@ -3,6 +3,7 @@ import productPlaceholderImage from "@/assets/product-placeholder.svg";
 import type { MenuImage } from "@/features/menu/types/menu.types";
 import type {
   MenuOrderItem,
+  MenuOrderPromotion,
   MenuOrderTopping,
 } from "@/store/menu-order/types/menu-order.types";
 
@@ -23,6 +24,7 @@ const formatItemDetails = (item: MenuOrderItem): string => {
 type MenuOrderSummaryProps = {
   items: MenuOrderItem[];
   toppings: MenuOrderTopping[];
+  promotions: MenuOrderPromotion[];
   total: number;
   totalQuantity: number;
 };
@@ -30,11 +32,13 @@ type MenuOrderSummaryProps = {
 export function MenuOrderSummary({
   items,
   toppings,
+  promotions,
   total,
   totalQuantity,
 }: MenuOrderSummaryProps) {
   const hasItems = items.length > 0;
   const hasToppings = toppings.length > 0;
+  const hasPromotions = promotions.length > 0;
 
   return (
     <section
@@ -153,6 +157,60 @@ export function MenuOrderSummary({
                   </div>
                 </li>
               ))}
+            </ul>
+          </div>
+        )}
+
+        {(hasItems || hasToppings) && hasPromotions && (
+          <hr className="border-border" />
+        )}
+
+        {hasPromotions && (
+          <div className="px-4 py-3 sm:px-5 sm:py-4">
+            <h3 className="mb-2 text-xs font-black uppercase tracking-wider text-muted-foreground">
+              Promociones
+            </h3>
+            <ul role="list" className="divide-y divide-border">
+              {promotions.map((promotion) => {
+                const image: MenuImage | { src: string; alt: string } =
+                  promotion.urlImage ?? {
+                    src: productPlaceholderImage,
+                    alt: promotion.name,
+                  };
+
+                return (
+                  <li
+                    key={promotion.id}
+                    className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="size-9 shrink-0 rounded-md object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="truncate text-sm font-bold text-foreground">
+                          {promotion.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          {formatCOP(promotion.price)} c/u
+                        </p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className="text-sm font-black text-foreground">
+                        {formatCOP(promotion.price * promotion.quantity)}
+                      </span>
+                      <span className="ml-1.5 text-xs text-muted-foreground">
+                        ×{promotion.quantity}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
