@@ -1,4 +1,4 @@
-import type { AIResponse, ZenChatCompletion } from "./types.ts";
+import type { AIItem, AIResponse, ZenChatCompletion } from "./types.ts";
 import {
   AI_CHAT_COMPLETIONS_URL,
   AI_MAX_TOKENS,
@@ -6,37 +6,104 @@ import {
   AI_REQUEST_TIMEOUT_MILLISECONDS,
 } from "./constants.ts";
 
-function cleanMarkdownFromJson(rawContent: string): string {
-  return rawContent
-    .replace(/```json\s*/g, "")
-    .replace(/```\s*/g, "")
-    .trim();
-}
-
-function extractJsonSubstring(rawContent: string): string {
-  const firstBraceIndex = rawContent.indexOf("{");
-  const lastBraceIndex = rawContent.lastIndexOf("}");
-  if (
-    firstBraceIndex === -1 ||
-    lastBraceIndex === -1 ||
-    lastBraceIndex < firstBraceIndex
-  ) {
-    return rawContent;
+const extractJsonSubstring = (rawContent: string): string => {
+  const start = rawContent.indexOf("{");
+  if (start === -1) {
+    throw new Error("No JSON object found in AI response");
   }
-  return rawContent.slice(firstBraceIndex, lastBraceIndex + 1);
-}
 
-function parseAiJsonResponse(content: string): AIResponse {
-  const cleanedContent = extractJsonSubstring(cleanMarkdownFromJson(content));
-  return JSON.parse(cleanedContent) as AIResponse;
-}
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
 
-export async function requestSuggestion(
+  for (let i = start; i < rawContent.length; i++) {
+    const char = rawContent[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+    } else if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return rawContent.slice(start, i + 1);
+      }
+    }
+  }
+
+  throw new Error("Unbalanced JSON in AI response");
+};
+
+const parseAiJsonResponse = (content: string): AIResponse => {
+  const jsonText = extractJsonSubstring(content);
+  const parsed: unknown = JSON.parse(jsonText);
+  return normalizeAiResponse(parsed);
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const normalizeAiResponse = (raw: unknown): AIResponse => {
+  if (!isRecord(raw)) {
+    throw new Error("AI response is not a JSON object");
+  }
+
+  const itemsRaw = raw.items;
+  if (!Array.isArray(itemsRaw)) {
+    throw new Error("AI response missing items array");
+  }
+
+  const items: AIItem[] = itemsRaw.map((entry, index) => {
+    if (!isRecord(entry) || typeof entry.productId !== "string") {
+      throw new Error(`AI item ${index} missing productId`);
+    }
+    const quantity =
+      typeof entry.quantity === "number" && Number.isFinite(entry.quantity)
+        ? entry.quantity
+        : null;
+    return { productId: entry.productId, quantity };
+  });
+
+  const sharedPromotionId =
+    typeof raw.sharedPromotionId === "string" ? raw.sharedPromotionId : null;
+
+  const explanationRaw = isRecord(raw.explanation) ? raw.explanation : {};
+  const summary =
+    typeof explanationRaw.summary === "string" ? explanationRaw.summary : "";
+  const itemReasonsRaw = isRecord(explanationRaw.itemReasons)
+    ? explanationRaw.itemReasons
+    : {};
+  const itemReasons: Record<string, string> = {};
+  for (const [key, value] of Object.entries(itemReasonsRaw)) {
+    if (typeof value === "string") {
+      itemReasons[key] = value;
+    }
+  }
+
+  return {
+    items,
+    sharedPromotionId,
+    explanation: { summary, itemReasons },
+  };
+};
+
+export const requestSuggestion = async (
   apiKey: string,
   iaModel: string,
   systemPrompt: string,
   userPrompt: string,
-): Promise<AIResponse> {
+): Promise<AIResponse> => {
   let response: Response;
   try {
     response = await fetch(AI_CHAT_COMPLETIONS_URL, {
@@ -74,23 +141,29 @@ export async function requestSuggestion(
     throw new Error(`AI API ${response.status}: ${errorText.slice(0, 200)}`);
   }
 
-  const completion = (await response.json()) as ZenChatCompletion;
+  let completion: ZenChatCompletion;
+  try {
+    completion = (await response.json()) as ZenChatCompletion;
+  } catch {
+    console.error("AI API returned non-JSON body");
+    throw new Error("AI API returned invalid JSON body");
+  }
+
   const content = completion.choices?.[0]?.message?.content;
   const finishReason = completion.choices?.[0]?.finish_reason ?? "unknown";
 
   const promptTokens = completion.usage?.prompt_tokens ?? 0;
   const completionTokens = completion.usage?.completion_tokens ?? 0;
   const totalTokens = completion.usage?.total_tokens ?? 0;
-  console.error(
-    "AI tokens usados — prompt:",
-    promptTokens,
-    "| completion:",
-    completionTokens,
-    "| total:",
-    totalTokens,
-    "| finish_reason:",
-    finishReason,
+  console.info(
+    `[assistant-suggest] tokens prompt=${promptTokens} completion=${completionTokens} total=${totalTokens} finish_reason=${finishReason}`,
   );
+
+  if (finishReason === "length") {
+    console.warn(
+      `[assistant-suggest] output truncated by max_tokens (${AI_MAX_TOKENS}); JSON may be incomplete`,
+    );
+  }
 
   if (!content) {
     console.error("AI returned empty content, finish_reason:", finishReason);
@@ -99,8 +172,12 @@ export async function requestSuggestion(
 
   try {
     return parseAiJsonResponse(content);
-  } catch {
-    console.error("Failed to parse AI JSON, content:", content.slice(0, 300));
-    throw new Error("Invalid JSON from AI");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(
+      `Failed to parse AI JSON (${message}), content:`,
+      content.slice(0, 300),
+    );
+    throw new Error(`Invalid JSON from AI: ${message}`, { cause: error });
   }
-}
+};

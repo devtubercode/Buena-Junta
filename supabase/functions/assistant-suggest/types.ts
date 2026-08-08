@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 // Request body del cliente
 export type SuggestionRequestBody = {
   peopleCount: number;
@@ -14,42 +16,14 @@ export type ProductRecord = {
   description: string | null;
   price: number | null;
   sale_price: number | null;
-  tags: string[] | null;
-  category: { name: string; slug: string } | null;
-  variants: ProductVariantRecord[];
-};
-
-export type ProductVariantRecord = {
-  id: string;
-  name: string;
-  price: number;
-  is_active: boolean;
-};
-
-export type OptionGroupRecord = {
-  id: string;
-  product_id: string;
-  name: string;
-  is_required: boolean;
-  options: OptionValueRecord[];
-};
-
-export type OptionValueRecord = {
-  name: string;
-  is_active: boolean;
-};
-
-export type AdditionLinkRecord = {
-  product_id: string;
-  addition: { id: string; name: string; price: number } | null;
+  category: { name: string } | null;
 };
 
 export type PromotionRecord = {
-  slug: string;
+  id: string;
   title: string;
   description: string | null;
   promotion_price: number;
-  original_price: number | null;
 };
 
 export type CategoryRecord = {
@@ -59,76 +33,51 @@ export type CategoryRecord = {
 };
 
 // Contexto del menú (lo que se envía a la IA)
+// description solo se incluye cuando hay exclusiones; sin exclusiones
+// no viaja en el payload (undefined se omite en JSON.stringify).
 export type MenuProduct = {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   category: string;
-  tags: string[];
-  variants: MenuProductVariant[];
-  groups: MenuProductGroup[];
-  additions: MenuProductAddition[];
-};
-
-export type MenuProductVariant = {
-  id: string;
-  label: string;
-  price: number;
-};
-
-export type MenuProductGroup = {
-  name: string;
-  required: boolean;
-  options: string[];
-};
-
-export type MenuProductAddition = {
-  id: string;
-  name: string;
-  price: number;
 };
 
 export type MenuPromotion = {
-  slug: string;
+  id: string;
   title: string;
+  description?: string;
   promotion_price: number;
-  original_price: number | null;
 };
 
 export type MenuContext = {
   products: MenuProduct[];
   promotions: MenuPromotion[];
-  categories: string[];
 };
 
 // Respuesta JSON de la IA
 export type AIResponse = {
   items: AIItem[];
-  sharedPromotionSlug: string | null;
+  sharedPromotionId: string | null;
   explanation: AIExplanation;
 };
 
 export type AIItem = {
   productId: string;
-  variantId: string | null;
-  selectedOptions: Record<string, string> | null;
-  additionKeys: string[] | null;
   quantity: number | null;
 };
 
 export type AIExplanation = {
   summary: string;
-  perItem: Record<string, string>;
+  itemReasons: Record<string, string>;
 };
 
-// Resultado de las queries DB
-export type DatabaseQueryResult = {
-  products: ProductRecord[];
-  optionGroups: OptionGroupRecord[];
-  additionLinks: AdditionLinkRecord[];
-  promotions: PromotionRecord[];
-  categories: CategoryRecord[];
+// Parámetros para construir el contexto del menú
+export type FetchMenuContextParams = {
+  supabaseAdmin: SupabaseClient;
+  preferredCategorySlugs: string[];
+  hasSharedItem: boolean;
+  hasExclusions: boolean;
 };
 
 // Respuesta JSON de la API Zen (raw)

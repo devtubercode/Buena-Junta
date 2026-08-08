@@ -4,7 +4,7 @@ import { withSupabase } from "@supabase/server";
 import { fetchMenuContext } from "./data.ts";
 import { requestSuggestion } from "./zen.ts";
 import { buildSystemPrompt, buildUserPrompt } from "./prompt.ts";
-import type { SuggestionRequestBody, MenuContext } from "./types.ts";
+import type { SuggestionRequestBody } from "./types.ts";
 
 export default {
   fetch: withSupabase(
@@ -23,12 +23,6 @@ export default {
 
       const apiKey = Deno.env.get("AI_API_KEY");
       const iaModel = Deno.env.get("AI_MODEL") ?? "glm-5";
-      console.error(
-        "DEBUG env vars — modelo:",
-        iaModel,
-        "| key configurada:",
-        apiKey ? "sí" : "no",
-      );
       if (!apiKey) {
         return Response.json(
           { error: "Missing API key secret" },
@@ -36,46 +30,36 @@ export default {
         );
       }
 
-      let menuContext: MenuContext;
-      let preferredCategoryNames: string[];
-      try {
-        const result = await fetchMenuContext(
-          context.supabaseAdmin,
-          body.preferredCategorySlugs,
-          body.hasSharedItem,
-        );
-        menuContext = result.menuContext;
-        preferredCategoryNames = result.preferredCategoryNames;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        console.error("Database error:", errorMessage);
-        const status = errorMessage.includes("No products match") ? 422 : 500;
-        return Response.json({ error: errorMessage }, { status });
-      }
+      const dbStartedAt = Date.now();
+
+      const menuContext = await fetchMenuContext({
+        supabaseAdmin: context.supabaseAdmin,
+        preferredCategorySlugs: body.preferredCategorySlugs,
+        hasSharedItem: body.hasSharedItem,
+        hasExclusions: body.exclusions.length > 0,
+      });
+
+      const dbDurationMs = Date.now() - dbStartedAt;
 
       const systemPrompt = buildSystemPrompt();
-      const userPrompt = buildUserPrompt(
-        JSON.stringify({
-          products: menuContext.products,
-          promotions: menuContext.promotions,
-          categories: menuContext.categories,
-        }),
-        {
-          peopleCount: body.peopleCount,
-          maximumBudget: body.maximumBudget,
-          preferredCategoryNames,
-          exclusions: body.exclusions,
-          hasSharedItem: body.hasSharedItem,
-        },
-      );
+      const userPrompt = buildUserPrompt(JSON.stringify(menuContext), {
+        peopleCount: body.peopleCount,
+        maximumBudget: body.maximumBudget,
+        exclusions: body.exclusions,
+        hasSharedItem: body.hasSharedItem,
+      });
 
       try {
+        const aiStartedAt = Date.now();
         const suggestion = await requestSuggestion(
           apiKey,
           iaModel,
           systemPrompt,
           userPrompt,
+        );
+        const aiDurationMs = Date.now() - aiStartedAt;
+        console.info(
+          `[assistant-suggest] model=${iaModel} db_ms=${dbDurationMs} ai_ms=${aiDurationMs} products=${menuContext.products.length} promotions=${menuContext.promotions.length}`,
         );
         return Response.json(suggestion);
       } catch (error) {
