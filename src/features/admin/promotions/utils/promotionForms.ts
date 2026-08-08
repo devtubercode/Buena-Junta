@@ -14,7 +14,7 @@ export const weekdays = [
 export const defaultPromotionValues: PromotionFormData = {
   title: "",
   slug: "",
-  description: null,
+  description: "",
   is_active: true,
   active_weekdays: [],
   promotion_price: "",
@@ -28,7 +28,7 @@ export function toPromotionForm(promotion: PromotionRow): PromotionFormData {
   return {
     title: promotion.title,
     slug: promotion.slug,
-    description: promotion.description,
+    description: promotion.description ?? "",
     is_active: promotion.is_active,
     active_weekdays: [...promotion.active_weekdays].sort((a, b) => a - b),
     promotion_price: String(Math.round(Number(promotion.promotion_price))),

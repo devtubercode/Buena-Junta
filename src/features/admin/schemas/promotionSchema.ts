@@ -19,9 +19,9 @@ export const promotionSchema = z.object({
     ),
   description: z
     .string()
+    .min(1, "La descripción es obligatoria")
     .max(1000, "La descripción no puede superar los 1000 caracteres")
-    .nullable()
-    .transform((value) => (value?.trim() ? value.trim() : null)),
+    .transform((value) => value.trim()),
   is_active: z.boolean(),
   active_weekdays: weekdaysSchema,
   promotion_price: z

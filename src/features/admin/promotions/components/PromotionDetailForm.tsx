@@ -83,7 +83,7 @@ export const PromotionDetailForm = ({
             name="description"
             control={form.control}
             label="Descripción"
-            placeholder="Descripción opcional de la promoción"
+            placeholder="Descripción de la promoción"
           />
         </section>
 

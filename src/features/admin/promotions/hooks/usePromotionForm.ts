@@ -145,7 +145,7 @@ export const usePromotionForm = ({
       const bodySave: PromotionInput = {
         slug: normalizeSlug(data.slug),
         title: data.title.trim(),
-        description: data.description?.trim() || "",
+        description: data.description.trim(),
         is_active: data.is_active,
         active_weekdays: data.active_weekdays,
         promotion_price: parsePrice(data.promotion_price) ?? 0,

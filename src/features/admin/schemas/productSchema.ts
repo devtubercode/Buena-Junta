@@ -17,7 +17,8 @@ export const productSchema = z.object({
   description: z
     .string()
     .min(1, "La descripción es obligatoria")
-    .max(1000, "La descripción no puede superar los 1000 caracteres"),
+    .max(1000, "La descripción no puede superar los 1000 caracteres")
+    .transform((value) => value.trim()),
   price: z.string().regex(/^\d*$/, "El precio debe ser un número válido"),
   sale_price: z
     .string()
